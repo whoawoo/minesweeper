@@ -246,7 +246,6 @@ body {
 }
 
 .cell.mine {
-  background: #ff0000;
   border: 1px solid var(--shadow);
 }
 
