@@ -647,10 +647,29 @@ function todayStr() {
   return ymd(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+function countTrophies() {
+  const stamps = loadStamps();
+  const monthCounts = {};
+  for (const ds of Object.keys(stamps)) {
+    const key = ds.slice(0, 7); // "YYYY-MM"
+    monthCounts[key] = (monthCounts[key] || 0) + 1;
+  }
+  let count = 0;
+  for (const key of Object.keys(monthCounts)) {
+    const [y, m] = key.split("-").map(Number);
+    const lastDay = new Date(y, m, 0).getDate(); // m은 1-based 그대로 넣으면 해당 달 말일이 나옴
+    if (monthCounts[key] >= lastDay) count++;
+  }
+  return count;
+}
+
 function refreshAttendanceInfo() {
   const stamps = loadStamps();
   const total = Object.keys(stamps).length;
-  attendanceInfoEl.textContent = `도장 ${total}개`;
+  const trophies = countTrophies();
+  attendanceInfoEl.textContent = trophies > 0
+    ? `도장 ${total}개 · 🏆 ${trophies}`
+    : `도장 ${total}개`;
 }
 
 // ---- 달력 렌더링 ----
@@ -663,13 +682,23 @@ function renderCalendar() {
 
   calMonthLabel.textContent = `${calYear}년 ${calMonth + 1}월`;
 
-  // 트로피: 이번 달 1일 ~ 말일까지 모두 도장 찍혔는가?
+  // 트로피: 이번 달 1일 ~ 말일까지 모두 도장 찍혔는가? + 진행도
   const lastDay = new Date(calYear, calMonth + 1, 0).getDate();
-  let allStamped = true;
+  let stampedDays = 0;
   for (let d = 1; d <= lastDay; d++) {
-    if (!stamps[ymd(calYear, calMonth, d)]) { allStamped = false; break; }
+    if (stamps[ymd(calYear, calMonth, d)]) stampedDays++;
   }
-  calTrophyRow.textContent = allStamped ? "🏆" : "";
+  const allStamped = stampedDays >= lastDay;
+  calTrophyRow.classList.toggle("earned", allStamped);
+  if (allStamped) {
+    calTrophyRow.innerHTML =
+      `<span class="cal-trophy-emoji">🏆</span>` +
+      `<span class="cal-trophy-caption">${calMonth + 1}월 완벽 출석!</span>`;
+  } else {
+    calTrophyRow.innerHTML =
+      `<span class="cal-trophy-empty">🏆</span>` +
+      `<span class="cal-trophy-progress"><strong>${stampedDays}</strong> / ${lastDay} — 모두 채우면 트로피!</span>`;
+  }
 
   // 그리드
   calGridEl.innerHTML = "";
