@@ -251,8 +251,11 @@ function onFlagToggle(r, c) {
 
 const LONG_PRESS_MS = 400;
 
+// 두 손가락 제스처가 진행 중이면 셀 탭을 무시한다 (두 손가락 팬/핀치 줌 → 셀 공개 X)
+let multiTouchActive = false;
+let activePressTimer = null;
+
 function attachInputHandlers(el, r, c) {
-  let pressTimer = null;
   let suppressNextClick = false;
 
   // 우클릭 메뉴는 항상 차단 (모바일 롱프레스 시에도 떠서 깃발 동작이랑 부딪힘)
@@ -270,9 +273,13 @@ function attachInputHandlers(el, r, c) {
   });
 
   // 롱프레스 = 깃발 (모바일). 손 닿는 동안 스마일도 😯
-  el.addEventListener("touchstart", () => {
+  el.addEventListener("touchstart", (e) => {
+    // 두 번째 이상의 손가락은 셀 동작 트리거 X (팬/핀치 줌 제스처)
+    if (e.touches.length > 1) return;
     smileyPress();
-    pressTimer = setTimeout(() => {
+    if (activePressTimer) clearTimeout(activePressTimer);
+    activePressTimer = setTimeout(() => {
+      activePressTimer = null;
       onFlagToggle(r, c);
       suppressNextClick = true;
       if (navigator.vibrate) navigator.vibrate(40);
@@ -280,24 +287,97 @@ function attachInputHandlers(el, r, c) {
   }, { passive: true });
 
   const cancel = () => {
-    if (pressTimer) {
-      clearTimeout(pressTimer);
-      pressTimer = null;
+    if (activePressTimer) {
+      clearTimeout(activePressTimer);
+      activePressTimer = null;
     }
   };
   el.addEventListener("touchend", cancel, { passive: true });
   el.addEventListener("touchmove", cancel, { passive: true });
   el.addEventListener("touchcancel", cancel, { passive: true });
 
-  // 일반 탭/클릭 = 공개 (단, 직전에 롱프레스 일어났으면 1번 무시)
+  // 일반 탭/클릭 = 공개 (단, 직전에 롱프레스 일어났거나 두 손가락 제스처면 무시)
   el.addEventListener("click", () => {
     if (suppressNextClick) {
       suppressNextClick = false;
       return;
     }
+    if (multiTouchActive) return;
     onCellClick(r, c);
   });
 }
+
+// ---- 두 손가락 팬: 핀치 줌 안 했을 때도 두 손가락으로 화면을 스크롤 ----
+// 핀치 줌 중일 땐 브라우저 visual viewport 팬에 맡기고 가만히 있는다 (preventDefault X).
+let twoFinger = null;
+
+window.addEventListener("touchstart", (e) => {
+  if (e.touches.length >= 2) {
+    multiTouchActive = true;
+    // 첫 손가락이 걸어 둔 롱프레스 타이머 취소 (두 손가락 떴으면 깃발 의도 아님)
+    if (activePressTimer) {
+      clearTimeout(activePressTimer);
+      activePressTimer = null;
+    }
+    smileyRelease();
+    if (e.touches.length === 2) {
+      const [a, b] = e.touches;
+      const avgX = (a.clientX + b.clientX) / 2;
+      const avgY = (a.clientY + b.clientY) / 2;
+      twoFinger = {
+        startDist: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+        startAvgX: avgX,
+        startAvgY: avgY,
+        lastX: avgX,
+        lastY: avgY,
+        mode: null, // 'pan' or 'pinch' — 처음 몇 px 움직임으로 결정
+      };
+    }
+  }
+}, { passive: true, capture: true });
+
+window.addEventListener("touchmove", (e) => {
+  if (!twoFinger || e.touches.length !== 2) return;
+  const [a, b] = e.touches;
+  const avgX = (a.clientX + b.clientX) / 2;
+  const avgY = (a.clientY + b.clientY) / 2;
+  const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+
+  if (twoFinger.mode === null) {
+    const distDelta = Math.abs(dist - twoFinger.startDist);
+    const panDelta = Math.hypot(avgX - twoFinger.startAvgX, avgY - twoFinger.startAvgY);
+    if (panDelta > 8 && panDelta >= distDelta) {
+      twoFinger.mode = "pan";
+    } else if (distDelta > 8) {
+      twoFinger.mode = "pinch";
+    }
+  }
+
+  if (twoFinger.mode === "pan") {
+    // 핀치 줌 중이면 visual viewport 팬을 브라우저에 맡긴다
+    const scale = (window.visualViewport && window.visualViewport.scale) || 1;
+    if (scale <= 1.01) {
+      e.preventDefault();
+      const root = document.getElementById("scrollRoot");
+      if (root) {
+        root.scrollTop -= (avgY - twoFinger.lastY);
+        root.scrollLeft -= (avgX - twoFinger.lastX);
+      }
+    }
+    twoFinger.lastX = avgX;
+    twoFinger.lastY = avgY;
+  }
+}, { passive: false, capture: true });
+
+function endTwoFinger(e) {
+  if (e.touches.length < 2) twoFinger = null;
+  if (e.touches.length === 0) {
+    // 손가락이 다 떨어진 직후에 합성된 click이 떨어질 수 있어 잠깐 가드 유지
+    setTimeout(() => { multiTouchActive = false; }, 50);
+  }
+}
+window.addEventListener("touchend", endTwoFinger, { passive: true, capture: true });
+window.addEventListener("touchcancel", endTwoFinger, { passive: true, capture: true });
 
 // 스택 기반 flood fill — 0인 칸을 만나면 이웃을 계속 펼친다
 function reveal(startR, startC) {
