@@ -466,6 +466,25 @@ document.addEventListener("touchcancel", smileyRelease);
 
 // 메인 화면이 기본 시작 화면 (init은 startGame 안에서 호출됨)
 
+// ---- 당겨서 새로고침 차단 (CSS overscroll-behavior가 갤럭시 PWA에서 안 먹는 경우 백업) ----
+// 핀치 줌(손가락 2개)과 일반 탭은 영향 없게 단일 손가락 + 페이지 맨 위 + 10px 이상 아래 이동인 경우만 막음
+{
+  let startY = 0;
+  document.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 1) startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener("touchmove", (e) => {
+    if (e.touches.length !== 1) return;
+    const dy = e.touches[0].clientY - startY;
+    const scroller = document.scrollingElement || document.documentElement;
+    const atTop = scroller.scrollTop <= 0;
+    if (atTop && dy > 10 && e.cancelable) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+}
+
 // ---- PWA 등록: 오프라인/홈 화면 설치 ----
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
