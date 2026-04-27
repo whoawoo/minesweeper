@@ -14,7 +14,7 @@
   padding: 0;
 }
 
-/* document는 아예 스크롤 안 함 → 갤럭시 PWA에서 pull-to-refresh 차단 (가장 확실한 방법) */
+/* document를 물리적으로 스크롤 불가능하게 → 갤럭시 PWA pull-to-refresh 차단 */
 html, body {
   height: 100dvh;
   overflow: hidden;
@@ -22,6 +22,8 @@ html, body {
 }
 
 body {
+  position: fixed;
+  inset: 0;
   font-family: "MS Sans Serif", Tahoma, Verdana, -apple-system, sans-serif;
   background: var(--bg);
   color: #000;
