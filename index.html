@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>지뢰찾기</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 메인 화면: 난이도 선택 -->
+  <div id="mainView" class="view">
+    <h1 class="main-title">💣 지뢰찾기</h1>
+    <p class="main-sub">난이도를 골라주세요</p>
+
+    <div class="menu">
+      <button class="menu-btn" data-level="beginner">
+        <span class="menu-name">초보</span>
+        <span class="menu-info">8 × 8 · 지뢰 10개</span>
+      </button>
+      <button class="menu-btn" data-level="intermediate">
+        <span class="menu-name">중수</span>
+        <span class="menu-info">16 × 16 · 지뢰 40개</span>
+      </button>
+      <button class="menu-btn" data-level="expert">
+        <span class="menu-name">고수</span>
+        <span class="menu-info">16 × 30 · 지뢰 99개</span>
+      </button>
+    </div>
+
+    <p class="main-hint">탭 = 칸 공개 · 길게 누르기 = 깃발</p>
+  </div>
+
+  <!-- 게임 화면 -->
+  <div id="gameView" class="view hidden">
+    <button id="menuBack" class="back-btn">← 메뉴</button>
+
+    <div class="game-frame">
+      <div class="status">
+        <div class="led" id="mineCount">010</div>
+        <button id="newGame" class="smiley" aria-label="새 게임">🙂</button>
+        <div class="led" id="timer">000</div>
+      </div>
+      <div class="board-frame">
+        <div id="board"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

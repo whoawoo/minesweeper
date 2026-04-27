@@ -1,0 +1,261 @@
+/* 클래식 Windows 95 지뢰찾기 룩 (메인 화면 + 게임 화면) */
+
+:root {
+  --gray:    #c0c0c0;
+  --light:   #ffffff;
+  --shadow:  #808080;
+  --dark:    #404040;
+  --bg:      #6d6d6d; /* 메인 배경: 데스크탑 느낌의 중간 회색 */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "MS Sans Serif", Tahoma, Verdana, -apple-system, sans-serif;
+  background: var(--bg);
+  color: #000;
+  min-height: 100dvh;
+  /* iPhone 노치 영역 침범 방지 (갤럭시는 영향 없음, 안전망) */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ---- 화면(view) 토글 ---- */
+.view {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  gap: 12px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ---- 메인 화면 ---- */
+.main-title {
+  color: #fff;
+  font-size: 2rem;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 0 #000;
+  margin-top: 8vh;
+}
+
+.main-sub {
+  color: #f0f0f0;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.menu-btn {
+  background: var(--gray);
+  color: #000;
+  border-top: 3px solid var(--light);
+  border-left: 3px solid var(--light);
+  border-right: 3px solid var(--shadow);
+  border-bottom: 3px solid var(--shadow);
+  padding: 16px;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.menu-btn:active {
+  border-top: 3px solid var(--shadow);
+  border-left: 3px solid var(--shadow);
+  border-right: 3px solid var(--light);
+  border-bottom: 3px solid var(--light);
+}
+
+.menu-name {
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.menu-info {
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.main-hint {
+  color: #d8d8d8;
+  font-size: 0.85rem;
+  margin-top: 12px;
+  text-align: center;
+}
+
+/* ---- 게임 화면 ---- */
+.back-btn {
+  align-self: flex-start;
+  background: var(--gray);
+  color: #000;
+  border-top: 2px solid var(--light);
+  border-left: 2px solid var(--light);
+  border-right: 2px solid var(--shadow);
+  border-bottom: 2px solid var(--shadow);
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: bold;
+  cursor: pointer;
+  min-height: 40px; /* 손가락 탭 영역 확보 */
+}
+
+.back-btn:active {
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--light);
+  border-bottom: 2px solid var(--light);
+}
+
+/* ---- 게임 프레임 (가장 바깥, 솟아오른 베벨) ---- */
+.game-frame {
+  background: var(--gray);
+  padding: 6px;
+  border-top: 3px solid var(--light);
+  border-left: 3px solid var(--light);
+  border-right: 3px solid var(--shadow);
+  border-bottom: 3px solid var(--shadow);
+}
+
+/* ---- 상단 상태바 (LED + 스마일, 움푹 들어간 베벨) ---- */
+.status {
+  background: var(--gray);
+  padding: 4px 6px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--light);
+  border-bottom: 2px solid var(--light);
+}
+
+.led {
+  background: #000;
+  color: #ff2020;
+  font-family: "Courier New", "Consolas", monospace;
+  font-weight: bold;
+  font-size: 1.6rem;
+  line-height: 1;
+  padding: 3px 6px;
+  border-top: 1px solid var(--dark);
+  border-left: 1px solid var(--dark);
+  border-right: 1px solid var(--gray);
+  border-bottom: 1px solid var(--gray);
+  letter-spacing: 0.08em;
+  min-width: 3.5ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.smiley {
+  width: 40px;
+  height: 40px;
+  background: var(--gray);
+  border-top: 2px solid var(--light);
+  border-left: 2px solid var(--light);
+  border-right: 2px solid var(--shadow);
+  border-bottom: 2px solid var(--shadow);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.smiley:active {
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--light);
+  border-bottom: 2px solid var(--light);
+}
+
+/* ---- 보드 영역 (움푹 들어간 베벨) ---- */
+.board-frame {
+  background: var(--gray);
+  border-top: 3px solid var(--shadow);
+  border-left: 3px solid var(--shadow);
+  border-right: 3px solid var(--light);
+  border-bottom: 3px solid var(--light);
+}
+
+#board {
+  display: grid;
+  gap: 0;
+  margin: 0 auto; /* 보드 프레임이 더 넓을 때 (e.g. 초보) 가운데 정렬 */
+  --cell-size: min(
+    calc((100vw - 60px) / var(--cols, 9)),
+    calc((100dvh - 180px) / var(--rows, 9)),
+    32px
+  );
+  grid-template-columns: repeat(var(--cols, 9), var(--cell-size));
+  grid-template-rows: repeat(var(--rows, 9), var(--cell-size));
+}
+
+/* ---- 칸 ---- */
+.cell {
+  background: var(--gray);
+  border-top: 2px solid var(--light);
+  border-left: 2px solid var(--light);
+  border-right: 2px solid var(--shadow);
+  border-bottom: 2px solid var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-family: "Courier New", "Consolas", monospace;
+  font-size: calc(var(--cell-size) * 0.6);
+  line-height: 1;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  cursor: pointer;
+  color: #000;
+}
+
+.cell.revealed {
+  background: var(--gray);
+  border: 1px solid var(--shadow);
+  cursor: default;
+}
+
+.cell.mine {
+  background: #ff0000;
+  border: 1px solid var(--shadow);
+}
+
+/* 클래식 9색 숫자 컬러 */
+.cell.n1 { color: #0000ff; }
+.cell.n2 { color: #008000; }
+.cell.n3 { color: #ff0000; }
+.cell.n4 { color: #000080; }
+.cell.n5 { color: #800000; }
+.cell.n6 { color: #008080; }
+.cell.n7 { color: #000000; }
+.cell.n8 { color: #808080; }
