@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#c0c0c0"/>
+  <!-- 폭탄 본체 -->
+  <circle cx="256" cy="280" r="130" fill="#000"/>
+  <!-- 8방향 가시 -->
+  <g stroke="#000" stroke-width="24" stroke-linecap="round">
+    <line x1="256" y1="115" x2="256" y2="170"/>
+    <line x1="256" y1="390" x2="256" y2="445"/>
+    <line x1="91"  y1="280" x2="146" y2="280"/>
+    <line x1="366" y1="280" x2="421" y2="280"/>
+    <line x1="139" y1="163" x2="178" y2="202"/>
+    <line x1="334" y1="358" x2="373" y2="397"/>
+    <line x1="139" y1="397" x2="178" y2="358"/>
+    <line x1="334" y1="202" x2="373" y2="163"/>
+  </g>
+  <!-- 하이라이트 -->
+  <ellipse cx="218" cy="238" rx="26" ry="20" fill="#fff"/>
+</svg>

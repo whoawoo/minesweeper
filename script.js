@@ -465,3 +465,12 @@ document.addEventListener("touchend", smileyRelease);
 document.addEventListener("touchcancel", smileyRelease);
 
 // 메인 화면이 기본 시작 화면 (init은 startGame 안에서 호출됨)
+
+// ---- PWA 등록: 오프라인/홈 화면 설치 ----
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch((err) => {
+      console.error("Service worker registration failed:", err);
+    });
+  });
+}
