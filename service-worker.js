@@ -1,6 +1,6 @@
-// 오프라인 캐시 + 백그라운드 자동 갱신
+// 오프라인 캐시 + 자동 갱신
 // 새 버전 배포할 땐 CACHE 이름의 숫자만 올리면 자동으로 헌 캐시 청소됨
-const CACHE = "minesweeper-v1";
+const CACHE = "minesweeper-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -25,18 +25,43 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-// stale-while-revalidate: 캐시에서 즉시 응답 + 백그라운드로 새 버전 받아 캐시 갱신
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+
+  // HTML(페이지 자체)은 네트워크 우선 — 항상 최신 viewport/마크업 받기, 오프라인 때만 캐시
+  const isHTML =
+    e.request.mode === "navigate" ||
+    (e.request.headers.get("accept") || "").includes("text/html");
+
+  if (isHTML) {
+    e.respondWith(
+      fetch(e.request)
+        .then((r) => {
+          if (r && r.ok) {
+            const clone = r.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, clone));
+          }
+          return r;
+        })
+        .catch(() =>
+          caches.match(e.request).then((c) => c || caches.match("./index.html"))
+        )
+    );
+    return;
+  }
+
+  // 그 외 자원: 캐시 우선 + 백그라운드 갱신 (stale-while-revalidate)
   e.respondWith(
     caches.match(e.request).then((cached) => {
-      const fromNet = fetch(e.request).then((r) => {
-        if (r && r.ok) {
-          const clone = r.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, clone));
-        }
-        return r;
-      }).catch(() => cached);
+      const fromNet = fetch(e.request)
+        .then((r) => {
+          if (r && r.ok) {
+            const clone = r.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, clone));
+          }
+          return r;
+        })
+        .catch(() => cached);
       return cached || fromNet;
     })
   );

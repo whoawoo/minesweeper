@@ -473,4 +473,12 @@ if ("serviceWorker" in navigator) {
       console.error("Service worker registration failed:", err);
     });
   });
+
+  // 새 service worker가 활성화되면 페이지 한 번 자동 새로고침 → 사용자가 두 번 안 껐다 켜도 됨
+  let reloadedForSW = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloadedForSW) return;
+    reloadedForSW = true;
+    window.location.reload();
+  });
 }
