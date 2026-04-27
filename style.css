@@ -14,17 +14,25 @@
   padding: 0;
 }
 
-/* 당겨서 새로고침 비활성화 — html과 body 모두에 걸어야 갤럭시 Chrome에서 확실히 동작 */
+/* document는 아예 스크롤 안 함 → 갤럭시 PWA에서 pull-to-refresh 차단 (가장 확실한 방법) */
 html, body {
-  overscroll-behavior-y: none;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
   font-family: "MS Sans Serif", Tahoma, Verdana, -apple-system, sans-serif;
   background: var(--bg);
   color: #000;
-  min-height: 100dvh;
-  /* iPhone 노치 영역 침범 방지 (갤럭시는 영향 없음, 안전망) */
+}
+
+/* 실제 스크롤 컨테이너: 콘텐츠가 화면보다 길면 여기서 내부 스크롤 (document 스크롤 X) */
+#scrollRoot {
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* iPhone 노치 영역 침범 방지 (갤럭시 영향 X, 안전망) */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
@@ -39,6 +47,9 @@ body {
   align-items: center;
   padding: 16px 12px;
   gap: 12px;
+  /* dvh 미지원 구버전 대비 안전 */
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
 }
 
 .hidden {
