@@ -277,9 +277,96 @@ body {
 .cell.n7 { color: #000000; }
 .cell.n8 { color: #808080; }
 
-/* ---- 메인의 특수 메뉴 버튼 (이어하기 / 출석체크) ---- */
+/* ---- 메인의 특수 메뉴 버튼 (이어하기) ---- */
 .resume-btn { background: #d8e8ff; }
-.attendance-btn { background: #f8e8b0; }
+
+/* ---- 출석체크 카드: 종이쿠폰 + 빨간 도장 느낌 (메뉴 위에 따로 배치) ---- */
+.main-title + .attendance-card { margin-top: 12px; }
+
+.attendance-card {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  background:
+    radial-gradient(circle at 12px 12px, transparent 4px, transparent 4px) ,
+    linear-gradient(135deg, #fffbe7 0%, #f3dfa0 60%, #ecca6a 100%);
+  border: 3px dashed #b07a30;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  color: #3a2410;
+  box-shadow: 0 3px 0 #8a5e2a, 0 6px 14px rgba(0, 0, 0, 0.3);
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 좌상/우상 모서리에 종이 펀치 구멍 같은 살짝 음영 */
+.attendance-card::before,
+.attendance-card::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.attendance-card::before { left: 16px; }
+.attendance-card::after { right: 16px; }
+
+.attendance-card:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #8a5e2a, 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.att-icon {
+  font-size: 2rem;
+  line-height: 1;
+  filter: drop-shadow(1px 1px 0 rgba(255, 255, 255, 0.6));
+}
+
+.att-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.att-title {
+  font-size: 1.35rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  color: #5a3010;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.att-sub {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #c00000;
+  border: 2px solid #c00000;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-family: "Courier New", "Consolas", monospace;
+  background: rgba(255, 250, 235, 0.8);
+  letter-spacing: 0.08em;
+  transform: rotate(-3deg);
+  display: inline-block;
+}
+
+.att-arrow {
+  font-size: 1.2rem;
+  color: #8a5e2a;
+  margin-left: 4px;
+}
 
 /* ---- 출석체크 화면 ---- */
 .cal-frame {

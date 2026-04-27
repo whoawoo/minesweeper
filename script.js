@@ -650,7 +650,7 @@ function todayStr() {
 function refreshAttendanceInfo() {
   const stamps = loadStamps();
   const total = Object.keys(stamps).length;
-  attendanceInfoEl.textContent = `${total}개의 도장`;
+  attendanceInfoEl.textContent = `도장 ${total}개`;
 }
 
 // ---- 달력 렌더링 ----

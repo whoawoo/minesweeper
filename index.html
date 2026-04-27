@@ -17,16 +17,22 @@
   <!-- 메인 화면: 난이도 선택 -->
   <div id="mainView" class="view">
     <h1 class="main-title">💣 지뢰찾기</h1>
+
+    <button id="attendanceBtn" class="attendance-card" type="button">
+      <span class="att-icon" aria-hidden="true">📅</span>
+      <span class="att-text">
+        <span class="att-title">출석체크</span>
+        <span class="att-sub" id="attendanceInfo">도장 0개</span>
+      </span>
+      <span class="att-arrow" aria-hidden="true">▶</span>
+    </button>
+
     <p class="main-sub">난이도를 골라주세요</p>
 
     <div class="menu">
       <button id="resumeBtn" class="menu-btn resume-btn hidden">
         <span class="menu-name">▶ 이어하기</span>
         <span class="menu-info" id="resumeInfo"></span>
-      </button>
-      <button id="attendanceBtn" class="menu-btn attendance-btn">
-        <span class="menu-name">📅 출석체크</span>
-        <span class="menu-info" id="attendanceInfo">0개의 도장</span>
       </button>
       <button class="menu-btn" data-level="beginner">
         <span class="menu-name">초보</span>
