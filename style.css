@@ -14,13 +14,16 @@
   padding: 0;
 }
 
+/* 당겨서 새로고침 비활성화 — html과 body 모두에 걸어야 갤럭시 Chrome에서 확실히 동작 */
+html, body {
+  overscroll-behavior-y: none;
+}
+
 body {
   font-family: "MS Sans Serif", Tahoma, Verdana, -apple-system, sans-serif;
   background: var(--bg);
   color: #000;
   min-height: 100dvh;
-  /* 당겨서 새로고침 비활성화 (스크롤은 그대로 동작) */
-  overscroll-behavior: contain;
   /* iPhone 노치 영역 침범 방지 (갤럭시는 영향 없음, 안전망) */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
