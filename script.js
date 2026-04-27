@@ -16,6 +16,25 @@ const timerEl = document.getElementById("timer");
 const mainView = document.getElementById("mainView");
 const gameView = document.getElementById("gameView");
 const menuBackBtn = document.getElementById("menuBack");
+const attendanceView = document.getElementById("attendanceView");
+const attendanceBtn = document.getElementById("attendanceBtn");
+const attendanceBackBtn = document.getElementById("attendanceBack");
+const attendanceContinueBtn = document.getElementById("attendanceContinue");
+const attendanceInfoEl = document.getElementById("attendanceInfo");
+const calMonthLabel = document.getElementById("calMonthLabel");
+const calPrevBtn = document.getElementById("calPrev");
+const calNextBtn = document.getElementById("calNext");
+const calGridEl = document.getElementById("calGrid");
+const calTrophyRow = document.getElementById("calTrophyRow");
+const calHintEl = document.getElementById("calHint");
+const resumeBtn = document.getElementById("resumeBtn");
+const resumeInfoEl = document.getElementById("resumeInfo");
+const stampBannerEl = document.getElementById("stampBanner");
+
+// localStorage 키
+const SAVE_KEY = "mw:save";
+const STAMPS_KEY = "mw:stamps";
+const LEVEL_NAMES = { beginner: "초보", intermediate: "중수", expert: "고수" };
 
 const SMILEY_DEFAULT = "🙂";
 const SMILEY_PRESS = "😯";
@@ -118,6 +137,8 @@ let minesPlaced = false;
 let gameOver = false;
 let timerInterval = null;
 let elapsedSeconds = 0;
+// 출석체크에서 들어왔을 때, 이 게임을 클리어하면 도장 찍을 날짜 (yyyy-mm-dd)
+let pendingStampDate = null;
 
 function init() {
   const cfg = DIFFICULTIES[currentDifficulty];
@@ -236,6 +257,8 @@ function onCellClick(r, c) {
 
   if (!gameOver && checkWin()) {
     handleWin();
+  } else if (!gameOver) {
+    saveGame();
   }
 }
 
@@ -247,6 +270,7 @@ function onFlagToggle(r, c) {
   renderCell(r, c);
   updateMineCount();
   playFlag();
+  saveGame();
 }
 
 const LONG_PRESS_MS = 400;
@@ -439,6 +463,10 @@ function handleLose() {
   revealAllMines();
   newGameBtn.textContent = SMILEY_LOSE;
   playBoom();
+  // 도장 미적립 (게임 다시 시작 시 사라짐)
+  pendingStampDate = null;
+  hideStampBanner();
+  clearSave();
 }
 
 function handleWin() {
@@ -447,6 +475,13 @@ function handleWin() {
   flagAllMines();
   updateMineCount();
   newGameBtn.textContent = SMILEY_WIN;
+  if (pendingStampDate) {
+    addStamp(pendingStampDate);
+    showStampToast(pendingStampDate);
+    pendingStampDate = null;
+    // 토스트는 그대로 두기 — 다음 게임 시작/메뉴 전환 시 자연스레 사라짐
+  }
+  clearSave();
 }
 
 function checkWin() {
@@ -514,37 +549,316 @@ function renderCell(r, c) {
   }
 }
 
+// ---- 저장/복원/이어하기 (localStorage) ----
+function saveGame() {
+  // 첫 클릭 전에는 저장 의미 X (지뢰 배치 전)
+  if (gameOver || !minesPlaced) return;
+  try {
+    const data = {
+      difficulty: currentDifficulty,
+      cells: cells.map((row) =>
+        row.map((c) => ({
+          isMine: c.isMine,
+          isRevealed: c.isRevealed,
+          isFlagged: c.isFlagged,
+          adjacent: c.adjacent,
+        }))
+      ),
+      elapsedSeconds,
+      pendingStampDate,
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch (e) {}
+}
+
+function loadSave() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s || !DIFFICULTIES[s.difficulty] || !Array.isArray(s.cells)) return null;
+    return s;
+  } catch (e) {
+    return null;
+  }
+}
+
+function clearSave() {
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  refreshResumeButton();
+}
+
+function refreshResumeButton() {
+  const s = loadSave();
+  if (s) {
+    const name = LEVEL_NAMES[s.difficulty] || s.difficulty;
+    resumeInfoEl.textContent = `${name} · ${formatLed(s.elapsedSeconds || 0)}${s.pendingStampDate ? " · 📅" : ""}`;
+    resumeBtn.classList.remove("hidden");
+  } else {
+    resumeBtn.classList.add("hidden");
+  }
+}
+
+function resumeGame() {
+  const s = loadSave();
+  if (!s) return;
+  currentDifficulty = s.difficulty;
+  hideAllViews();
+  gameView.classList.remove("hidden");
+  init(); // DOM 새로 깔고
+  // 저장된 상태 덮어쓰기
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (s.cells[r] && s.cells[r][c]) {
+        cells[r][c] = s.cells[r][c];
+        renderCell(r, c);
+      }
+    }
+  }
+  minesPlaced = true;
+  elapsedSeconds = s.elapsedSeconds || 0;
+  timerEl.textContent = formatLed(elapsedSeconds);
+  pendingStampDate = s.pendingStampDate || null;
+  showStampBannerIfPending();
+  updateMineCount();
+  startTimer();
+}
+
+// ---- 출석체크: 도장 ----
+function loadStamps() {
+  try { return JSON.parse(localStorage.getItem(STAMPS_KEY) || "{}") || {}; }
+  catch (e) { return {}; }
+}
+function saveStamps(stamps) {
+  try { localStorage.setItem(STAMPS_KEY, JSON.stringify(stamps)); } catch (e) {}
+}
+function addStamp(dateStr) {
+  const stamps = loadStamps();
+  stamps[dateStr] = true;
+  saveStamps(stamps);
+  refreshAttendanceInfo();
+}
+
+function ymd(y, m, d) {
+  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+function todayStr() {
+  const d = new Date();
+  return ymd(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function refreshAttendanceInfo() {
+  const stamps = loadStamps();
+  const total = Object.keys(stamps).length;
+  attendanceInfoEl.textContent = `${total}개의 도장`;
+}
+
+// ---- 달력 렌더링 ----
+let calYear, calMonth; // 현재 표시 중인 달
+let selectedDate = null; // 'yyyy-mm-dd' 또는 null
+
+function renderCalendar() {
+  const stamps = loadStamps();
+  const today = todayStr();
+
+  calMonthLabel.textContent = `${calYear}년 ${calMonth + 1}월`;
+
+  // 트로피: 이번 달 1일 ~ 말일까지 모두 도장 찍혔는가?
+  const lastDay = new Date(calYear, calMonth + 1, 0).getDate();
+  let allStamped = true;
+  for (let d = 1; d <= lastDay; d++) {
+    if (!stamps[ymd(calYear, calMonth, d)]) { allStamped = false; break; }
+  }
+  calTrophyRow.textContent = allStamped ? "🏆" : "";
+
+  // 그리드
+  calGridEl.innerHTML = "";
+  const wkNames = ["일", "월", "화", "수", "목", "금", "토"];
+  wkNames.forEach((n, i) => {
+    const h = document.createElement("div");
+    h.className = "cal-wkhead" + (i === 0 ? " sun" : i === 6 ? " sat" : "");
+    h.textContent = n;
+    calGridEl.appendChild(h);
+  });
+
+  const firstDow = new Date(calYear, calMonth, 1).getDay();
+  for (let i = 0; i < firstDow; i++) {
+    const blank = document.createElement("div");
+    blank.className = "cal-blank";
+    calGridEl.appendChild(blank);
+  }
+
+  for (let d = 1; d <= lastDay; d++) {
+    const ds = ymd(calYear, calMonth, d);
+    const cell = document.createElement("button");
+    cell.className = "cal-day";
+    cell.type = "button";
+    cell.textContent = d;
+    cell.dataset.date = ds;
+
+    if (stamps[ds]) cell.classList.add("stamped");
+    if (ds > today) {
+      cell.classList.add("future");
+      cell.disabled = true;
+    }
+    if (ds === today) cell.classList.add("today");
+    if (ds === selectedDate) cell.classList.add("selected");
+
+    cell.addEventListener("click", () => {
+      if (cell.disabled) return;
+      selectedDate = ds;
+      renderCalendar();
+    });
+    calGridEl.appendChild(cell);
+  }
+
+  // 힌트 갱신
+  if (selectedDate) {
+    const [y, m, dd] = selectedDate.split("-");
+    const stamped = stamps[selectedDate];
+    calHintEl.textContent = stamped
+      ? `${parseInt(m)}월 ${parseInt(dd)}일 — 이미 도장 ✓`
+      : `${parseInt(m)}월 ${parseInt(dd)}일 선택됨`;
+  } else {
+    calHintEl.textContent = "날짜를 선택하세요 (없으면 오늘)";
+  }
+}
+
+function showAttendance() {
+  const t = todayStr();
+  if (calYear === undefined) {
+    const d = new Date();
+    calYear = d.getFullYear();
+    calMonth = d.getMonth();
+  }
+  selectedDate = null;
+  hideAllViews();
+  attendanceView.classList.remove("hidden");
+  renderCalendar();
+}
+
+function startAttendanceGame() {
+  // 선택 안 했으면 오늘로
+  const date = selectedDate || todayStr();
+  // 미래는 어차피 disabled라 안 들어옴. 이미 도장 있는 날도 그냥 게임은 시작 (덮어써도 무해)
+  pendingStampDate = date;
+  currentDifficulty = "intermediate";
+  clearSave();
+  hideAllViews();
+  gameView.classList.remove("hidden");
+  init();
+  showStampBannerIfPending();
+}
+
+function showStampBannerIfPending() {
+  if (!pendingStampDate) {
+    hideStampBanner();
+    return;
+  }
+  const [, m, d] = pendingStampDate.split("-");
+  stampBannerEl.textContent = `📅 클리어하면 ${parseInt(m)}월 ${parseInt(d)}일에 도장!`;
+  stampBannerEl.classList.remove("hidden");
+}
+function hideStampBanner() {
+  stampBannerEl.classList.add("hidden");
+  stampBannerEl.textContent = "";
+}
+
+function showStampToast(dateStr) {
+  const [, m, d] = dateStr.split("-");
+  stampBannerEl.textContent = `🎉 ${parseInt(m)}월 ${parseInt(d)}일 도장 적립!`;
+  stampBannerEl.classList.remove("hidden");
+}
+
 // ---- 화면 전환 ----
-function showMain() {
-  stopTimer();
+function hideAllViews() {
+  mainView.classList.add("hidden");
   gameView.classList.add("hidden");
+  attendanceView.classList.add("hidden");
+}
+
+function showMain() {
+  // 게임 중에 메뉴로 가면 자동 저장 (이어하기 가능하게)
+  if (!gameOver && minesPlaced) saveGame();
+  stopTimer();
+  hideAllViews();
   mainView.classList.remove("hidden");
+  refreshResumeButton();
+  refreshAttendanceInfo();
 }
 
 function startGame(level) {
   currentDifficulty = level;
-  mainView.classList.add("hidden");
+  pendingStampDate = null;
+  clearSave();
+  hideAllViews();
   gameView.classList.remove("hidden");
+  hideStampBanner();
   init();
 }
 
-// 메인 화면의 난이도 버튼들
-mainView.querySelectorAll(".menu-btn").forEach((btn) => {
+// 메인 화면의 난이도 버튼들 (data-level 있는 것만)
+mainView.querySelectorAll(".menu-btn[data-level]").forEach((btn) => {
   btn.addEventListener("click", () => startGame(btn.dataset.level));
 });
+
+// 이어하기 / 출석체크 버튼
+resumeBtn.addEventListener("click", resumeGame);
+attendanceBtn.addEventListener("click", showAttendance);
+
+// 출석체크 화면 컨트롤
+attendanceBackBtn.addEventListener("click", showMain);
+calPrevBtn.addEventListener("click", () => {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  selectedDate = null;
+  renderCalendar();
+});
+calNextBtn.addEventListener("click", () => {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  selectedDate = null;
+  renderCalendar();
+});
+attendanceContinueBtn.addEventListener("click", startAttendanceGame);
 
 // 게임 화면 → 메인 복귀
 menuBackBtn.addEventListener("click", showMain);
 
-// 스마일 버튼 = 같은 난이도로 새 게임
-newGameBtn.addEventListener("click", init);
+// 스마일 버튼 = 같은 난이도로 새 게임 (도장 대기/저장도 초기화)
+// 게임 도중에도 즉시 리셋되도록 pointerdown으로 처리 (click은 모바일에서 늦거나 가려지는 경우가 있음)
+let smileyResetting = false;
+function resetCurrentGame() {
+  if (smileyResetting) return; // pointerdown + click 중복 방지
+  smileyResetting = true;
+  setTimeout(() => { smileyResetting = false; }, 200);
+  pendingStampDate = null;
+  hideStampBanner();
+  clearSave();
+  init();
+}
+newGameBtn.addEventListener("pointerdown", (e) => {
+  if (e.button !== 0) return;
+  resetCurrentGame();
+});
+newGameBtn.addEventListener("click", resetCurrentGame); // pointerdown 미지원 환경 폴백
 
 // 손/마우스를 떼면 스마일 복귀 (어디서 떼든 동작하도록 document에 부착)
 document.addEventListener("mouseup", smileyRelease);
 document.addEventListener("touchend", smileyRelease);
 document.addEventListener("touchcancel", smileyRelease);
 
-// 메인 화면이 기본 시작 화면 (init은 startGame 안에서 호출됨)
+// 백그라운드 전환 시 안전하게 자동 저장
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && !gameOver && minesPlaced) saveGame();
+});
+window.addEventListener("pagehide", () => {
+  if (!gameOver && minesPlaced) saveGame();
+});
+
+// 초기 표시: 메인 화면, 이어하기/도장 카운트 갱신
+refreshResumeButton();
+refreshAttendanceInfo();
 
 // ---- PWA 등록: 오프라인/홈 화면 설치 ----
 if ("serviceWorker" in navigator) {

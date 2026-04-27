@@ -276,3 +276,204 @@ body {
 .cell.n6 { color: #008080; }
 .cell.n7 { color: #000000; }
 .cell.n8 { color: #808080; }
+
+/* ---- 메인의 특수 메뉴 버튼 (이어하기 / 출석체크) ---- */
+.resume-btn { background: #d8e8ff; }
+.attendance-btn { background: #f8e8b0; }
+
+/* ---- 출석체크 화면 ---- */
+.cal-frame {
+  background: var(--gray);
+  padding: 8px;
+  border-top: 3px solid var(--light);
+  border-left: 3px solid var(--light);
+  border-right: 3px solid var(--shadow);
+  border-bottom: 3px solid var(--shadow);
+  width: 100%;
+  max-width: 360px;
+}
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #000080;
+  color: #fff;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.cal-month-label {
+  flex: 1;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.cal-nav {
+  background: var(--gray);
+  color: #000;
+  border-top: 2px solid var(--light);
+  border-left: 2px solid var(--light);
+  border-right: 2px solid var(--shadow);
+  border-bottom: 2px solid var(--shadow);
+  width: 28px;
+  height: 24px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cal-nav:active {
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--light);
+  border-bottom: 2px solid var(--light);
+}
+
+/* 트로피 영역 — 빈 자리에 한 달 다 채우면 🏆 */
+.cal-trophy-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  margin-bottom: 8px;
+  font-size: 2.6rem;
+  background: #fffbe0;
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--light);
+  border-bottom: 2px solid var(--light);
+}
+
+/* 달력 그리드 */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  background: var(--shadow);
+  padding: 3px;
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--light);
+  border-bottom: 2px solid var(--light);
+}
+
+.cal-wkhead {
+  background: var(--gray);
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 4px 0;
+  color: #000;
+}
+.cal-wkhead.sun { color: #c00000; }
+.cal-wkhead.sat { color: #0000a0; }
+
+.cal-blank {
+  background: var(--gray);
+  opacity: 0.4;
+}
+
+.cal-day {
+  position: relative;
+  background: var(--gray);
+  border-top: 2px solid var(--light);
+  border-left: 2px solid var(--light);
+  border-right: 2px solid var(--shadow);
+  border-bottom: 2px solid var(--shadow);
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #000;
+  cursor: pointer;
+  padding: 0;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cal-day.future {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.cal-day.selected {
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--light);
+  border-bottom: 2px solid var(--light);
+  background: #ffe080;
+}
+
+.cal-day.stamped::after {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border: 2px solid #c00000;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.cal-day.stamped {
+  color: #c00000;
+}
+
+.cal-day.today {
+  outline: 2px dashed #000080;
+  outline-offset: -4px;
+}
+
+.cal-hint {
+  color: #f0f0f0;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.big-btn {
+  background: var(--gray);
+  color: #000;
+  border-top: 3px solid var(--light);
+  border-left: 3px solid var(--light);
+  border-right: 3px solid var(--shadow);
+  border-bottom: 3px solid var(--shadow);
+  padding: 14px 24px;
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  max-width: 360px;
+}
+.big-btn:active {
+  border-top: 3px solid var(--shadow);
+  border-left: 3px solid var(--shadow);
+  border-right: 3px solid var(--light);
+  border-bottom: 3px solid var(--light);
+}
+
+/* 게임 화면 상단 도장 안내 배너 (출석체크에서 들어왔을 때만) */
+.stamp-banner {
+  background: #fffbe0;
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--light);
+  border-bottom: 2px solid var(--light);
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  color: #000;
+  text-align: center;
+  margin-bottom: 6px;
+  align-self: stretch;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+}
