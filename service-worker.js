@@ -1,6 +1,6 @@
 // 오프라인 캐시 + 자동 갱신
 // 새 버전 배포할 땐 CACHE 이름의 숫자만 올리면 자동으로 헌 캐시 청소됨
-const CACHE = "minesweeper-v14";
+const CACHE = "minesweeper-v15";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,23 @@ const ASSETS = [
   "./icon.svg",
   "./icon-192.png",
   "./icon-512.png",
+  // 트로피 사운드 (월별 동물 12 + 랜덤 웃음 4)
+  "./sounds/cow.mp3",
+  "./sounds/tiger.mp3",
+  "./sounds/rabbit.mp3",
+  "./sounds/dragon.mp3",
+  "./sounds/snake.mp3",
+  "./sounds/horse.mp3",
+  "./sounds/sheep.mp3",
+  "./sounds/monkey.mp3",
+  "./sounds/rooster.mp3",
+  "./sounds/dog.mp3",
+  "./sounds/pig.mp3",
+  "./sounds/mouse.mp3",
+  "./sounds/laugh/sitcom.mp3",
+  "./sounds/laugh/crazy.mp3",
+  "./sounds/laugh/sinister.mp3",
+  "./sounds/laugh/evil.mp3",
 ];
 
 self.addEventListener("install", (e) => {

@@ -41,6 +41,49 @@ const SMILEY_PRESS = "😯";
 const SMILEY_LOSE = "😵";
 const SMILEY_WIN = "😎";
 
+// 트로피 사운드: 옵션 2 절기 기반 매핑 (양력 1월=소, 2월=호랑이, ...)
+const TROPHY_MONTH_ANIMAL = {
+  1: "cow", 2: "tiger", 3: "rabbit", 4: "dragon",
+  5: "snake", 6: "horse", 7: "sheep", 8: "monkey",
+  9: "rooster", 10: "dog", 11: "pig", 12: "mouse",
+};
+const TROPHY_MONTH_EN = {
+  1: "January", 2: "February", 3: "March", 4: "April",
+  5: "May", 6: "June", 7: "July", 8: "August",
+  9: "September", 10: "October", 11: "November", 12: "December",
+};
+const TROPHY_LAUGH_FILES = ["sitcom", "crazy", "sinister", "evil"];
+const TROPHY_LAUGH_CHANCE = 0.2;
+let trophyLastWasLaugh = false;
+
+const trophyAudioCache = {};
+function playTrophyFile(path, onEnd) {
+  let a = trophyAudioCache[path];
+  if (!a) {
+    a = new Audio(path);
+    a.preload = "auto";
+    trophyAudioCache[path] = a;
+  }
+  try {
+    a.currentTime = 0;
+    a.onended = onEnd || null;
+    a.play().catch(() => { onEnd && onEnd(); });
+  } catch (e) { onEnd && onEnd(); }
+}
+function playTrophySound(month, onEnd) {
+  // 5번 중 한 번꼴(20%)로 랜덤 웃음, 단 직전이 웃음이었으면 무조건 동물
+  if (!trophyLastWasLaugh && Math.random() < TROPHY_LAUGH_CHANCE) {
+    trophyLastWasLaugh = true;
+    const name = TROPHY_LAUGH_FILES[Math.floor(Math.random() * TROPHY_LAUGH_FILES.length)];
+    playTrophyFile(`./sounds/laugh/${name}.mp3`, onEnd);
+  } else {
+    trophyLastWasLaugh = false;
+    const name = TROPHY_MONTH_ANIMAL[month];
+    if (!name) { onEnd && onEnd(); return; }
+    playTrophyFile(`./sounds/${name}.mp3`, onEnd);
+  }
+}
+
 // ---- 사운드: Web Audio API로 합성 (외부 파일 X) ----
 let audioCtx = null;
 function getAudio() {
@@ -689,9 +732,25 @@ function renderCalendar() {
   const allStamped = stampedDays >= lastDay;
   calTrophyRow.classList.toggle("earned", allStamped);
   if (allStamped) {
+    const m = calMonth + 1;
     calTrophyRow.innerHTML =
+      `<span class="cal-trophy-bg" aria-hidden="true"></span>` +
+      `<span class="cal-trophy-stamp">` +
+        `<span>perfect</span>` +
+        `<span class="num">${lastDay}</span>` +
+        `<span>days</span>` +
+      `</span>` +
       `<span class="cal-trophy-emoji">🏆</span>` +
-      `<span class="cal-trophy-caption">${calMonth + 1}월 완벽 출석!</span>`;
+      `<span class="cal-trophy-caption">${m}월 CLEAR<small>${TROPHY_MONTH_EN[m]} ${calYear}</small></span>`;
+    // 트로피 누르면 커진 채로 사운드 끝날 때까지 유지
+    const trophyEl = calTrophyRow.querySelector(".cal-trophy-emoji");
+    const onTap = (e) => {
+      e.preventDefault();
+      trophyEl.classList.add("enlarged");
+      playTrophySound(m, () => trophyEl.classList.remove("enlarged"));
+    };
+    trophyEl.addEventListener("click", onTap);
+    trophyEl.addEventListener("touchstart", onTap, { passive: false });
   } else {
     calTrophyRow.innerHTML =
       `<span class="cal-trophy-empty">🏆</span>` +
