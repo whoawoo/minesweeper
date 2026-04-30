@@ -13,6 +13,7 @@
   --led-bg:         #000;
   --led-fg:         #ff0000;
   --led-fg-trophy:  #00ff00;
+  --resume-bg:      #d8e8ff;  /* 이어하기 버튼 (테마 톤 따라감) */
 }
 
 * {
@@ -345,8 +346,8 @@ body {
 .cell.n7 { color: #000000; }
 .cell.n8 { color: #808080; }
 
-/* ---- 메인의 특수 메뉴 버튼 (이어하기) ---- */
-.resume-btn { background: #d8e8ff; }
+/* ---- 메인의 특수 메뉴 버튼 (이어하기) — 테마 톤 따라감 ---- */
+.resume-btn { background: var(--resume-bg); }
 
 /* ---- 출석체크 버튼 (D 스타일: 좌 아이콘 + 가운데 이름 + 우 LED 카운터) ---- */
 .attendance-card {
@@ -885,6 +886,7 @@ body.theme-forest {
   --led-bg: #1f3a18;
   --led-fg: #ffd070;
   --led-fg-trophy: #b8ff80;
+  --resume-bg: #ebdcc0;
   background-image: url("./bg-pattern-forest.svg");
 }
 body.theme-forest .att-title-line,
@@ -908,6 +910,7 @@ body.theme-lavender {
   --led-bg: #3e1f5e;
   --led-fg: #ffb0d8;
   --led-fg-trophy: #a0ffe0;
+  --resume-bg: #ecddf5;
   background-image: url("./bg-pattern-lavender.svg");
 }
 body.theme-lavender .att-title-line,
@@ -931,6 +934,7 @@ body.theme-ocean {
   --led-bg: #1a4878;
   --led-fg: #b0e8ff;
   --led-fg-trophy: #b8ff88;
+  --resume-bg: #d4e4f4;
   background-image: url("./bg-pattern-ocean.svg");
 }
 body.theme-ocean .att-title-line,
@@ -954,6 +958,7 @@ body.theme-cherry {
   --led-bg: #5e1a3a;
   --led-fg: #ffd880;
   --led-fg-trophy: #b8ffc0;
+  --resume-bg: #fadce8;
   background-image: url("./bg-pattern-cherry.svg");
 }
 body.theme-cherry .att-title-line,
@@ -978,6 +983,7 @@ body.theme-midnight {
   --led-bg: #1a1a44;
   --led-fg: #fff0a0;
   --led-fg-trophy: #a8ff90;
+  --resume-bg: #2a2a4e;
   background-image: url("./bg-pattern-black.svg");
   color: #e8e8f0;
 }
