@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+  <defs>
+    <g id="star">
+      <circle cx="0" cy="0" r="1.4" fill="#fff5c0"/>
+    </g>
+    <g id="big-star">
+      <polygon points="0,-7 1.6,-1.6 7,0 1.6,1.6 0,7 -1.6,1.6 -7,0 -1.6,-1.6" fill="#fff8d0"/>
+    </g>
+    <g id="cross-star">
+      <line x1="-9" y1="0" x2="9" y2="0" stroke="#fff5c0" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="0" y1="-9" x2="0" y2="9" stroke="#fff5c0" stroke-width="1.2" stroke-linecap="round"/>
+      <circle cx="0" cy="0" r="2" fill="#fff8d0"/>
+    </g>
+    <g id="moon">
+      <circle cx="0" cy="0" r="22" fill="#f4ecc8"/>
+      <circle cx="7" cy="-4" r="20" fill="#0a0a1a"/>
+    </g>
+    <g id="shooting">
+      <line x1="0" y1="0" x2="-32" y2="16" stroke="#fff5c0" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+      <circle cx="0" cy="0" r="2.5" fill="#fff8d0"/>
+    </g>
+  </defs>
+  <!-- 작은 별들 흩뿌리기 (많이) -->
+  <g>
+    <use href="#star" transform="translate(40 60)"/>
+    <use href="#star" transform="translate(110 30)"/>
+    <use href="#star" transform="translate(170 90)"/>
+    <use href="#star" transform="translate(230 50)"/>
+    <use href="#star" transform="translate(290 120)"/>
+    <use href="#star" transform="translate(360 70)"/>
+    <use href="#star" transform="translate(440 50)"/>
+    <use href="#star" transform="translate(60 180)"/>
+    <use href="#star" transform="translate(210 170)"/>
+    <use href="#star" transform="translate(310 240)"/>
+    <use href="#star" transform="translate(390 200)"/>
+    <use href="#star" transform="translate(50 300)"/>
+    <use href="#star" transform="translate(180 320)"/>
+    <use href="#star" transform="translate(250 290)"/>
+    <use href="#star" transform="translate(340 350)"/>
+    <use href="#star" transform="translate(420 320)"/>
+    <use href="#star" transform="translate(80 410)"/>
+    <use href="#star" transform="translate(160 440)"/>
+    <use href="#star" transform="translate(230 410)"/>
+    <use href="#star" transform="translate(310 440)"/>
+    <use href="#star" transform="translate(390 420)"/>
+    <use href="#star" transform="translate(440 380)"/>
+  </g>
+  <!-- 큰 별 (빛 4방향 십자) -->
+  <use href="#cross-star" transform="translate(120 130)"/>
+  <use href="#cross-star" transform="translate(380 270)"/>
+  <use href="#cross-star" transform="translate(70 360)"/>
+  <use href="#cross-star" transform="translate(280 200)"/>
+  <!-- 폴리곤 별 -->
+  <use href="#big-star" transform="translate(200 380)"/>
+  <use href="#big-star" transform="translate(420 150)"/>
+  <use href="#big-star" transform="translate(330 60)"/>
+  <!-- 초승달(=웃는 입) + 작은 별 두 개(=눈): 우측 대각선, 오른쪽이 조금 더 아래 -->
+  <use href="#moon" transform="translate(150 250)"/>
+  <use href="#star" transform="translate(168 226)"/>
+  <use href="#star" transform="translate(188 238)"/>
+  <!-- 유성 -->
+  <use href="#shooting" transform="translate(380 410)"/>
+</svg>

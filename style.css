@@ -1,14 +1,18 @@
 /* 클래식 Windows 95 지뢰찾기 룩 (메인 화면 + 게임 화면) */
 
 :root {
-  --gray:       #c0c0c0;
-  --gray-light: #d4d4d4;  /* 출석체크/설정 같이 살짝 도드라지는 버튼용 */
-  --light:      #ffffff;
-  --shadow:     #808080;
-  --dark:       #404040;
-  --bg:         #5d5d5d;  /* 메인 배경: 디더 패턴 베이스 */
-  --title-bg:   #000080;  /* 다이얼로그 타이틀바 */
-  --title-fg:   #ffffff;
+  --gray:           #c0c0c0;
+  --gray-light:     #d4d4d4;  /* 출석체크/설정 같이 살짝 도드라지는 버튼용 */
+  --light:          #ffffff;
+  --shadow:         #808080;
+  --dark:           #404040;
+  --bg:             #5d5d5d;  /* 메인 배경: 패턴 베이스 */
+  --title-bg:       #3e5278;  /* 다이얼로그 타이틀바 (더스티 네이비) */
+  --title-fg:       #ffffff;
+  --title-shadow:   #1e2a48;
+  --led-bg:         #000;
+  --led-fg:         #ff0000;
+  --led-fg-trophy:  #00ff00;
 }
 
 * {
@@ -95,7 +99,7 @@ body {
   font-family: inherit;
   font-weight: bold;
   letter-spacing: 0.05em;
-  text-shadow: 2px 2px 0 #000050;
+  text-shadow: 2px 2px 0 var(--title-shadow);
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -383,8 +387,8 @@ body {
 }
 .att-led {
   flex-shrink: 0;
-  background: #000;
-  color: #ff0000;
+  background: var(--led-bg);
+  color: var(--led-fg);
   font-family: "Courier New", "Consolas", monospace;
   font-weight: bold;
   font-size: 1.05rem;
@@ -396,7 +400,7 @@ body {
   letter-spacing: 0.12em;
   line-height: 1;
 }
-.att-led.has-trophy { color: #00ff00; }
+.att-led.has-trophy { color: var(--led-fg-trophy); }
 
 /* ---- 출석체크 화면 ---- */
 .cal-frame {
@@ -839,11 +843,12 @@ body {
   border: 1px solid #000;
   flex-shrink: 0;
 }
-.swatch-classic { background: linear-gradient(90deg, #c0c0c0 60%, #000080 60%); }
-.swatch-dark    { background: linear-gradient(90deg, #3a3a3a 60%, #1a1a4a 60%); }
-.swatch-sunset  { background: linear-gradient(90deg, #f0d2b8 60%, #80302a 60%); }
-.swatch-mint    { background: linear-gradient(90deg, #d0e8d8 60%, #2a7a5a 60%); }
-.swatch-forest  { background: linear-gradient(90deg, #b0a888 60%, #4a5a3a 60%); }
+.swatch-classic  { background: linear-gradient(90deg, #c0c0c0 60%, #3e5278 60%); }
+.swatch-forest   { background: linear-gradient(90deg, #b0a888 60%, #4a5a3a 60%); }
+.swatch-lavender { background: linear-gradient(90deg, #d4c8e4 60%, #8a78b0 60%); }
+.swatch-ocean    { background: linear-gradient(90deg, #c0d4e4 60%, #5e90b0 60%); }
+.swatch-cherry   { background: linear-gradient(90deg, #ecccd6 60%, #b07590 60%); }
+.swatch-midnight { background: linear-gradient(90deg, #2a2a3c 60%, #b8ac80 60%); }
 .btn-close {
   align-self: center;
   background: var(--gray);
@@ -865,42 +870,10 @@ body {
   border-bottom: 2px solid var(--light);
 }
 
-/* ---- 테마 정의 (CSS 변수 오버라이드 — 모든 회색·라이트·새도우·타이틀바 따라감) ---- */
-body.theme-dark {
-  --gray: #3a3a3a;
-  --gray-light: #4a4a4a;
-  --light: #6a6a6a;
-  --shadow: #1a1a1a;
-  --bg: #1a1a1a;
-  --title-bg: #1a1a4a;
-  color: #e8e8e8;
-}
-body.theme-dark .menu-info { color: #b0b0b0; }
-body.theme-dark .att-title-line,
-body.theme-dark .menu-name,
-body.theme-dark .settings-btn,
-body.theme-dark .setting-label,
-body.theme-dark .theme-item,
-body.theme-dark .btn-close { color: #e8e8e8; }
+/* ---- 테마 정의 ----
+   각 테마: CSS 변수(회색·새도우·타이틀바·LED 등) + 테마 SVG 배경 + 본문 텍스트 톤 */
 
-body.theme-sunset {
-  --gray: #f0d2b8;
-  --gray-light: #f7e0c8;
-  --light: #fff0e0;
-  --shadow: #a06a4a;
-  --bg: #b87060;
-  --title-bg: #80302a;
-}
-
-body.theme-mint {
-  --gray: #d0e8d8;
-  --gray-light: #ddf0e3;
-  --light: #f0fff0;
-  --shadow: #5a8870;
-  --bg: #6ab09a;
-  --title-bg: #2a7a5a;
-}
-
+/* 포레스트: 올리브 그린 */
 body.theme-forest {
   --gray: #b0a888;
   --gray-light: #c0b894;
@@ -908,4 +881,115 @@ body.theme-forest {
   --shadow: #6a6850;
   --bg: #6a7050;
   --title-bg: #4a5a3a;
+  --title-shadow: #1a2810;
+  --led-bg: #1f3a18;
+  --led-fg: #ffd070;
+  --led-fg-trophy: #b8ff80;
+  background-image: url("./bg-pattern-forest.svg");
 }
+body.theme-forest .att-title-line,
+body.theme-forest .menu-name,
+body.theme-forest .menu-btn,
+body.theme-forest .settings-btn,
+body.theme-forest .setting-label,
+body.theme-forest .theme-item,
+body.theme-forest .btn-close { color: #2e2814; }
+body.theme-forest .menu-info { color: #5e5028; }
+
+/* 라벤더: 부드러운 보라 */
+body.theme-lavender {
+  --gray: #d4c8e4;
+  --gray-light: #e4d8f0;
+  --light: #f0e8fa;
+  --shadow: #8a78a8;
+  --bg: #b8a8d8;
+  --title-bg: #8a78b0;
+  --title-shadow: #2a1a48;
+  --led-bg: #3e1f5e;
+  --led-fg: #ffb0d8;
+  --led-fg-trophy: #a0ffe0;
+  background-image: url("./bg-pattern-lavender.svg");
+}
+body.theme-lavender .att-title-line,
+body.theme-lavender .menu-name,
+body.theme-lavender .menu-btn,
+body.theme-lavender .settings-btn,
+body.theme-lavender .setting-label,
+body.theme-lavender .theme-item,
+body.theme-lavender .btn-close { color: #382258; }
+body.theme-lavender .menu-info { color: #5a4878; }
+
+/* 오션: 시원한 하늘색 */
+body.theme-ocean {
+  --gray: #c0d4e4;
+  --gray-light: #d4e0ec;
+  --light: #ecf4fa;
+  --shadow: #6a8aa8;
+  --bg: #88b8d8;
+  --title-bg: #5e90b0;
+  --title-shadow: #0e2848;
+  --led-bg: #1a4878;
+  --led-fg: #b0e8ff;
+  --led-fg-trophy: #b8ff88;
+  background-image: url("./bg-pattern-ocean.svg");
+}
+body.theme-ocean .att-title-line,
+body.theme-ocean .menu-name,
+body.theme-ocean .menu-btn,
+body.theme-ocean .settings-btn,
+body.theme-ocean .setting-label,
+body.theme-ocean .theme-item,
+body.theme-ocean .btn-close { color: #182e58; }
+body.theme-ocean .menu-info { color: #3e587a; }
+
+/* 체리: 따뜻한 핑크 */
+body.theme-cherry {
+  --gray: #ecccd6;
+  --gray-light: #f4dce4;
+  --light: #fce8f0;
+  --shadow: #b07a8c;
+  --bg: #e8a8c0;
+  --title-bg: #b07590;
+  --title-shadow: #38122a;
+  --led-bg: #5e1a3a;
+  --led-fg: #ffd880;
+  --led-fg-trophy: #b8ffc0;
+  background-image: url("./bg-pattern-cherry.svg");
+}
+body.theme-cherry .att-title-line,
+body.theme-cherry .menu-name,
+body.theme-cherry .menu-btn,
+body.theme-cherry .settings-btn,
+body.theme-cherry .setting-label,
+body.theme-cherry .theme-item,
+body.theme-cherry .btn-close { color: #581a36; }
+body.theme-cherry .menu-info { color: #7e3e58; }
+
+/* 미드나잇: 밤하늘 + 달빛 타이틀 */
+body.theme-midnight {
+  --gray: #2a2a3c;
+  --gray-light: #3a3a4e;
+  --light: #5a5a78;
+  --shadow: #0a0a18;
+  --bg: #0a0a1a;
+  --title-bg: #b8ac80;             /* 달빛 크림 */
+  --title-fg: #2a2440;             /* 달빛 위 어두운 글씨 */
+  --title-shadow: rgba(168, 148, 80, 0.55);
+  --led-bg: #1a1a44;
+  --led-fg: #fff0a0;
+  --led-fg-trophy: #a8ff90;
+  background-image: url("./bg-pattern-black.svg");
+  color: #e8e8f0;
+}
+body.theme-midnight .menu-info { color: #b0b0c0; }
+body.theme-midnight .att-title-line,
+body.theme-midnight .menu-name,
+body.theme-midnight .settings-btn,
+body.theme-midnight .setting-label,
+body.theme-midnight .theme-item,
+body.theme-midnight .btn-close { color: #e8e8f0; }
+body.theme-midnight .dialog-title {
+  text-shadow: 1px 1px 0 var(--title-shadow);
+}
+body.theme-midnight .title-bomb circle { fill: #2a2440; }
+body.theme-midnight .title-bomb g { stroke: #2a2440; }

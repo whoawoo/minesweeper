@@ -948,7 +948,7 @@ refreshAttendanceInfo();
 
 // ---- 설정 모달 + 테마 선택 ----
 const THEME_KEY = "mw:theme";
-const THEME_CLASSES = ["theme-classic", "theme-dark", "theme-sunset", "theme-mint", "theme-forest"];
+const THEME_CLASSES = ["theme-forest", "theme-lavender", "theme-ocean", "theme-cherry", "theme-midnight"];
 function applyTheme(theme) {
   document.body.classList.remove(...THEME_CLASSES);
   if (theme && theme !== "classic") {

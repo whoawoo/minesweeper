@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+  <defs>
+    <g id="lavender-stem">
+      <line x1="0" y1="42" x2="0" y2="-2" stroke="#5a7038" stroke-width="2"/>
+      <ellipse cx="0" cy="-4" rx="3.2" ry="5" fill="#7a4ab0"/>
+      <ellipse cx="-4" cy="2" rx="3.2" ry="4.5" fill="#9060c0"/>
+      <ellipse cx="4" cy="6" rx="3.2" ry="4.5" fill="#7a4ab0"/>
+      <ellipse cx="-3" cy="11" rx="3" ry="4" fill="#9060c0"/>
+      <ellipse cx="3" cy="15" rx="2.8" ry="3.8" fill="#7a4ab0"/>
+      <ellipse cx="-2" cy="20" rx="2.5" ry="3.4" fill="#9060c0"/>
+    </g>
+    <g id="butterfly">
+      <ellipse cx="-7" cy="-5" rx="7" ry="10" fill="#b04098"/>
+      <ellipse cx="7" cy="-5" rx="7" ry="10" fill="#b04098"/>
+      <ellipse cx="-6" cy="6" rx="5" ry="7" fill="#8a2a78"/>
+      <ellipse cx="6" cy="6" rx="5" ry="7" fill="#8a2a78"/>
+      <line x1="0" y1="-12" x2="0" y2="11" stroke="#3a1a4a" stroke-width="2"/>
+      <circle cx="-7" cy="-5" r="2" fill="#fff5fc"/>
+      <circle cx="7" cy="-5" r="2" fill="#fff5fc"/>
+    </g>
+    <g id="sparkle">
+      <polygon points="0,-9 1.8,-1.8 9,0 1.8,1.8 0,9 -1.8,1.8 -9,0 -1.8,-1.8" fill="#e0c4f0"/>
+    </g>
+  </defs>
+  <g opacity="0.32">
+    <use href="#lavender-stem" transform="translate(70 100) scale(1) rotate(-8)"/>
+    <use href="#lavender-stem" transform="translate(360 80) scale(0.85) rotate(12)"/>
+    <use href="#lavender-stem" transform="translate(190 280) scale(1.1) rotate(-5)"/>
+    <use href="#lavender-stem" transform="translate(60 380) scale(0.9) rotate(15)"/>
+    <use href="#lavender-stem" transform="translate(380 360) scale(0.95) rotate(-10)"/>
+    <use href="#lavender-stem" transform="translate(420 220) scale(0.8) rotate(8)"/>
+    <use href="#butterfly" transform="translate(280 150) scale(1) rotate(-12)"/>
+    <use href="#butterfly" transform="translate(140 360) scale(0.85) rotate(8)"/>
+    <use href="#butterfly" transform="translate(330 290) scale(0.9) rotate(-20)"/>
+    <use href="#sparkle" transform="translate(220 60) scale(1)"/>
+    <use href="#sparkle" transform="translate(440 130) scale(0.7)"/>
+    <use href="#sparkle" transform="translate(40 220) scale(0.85)"/>
+    <use href="#sparkle" transform="translate(260 410) scale(0.75)"/>
+    <use href="#sparkle" transform="translate(150 180) scale(0.65)"/>
+  </g>
+</svg>

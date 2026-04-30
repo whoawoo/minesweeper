@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+  <defs>
+    <g id="blossom">
+      <circle cx="0" cy="-9" r="6" fill="#f0a0bc"/>
+      <circle cx="9" cy="-3" r="6" fill="#f0a0bc"/>
+      <circle cx="5" cy="8" r="6" fill="#f0a0bc"/>
+      <circle cx="-5" cy="8" r="6" fill="#f0a0bc"/>
+      <circle cx="-9" cy="-3" r="6" fill="#f0a0bc"/>
+      <circle cx="0" cy="0" r="3.5" fill="#d06088"/>
+    </g>
+    <g id="heart">
+      <path d="M0,5 C-4,-3 -12,-3 -12,3 C-12,10 0,18 0,18 C0,18 12,10 12,3 C12,-3 4,-3 0,5 Z" fill="#c04880"/>
+    </g>
+    <g id="cherry">
+      <line x1="-5" y1="3" x2="0" y2="-12" stroke="#5a3a20" stroke-width="2" fill="none"/>
+      <line x1="5" y1="3" x2="0" y2="-12" stroke="#5a3a20" stroke-width="2" fill="none"/>
+      <path d="M0,-12 Q4,-16 8,-12" stroke="#5a8030" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <circle cx="-5" cy="6" r="6.5" fill="#a02050"/>
+      <circle cx="5" cy="6" r="6.5" fill="#a02050"/>
+      <ellipse cx="-7" cy="3" rx="2" ry="1" fill="#fff" opacity="0.5"/>
+      <ellipse cx="3" cy="3" rx="2" ry="1" fill="#fff" opacity="0.5"/>
+    </g>
+  </defs>
+  <g opacity="0.32">
+    <use href="#blossom" transform="translate(70 90) scale(1.1) rotate(15)"/>
+    <use href="#blossom" transform="translate(360 70) scale(0.9) rotate(-20)"/>
+    <use href="#blossom" transform="translate(190 220) scale(1.2) rotate(8)"/>
+    <use href="#blossom" transform="translate(60 380) scale(1) rotate(-10)"/>
+    <use href="#blossom" transform="translate(380 350) scale(0.95) rotate(25)"/>
+    <use href="#blossom" transform="translate(420 200) scale(0.8) rotate(-30)"/>
+    <use href="#blossom" transform="translate(260 420) scale(1) rotate(40)"/>
+    <use href="#heart" transform="translate(280 130) scale(0.9) rotate(-12)"/>
+    <use href="#heart" transform="translate(140 320) scale(0.85) rotate(15)"/>
+    <use href="#heart" transform="translate(330 280) scale(0.75) rotate(-8)"/>
+    <use href="#cherry" transform="translate(40 210) scale(1) rotate(-10)"/>
+    <use href="#cherry" transform="translate(220 60) scale(0.85) rotate(8)"/>
+  </g>
+</svg>

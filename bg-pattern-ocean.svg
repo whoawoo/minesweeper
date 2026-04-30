@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+  <defs>
+    <g id="wave">
+      <path d="M-22,0 Q-11,-7 0,0 T22,0" stroke="#1a4a78" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </g>
+    <g id="fish">
+      <path d="M-13,0 Q0,-8 13,0 Q0,8 -13,0 Z" fill="#1a5a90"/>
+      <polygon points="-13,0 -22,-7 -22,7" fill="#1a5a90"/>
+      <circle cx="7" cy="-1" r="1.6" fill="#fff"/>
+      <circle cx="7.5" cy="-1.2" r="0.8" fill="#000"/>
+    </g>
+    <g id="bubble">
+      <circle cx="0" cy="0" r="6" fill="none" stroke="#1a4a78" stroke-width="1.6"/>
+      <circle cx="-2" cy="-2" r="1.4" fill="#fff" opacity="0.7"/>
+    </g>
+    <g id="shell">
+      <path d="M0,12 L-13,-13 Q0,-18 13,-13 Z" fill="#e08070"/>
+      <line x1="-7" y1="-2" x2="-5" y2="-13" stroke="#a04050" stroke-width="1.5"/>
+      <line x1="0" y1="0" x2="0" y2="-15" stroke="#a04050" stroke-width="1.5"/>
+      <line x1="7" y1="-2" x2="5" y2="-13" stroke="#a04050" stroke-width="1.5"/>
+    </g>
+  </defs>
+  <g opacity="0.28">
+    <use href="#wave" transform="translate(80 80) scale(1.2)"/>
+    <use href="#wave" transform="translate(320 60) scale(1)"/>
+    <use href="#wave" transform="translate(200 180) scale(1.4)"/>
+    <use href="#wave" transform="translate(380 280) scale(0.9)"/>
+    <use href="#wave" transform="translate(50 320) scale(1.1)"/>
+    <use href="#wave" transform="translate(260 420) scale(1.2)"/>
+    <use href="#fish" transform="translate(140 240) scale(1.1) rotate(-8)"/>
+    <use href="#fish" transform="translate(380 200) scale(0.9) rotate(10)" />
+    <use href="#fish" transform="translate(220 360) scale(1) rotate(-6)"/>
+    <use href="#bubble" transform="translate(70 140) scale(1)"/>
+    <use href="#bubble" transform="translate(280 100) scale(0.7)"/>
+    <use href="#bubble" transform="translate(420 350) scale(0.9)"/>
+    <use href="#bubble" transform="translate(420 130) scale(0.6)"/>
+    <use href="#bubble" transform="translate(40 410) scale(0.75)"/>
+    <use href="#shell" transform="translate(330 380) scale(1) rotate(-6)"/>
+    <use href="#shell" transform="translate(160 60) scale(0.75) rotate(15)"/>
+  </g>
+</svg>
