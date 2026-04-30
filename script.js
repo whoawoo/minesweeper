@@ -56,6 +56,85 @@ const TROPHY_LAUGH_FILES = ["sitcom", "crazy", "sinister", "evil"];
 const TROPHY_LAUGH_CHANCE = 0.2;
 let trophyLastWasLaugh = false;
 
+// 월별로 A1(컵) → B1(월계관) → C1(크라운) 순환 (1,4,7,10월=A1 / 2,5,8,11월=B1 / 3,6,9,12월=C1)
+const TROPHY_SVG_A1 = `<svg class="trophy-svg" viewBox="0 0 110 110">
+  <rect x="30" y="92" width="50" height="9" fill="#5a2810" rx="2"/>
+  <rect x="34" y="84" width="42" height="9" fill="#7a3810" rx="1.5"/>
+  <rect x="38" y="80" width="34" height="2" fill="#b07028"/>
+  <rect x="48" y="68" width="14" height="14" fill="#d4a040"/>
+  <ellipse cx="55" cy="68" rx="9" ry="2.5" fill="#a07820"/>
+  <ellipse cx="55" cy="80" rx="10" ry="2.5" fill="#a07820"/>
+  <path d="M 28 30 Q 10 36 10 50 Q 10 64 28 66" stroke="#8a5418" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M 28 30 Q 14 36 14 50 Q 14 64 28 66" stroke="#f4c840" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 82 30 Q 100 36 100 50 Q 100 64 82 66" stroke="#8a5418" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M 82 30 Q 96 36 96 50 Q 96 64 82 66" stroke="#f4c840" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 26 22 L 26 50 Q 26 70 55 70 Q 84 70 84 50 L 84 22 Z" fill="#f4c840" stroke="#6a3818" stroke-width="2.4" stroke-linejoin="round"/>
+  <line x1="30" y1="50" x2="80" y2="50" stroke="#a07820" stroke-width="1"/>
+  <line x1="32" y1="56" x2="78" y2="56" stroke="#a07820" stroke-width="1"/>
+  <polygon points="55,32 58,40 67,40 60,46 62,55 55,49 48,55 50,46 43,40 52,40" fill="#b03228" stroke="#6a1808" stroke-width="1.2"/>
+  <ellipse cx="55" cy="22" rx="29" ry="4.5" fill="#fce088" stroke="#6a3818" stroke-width="2"/>
+  <ellipse cx="55" cy="22" rx="29" ry="2" fill="#fff5d0"/>
+</svg>`;
+
+const TROPHY_SVG_B1 = `<svg class="trophy-svg" viewBox="-18 -10 146 130">
+  <g transform="translate(55 50)">
+    <g>
+      <ellipse cx="-32" cy="0" rx="9" ry="4" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-30 -32 0)"/>
+      <ellipse cx="-30" cy="-14" rx="9" ry="4" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-55 -30 -14)"/>
+      <ellipse cx="-22" cy="-26" rx="8" ry="3.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-75 -22 -26)"/>
+      <ellipse cx="-8" cy="-32" rx="7" ry="3" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-95 -8 -32)"/>
+      <ellipse cx="-30" cy="14" rx="9" ry="4" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-130 -30 14)"/>
+      <ellipse cx="-22" cy="26" rx="8" ry="3.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-150 -22 26)"/>
+      <ellipse cx="-10" cy="33" rx="7" ry="3" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-170 -10 33)"/>
+      <circle cx="-26" cy="-6" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+      <circle cx="-18" cy="-22" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+      <circle cx="-22" cy="20" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+    </g>
+    <g transform="scale(-1 1)">
+      <ellipse cx="-32" cy="0" rx="9" ry="4" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-30 -32 0)"/>
+      <ellipse cx="-30" cy="-14" rx="9" ry="4" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-55 -30 -14)"/>
+      <ellipse cx="-22" cy="-26" rx="8" ry="3.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-75 -22 -26)"/>
+      <ellipse cx="-8" cy="-32" rx="7" ry="3" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-95 -8 -32)"/>
+      <ellipse cx="-30" cy="14" rx="9" ry="4" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-130 -30 14)"/>
+      <ellipse cx="-22" cy="26" rx="8" ry="3.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-150 -22 26)"/>
+      <ellipse cx="-10" cy="33" rx="7" ry="3" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-170 -10 33)"/>
+      <circle cx="-26" cy="-6" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+      <circle cx="-18" cy="-22" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+      <circle cx="-22" cy="20" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+    </g>
+  </g>
+  <circle cx="55" cy="50" r="16" fill="#f4c840" stroke="#6a3818" stroke-width="2"/>
+  <circle cx="55" cy="50" r="12" fill="none" stroke="#a07820" stroke-width="0.8"/>
+  <polygon points="55,40 58,48 66,48 60,53 62,62 55,57 48,62 50,53 44,48 52,48" fill="#b03228" stroke="#6a1808" stroke-width="1"/>
+  <path d="M 38 84 L 55 76 L 72 84 L 64 92 L 55 88 L 46 92 Z" fill="#b03228" stroke="#6a1808" stroke-width="1.2" stroke-linejoin="round"/>
+</svg>`;
+
+const TROPHY_SVG_C1 = `<svg class="trophy-svg" viewBox="0 0 110 110">
+  <rect x="18" y="86" width="74" height="6" fill="#7a1810" rx="2"/>
+  <rect x="20" y="78" width="70" height="9" fill="#a07820" rx="1.5"/>
+  <path d="M 22 78 L 14 30 L 32 56 L 44 18 L 55 56 L 66 18 L 78 56 L 96 30 L 88 78 Z" fill="#f4c840" stroke="#6a3818" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M 22 78 L 18 56 L 30 68 L 44 32 L 55 70 L 66 32 L 80 68 L 92 56 L 88 78 Z" fill="#f8d860"/>
+  <path d="M 24 64 Q 55 70 86 64" stroke="#a07820" stroke-width="1" fill="none"/>
+  <path d="M 26 72 Q 55 76 84 72" stroke="#a07820" stroke-width="1" fill="none"/>
+  <ellipse cx="55" cy="68" rx="6.5" ry="5" fill="#b03228" stroke="#6a1808" stroke-width="1.3"/>
+  <ellipse cx="53" cy="66" rx="2" ry="1.5" fill="#fff" opacity="0.6"/>
+  <circle cx="32" cy="64" r="3.5" fill="#3a6090" stroke="#1a3060" stroke-width="1"/>
+  <circle cx="78" cy="64" r="3.5" fill="#3a6090" stroke="#1a3060" stroke-width="1"/>
+  <circle cx="22" cy="74" r="2.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8"/>
+  <circle cx="88" cy="74" r="2.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8"/>
+  <circle cx="14" cy="30" r="4" fill="#fce088" stroke="#6a3818" stroke-width="1.5"/>
+  <circle cx="44" cy="18" r="4" fill="#fce088" stroke="#6a3818" stroke-width="1.5"/>
+  <circle cx="66" cy="18" r="4" fill="#fce088" stroke="#6a3818" stroke-width="1.5"/>
+  <circle cx="96" cy="30" r="4" fill="#fce088" stroke="#6a3818" stroke-width="1.5"/>
+  <circle cx="28" cy="80" r="1.6" fill="#fff5d0" stroke="#8a5418" stroke-width="0.5"/>
+  <circle cx="40" cy="80" r="1.6" fill="#fff5d0" stroke="#8a5418" stroke-width="0.5"/>
+  <circle cx="55" cy="80" r="1.8" fill="#fff5d0" stroke="#8a5418" stroke-width="0.6"/>
+  <circle cx="70" cy="80" r="1.6" fill="#fff5d0" stroke="#8a5418" stroke-width="0.5"/>
+  <circle cx="82" cy="80" r="1.6" fill="#fff5d0" stroke="#8a5418" stroke-width="0.5"/>
+</svg>`;
+
+const TROPHY_SVGS = [TROPHY_SVG_A1, TROPHY_SVG_B1, TROPHY_SVG_C1];
+
 const trophyAudioCache = {};
 function playTrophyFile(path, onEnd) {
   let a = trophyAudioCache[path];
@@ -733,17 +812,11 @@ function renderCalendar() {
   calTrophyRow.classList.toggle("earned", allStamped);
   if (allStamped) {
     const m = calMonth + 1;
+    const svg = TROPHY_SVGS[(m - 1) % 3];
     calTrophyRow.innerHTML =
-      `<span class="cal-trophy-bg" aria-hidden="true"></span>` +
-      `<span class="cal-trophy-stamp">` +
-        `<span>perfect</span>` +
-        `<span class="num">${lastDay}</span>` +
-        `<span>days</span>` +
-      `</span>` +
-      `<span class="cal-trophy-emoji">🏆</span>` +
-      `<span class="cal-trophy-caption">${m}월 CLEAR<small>${TROPHY_MONTH_EN[m]} ${calYear}</small></span>`;
-    // 트로피 누르면 커진 채로 사운드 끝날 때까지 유지
-    const trophyEl = calTrophyRow.querySelector(".cal-trophy-emoji");
+      svg +
+      `<div class="trophy-caption">${m}월 <span class="clear-text">CLEAR!</span><small>${TROPHY_MONTH_EN[m]} ${calYear}</small></div>`;
+    const trophyEl = calTrophyRow.querySelector(".trophy-svg");
     const onTap = (e) => {
       e.preventDefault();
       trophyEl.classList.add("enlarged");
@@ -782,7 +855,10 @@ function renderCalendar() {
     cell.textContent = d;
     cell.dataset.date = ds;
 
-    if (stamps[ds]) cell.classList.add("stamped");
+    if (stamps[ds]) {
+      cell.classList.add("stamped");
+      cell.classList.add((d - 1) % 2 === 0 ? "stamp-a" : "stamp-b");
+    }
     if (ds > today) {
       cell.classList.add("future");
       cell.disabled = true;
