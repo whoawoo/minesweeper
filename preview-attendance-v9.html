@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>출석 v9 — 푸시 디자인 + 테마별 정돈</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background: #2e2e2e !important;
+      background-image: none !important;
+      padding: 0 !important;
+      position: static !important;
+      height: auto !important;
+      overflow: auto !important;
+    }
+    html, body { overflow: auto !important; height: auto !important; }
+    #scrollRoot {
+      display: flex; flex-direction: column; gap: 50px;
+      align-items: center; padding: 30px 12px 60px;
+      height: auto !important; overflow: visible !important;
+    }
+    .demo-label {
+      color: #fff; font-weight: 700; letter-spacing: 0.06em;
+      text-shadow: 1px 1px 0 #000; font-size: 0.95rem; text-align: center;
+      margin-bottom: -16px;
+    }
+    .demo-card {
+      width: 100%; max-width: 360px;
+      padding: 18px 14px 22px;
+      background-color: var(--bg);
+      background-image: var(--bg-img);
+      background-size: 480px 480px;
+      background-repeat: repeat;
+      border-radius: 8px;
+    }
+    .demo-card.theme-forest    { --bg-img: url('./bg-pattern-forest.svg'); }
+    .demo-card.theme-lavender  { --bg-img: url('./bg-pattern-lavender.svg'); }
+    .demo-card.theme-ocean     { --bg-img: url('./bg-pattern-ocean.svg'); }
+    .demo-card.theme-cherry    { --bg-img: url('./bg-pattern-cherry.svg'); }
+    .demo-card.theme-midnight  { --bg-img: url('./bg-pattern-black.svg'); }
+    .demo-classic { --bg: #5d5d5d; --bg-img: url('./bg-pattern.svg'); }
+
+    /* attendanceView 풀 너비 안 잡고 demo-card 안에서 자연스럽게 흐르게 */
+    .demo-card .view {
+      min-height: 0; padding: 0; gap: 12px;
+    }
+    .demo-card .cal-frame { max-width: 100%; }
+    .demo-card .back-btn { font-size: 0.85rem; padding: 8px 12px; min-height: 0; }
+    .demo-card .big-btn { font-size: 1rem; padding: 12px 16px; }
+
+    /* 테마별 today / selected 색을 테마 톤으로 보정 (production은 파랑/노랑 하드코드) */
+    .theme-forest .cal-day.today  { outline-color: #4a6a20; }
+    .theme-forest .cal-day.selected { background: #d8c688; }
+    .theme-lavender .cal-day.today  { outline-color: #6a3aa0; }
+    .theme-lavender .cal-day.selected { background: #e8d0f4; }
+    .theme-ocean .cal-day.today  { outline-color: #1a4878; }
+    .theme-ocean .cal-day.selected { background: #c0dcec; }
+    .theme-cherry .cal-day.today  { outline-color: #a02868; }
+    .theme-cherry .cal-day.selected { background: #fad0e0; }
+    .theme-midnight .cal-day.today  { outline-color: #f5e9c0; }
+    .theme-midnight .cal-day.selected { background: rgba(245, 233, 192, 0.25); }
+  </style>
+</head>
+<body>
+<div id="scrollRoot"></div>
+
+<script>
+  const FIRST_DOW = 3, LAST = 30;
+  const STAMPED = [1,2,3,4,5,6,7,8,9,10,11,12,13,14];
+  const TODAY = 18;
+  const SEL = 18;
+
+  function renderAttendance(cardEl, achieved) {
+    cardEl.innerHTML = `
+      <div class="view" style="display:flex; flex-direction:column;">
+        <button class="back-btn">← 메뉴</button>
+        <div class="cal-frame">
+          <div class="cal-header">
+            <button class="cal-nav">◀</button>
+            <span class="cal-month-label">2026년 4월</span>
+            <button class="cal-nav">▶</button>
+          </div>
+          <div class="cal-trophy-row${achieved ? ' earned' : ''}"></div>
+          <div class="cal-grid"></div>
+        </div>
+        <div class="cal-hint">날짜를 선택하세요 (없으면 오늘)</div>
+        <button class="big-btn">계속하기 ▶</button>
+      </div>`;
+    const grid = cardEl.querySelector(".cal-grid");
+    const wks = ["일","월","화","수","목","금","토"];
+    wks.forEach((n, i) => {
+      const h = document.createElement("div");
+      h.className = "cal-wkhead" + (i === 0 ? " sun" : i === 6 ? " sat" : "");
+      h.textContent = n;
+      grid.appendChild(h);
+    });
+    for (let i = 0; i < FIRST_DOW; i++) {
+      const b = document.createElement("div");
+      b.className = "cal-blank";
+      grid.appendChild(b);
+    }
+    for (let d = 1; d <= LAST; d++) {
+      const c = document.createElement("button");
+      c.className = "cal-day";
+      c.type = "button";
+      c.textContent = d;
+      if (STAMPED.includes(d)) c.classList.add("stamped");
+      if (d > TODAY) { c.classList.add("future"); c.disabled = true; }
+      if (d === TODAY) c.classList.add("today");
+      if (d === SEL) c.classList.add("selected");
+      grid.appendChild(c);
+    }
+
+    const trophyRow = cardEl.querySelector(".cal-trophy-row");
+    if (achieved) {
+      trophyRow.innerHTML =
+        `<span class="cal-trophy-bg" aria-hidden="true"></span>` +
+        `<span class="cal-trophy-stamp">` +
+          `<span>perfect</span><span class="num">30</span><span>days</span>` +
+        `</span>` +
+        `<span class="cal-trophy-emoji">🏆</span>` +
+        `<span class="cal-trophy-caption">4월 CLEAR<small>April 2026</small></span>`;
+    } else {
+      trophyRow.innerHTML =
+        `<span class="cal-trophy-empty">🏆</span>` +
+        `<span class="cal-trophy-progress"><strong>${STAMPED.length}</strong> / ${LAST} — 모두 채우면 트로피!</span>`;
+    }
+  }
+
+  const THEMES = [
+    { cls: "demo-classic", name: "클래식" },
+    { cls: "theme-forest", name: "포레스트" },
+    { cls: "theme-lavender", name: "라벤더" },
+    { cls: "theme-ocean", name: "오션" },
+    { cls: "theme-cherry", name: "체리" },
+    { cls: "theme-midnight", name: "미드나잇" },
+  ];
+
+  const root = document.getElementById("scrollRoot");
+  THEMES.forEach((t, i) => {
+    const wrap = document.createElement("div");
+    wrap.style.width = "100%"; wrap.style.maxWidth = "360px";
+
+    const lbl = document.createElement("div");
+    lbl.className = "demo-label";
+    lbl.textContent = `${i+1}️⃣  ${t.name}`;
+    wrap.appendChild(lbl);
+
+    const card = document.createElement("div");
+    card.className = `demo-card ${t.cls}`;
+    wrap.appendChild(card);
+
+    renderAttendance(card, false);
+    root.appendChild(wrap);
+  });
+</script>
+</body>
+</html>

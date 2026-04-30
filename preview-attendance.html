@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#6d6d6d" />
+  <title>출석체크 버튼 미리보기</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ====== 미리보기 전용 (style.css 안 건드림) ====== */
+    .preview-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      align-items: center;
+      padding: 20px 12px 60px;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+    .preview-label {
+      color: #f0f0f0;
+      font-size: 0.95rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      margin: 0;
+      text-shadow: 0 1px 0 #000;
+      text-align: center;
+    }
+    .preview-context {
+      width: 100%;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .preview-context .menu-btn { padding: 10px 14px; }
+    .preview-context .menu-name { font-size: 1.05rem; }
+    .preview-context .menu-info { font-size: 0.78rem; }
+
+    /* ====== A — 그냥 메뉴 버튼처럼 ====== */
+    .att-a {
+      background: var(--gray);
+      color: #000;
+      border-top: 3px solid var(--light);
+      border-left: 3px solid var(--light);
+      border-right: 3px solid var(--shadow);
+      border-bottom: 3px solid var(--shadow);
+      padding: 10px 14px;
+      width: 100%;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+    }
+    .att-a-icon { font-size: 1.4rem; }
+    .att-a-text { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .att-a-name { font-size: 1.05rem; font-weight: bold; }
+    .att-a-info { font-size: 0.78rem; color: #444; }
+
+    /* ====== B — 옅은 노랑 (Post-it) ====== */
+    .att-b {
+      background: #fff8c0;
+      color: #000;
+      border-top: 3px solid #fffce4;
+      border-left: 3px solid #fffce4;
+      border-right: 3px solid #b09833;
+      border-bottom: 3px solid #b09833;
+      padding: 10px 14px;
+      width: 100%;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+    }
+    .att-b-icon { font-size: 1.4rem; }
+    .att-b-text { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .att-b-name { font-size: 1.05rem; font-weight: bold; }
+    .att-b-info { font-size: 0.78rem; color: #555; }
+
+    /* ====== C — Win95 + 좌측 황금 strip ====== */
+    .att-c {
+      position: relative;
+      background: var(--gray);
+      color: #000;
+      border-top: 3px solid var(--light);
+      border-left: 3px solid var(--light);
+      border-right: 3px solid var(--shadow);
+      border-bottom: 3px solid var(--shadow);
+      padding: 10px 14px 10px 22px;
+      width: 100%;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      overflow: hidden;
+    }
+    .att-c::before {
+      content: "";
+      position: absolute;
+      top: 0; bottom: 0; left: 0;
+      width: 6px;
+      background: linear-gradient(180deg, #fde68a 0%, #f59e0b 50%, #c87a0a 100%);
+    }
+    .att-c-icon { font-size: 1.4rem; }
+    .att-c-text { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .att-c-name { font-size: 1.05rem; font-weight: bold; }
+    .att-c-info { font-size: 0.78rem; color: #444; }
+
+    /* ====== D — Win95 + 우측 LED 도장 카운터 ====== */
+    .att-d {
+      background: var(--gray);
+      color: #000;
+      border-top: 3px solid var(--light);
+      border-left: 3px solid var(--light);
+      border-right: 3px solid var(--shadow);
+      border-bottom: 3px solid var(--shadow);
+      padding: 10px 14px;
+      width: 100%;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+    }
+    .att-d-icon { font-size: 1.4rem; }
+    .att-d-name { font-size: 1.05rem; font-weight: bold; flex: 1; }
+    .att-d-led {
+      flex-shrink: 0;
+      background: #000;
+      color: #ff0000;
+      font-family: "Courier New", "Consolas", monospace;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 3px 8px;
+      border-top: 2px solid var(--shadow);
+      border-left: 2px solid var(--shadow);
+      border-right: 2px solid var(--light);
+      border-bottom: 2px solid var(--light);
+      letter-spacing: 0.1em;
+    }
+
+    /* ====== E — 다이얼로그 박스 (타이틀바) ====== */
+    .att-e {
+      background: var(--gray);
+      color: #000;
+      border-top: 3px solid var(--light);
+      border-left: 3px solid var(--light);
+      border-right: 3px solid var(--shadow);
+      border-bottom: 3px solid var(--shadow);
+      padding: 0;
+      width: 100%;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      overflow: hidden;
+    }
+    .att-e-titlebar {
+      background: #000080;
+      color: #fff;
+      padding: 4px 10px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .att-e-body {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .att-e-icon { font-size: 1.4rem; }
+    .att-e-name { font-size: 1.05rem; font-weight: bold; flex: 1; }
+    .att-e-info { font-size: 0.78rem; color: #444; }
+
+    .att-buttons-only {
+      width: 100%;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="scrollRoot">
+    <div class="preview-stack">
+
+      <!-- 현재 비교용 -->
+      <div class="preview-label">현재 (지금 너무 투머치)</div>
+      <button class="attendance-card" type="button" style="max-width: 320px;">
+        <span class="att-icon-wrap"><span class="att-icon">📅</span></span>
+        <span class="att-body">
+          <span class="att-title">출석체크</span>
+          <span class="att-desc">매일 한 판 깨고 도장 받기</span>
+          <span class="att-stamps">도장 12개</span>
+        </span>
+        <span class="att-arrow">›</span>
+      </button>
+      <div class="att-buttons-only">
+        <button class="menu-btn"><span class="menu-name">초보</span><span class="menu-info">8 × 8 · 지뢰 10개</span></button>
+        <button class="menu-btn"><span class="menu-name">중수</span><span class="menu-info">16 × 16 · 지뢰 40개</span></button>
+      </div>
+
+      <!-- A -->
+      <div class="preview-label">A — 그냥 메뉴 버튼 (가장 깔끔)</div>
+      <div class="att-buttons-only">
+        <button class="att-a">
+          <span class="att-a-icon">📅</span>
+          <span class="att-a-text">
+            <span class="att-a-name">출석체크</span>
+            <span class="att-a-info">도장 12개</span>
+          </span>
+        </button>
+        <button class="menu-btn"><span class="menu-name">초보</span><span class="menu-info">8 × 8 · 지뢰 10개</span></button>
+        <button class="menu-btn"><span class="menu-name">중수</span><span class="menu-info">16 × 16 · 지뢰 40개</span></button>
+      </div>
+
+      <!-- B -->
+      <div class="preview-label">B — Post-it 옅은 노랑 (살짝만 다름)</div>
+      <div class="att-buttons-only">
+        <button class="att-b">
+          <span class="att-b-icon">📅</span>
+          <span class="att-b-text">
+            <span class="att-b-name">출석체크</span>
+            <span class="att-b-info">도장 12개</span>
+          </span>
+        </button>
+        <button class="menu-btn"><span class="menu-name">초보</span><span class="menu-info">8 × 8 · 지뢰 10개</span></button>
+        <button class="menu-btn"><span class="menu-name">중수</span><span class="menu-info">16 × 16 · 지뢰 40개</span></button>
+      </div>
+
+      <!-- C -->
+      <div class="preview-label">C — 좌측 황금 strip 강조</div>
+      <div class="att-buttons-only">
+        <button class="att-c">
+          <span class="att-c-icon">📅</span>
+          <span class="att-c-text">
+            <span class="att-c-name">출석체크</span>
+            <span class="att-c-info">도장 12개</span>
+          </span>
+        </button>
+        <button class="menu-btn"><span class="menu-name">초보</span><span class="menu-info">8 × 8 · 지뢰 10개</span></button>
+        <button class="menu-btn"><span class="menu-name">중수</span><span class="menu-info">16 × 16 · 지뢰 40개</span></button>
+      </div>
+
+      <!-- D -->
+      <div class="preview-label">D — 우측 LED 카운터 (게임 LED와 통일)</div>
+      <div class="att-buttons-only">
+        <button class="att-d">
+          <span class="att-d-icon">📅</span>
+          <span class="att-d-name">출석체크</span>
+          <span class="att-d-led">012</span>
+        </button>
+        <button class="menu-btn"><span class="menu-name">초보</span><span class="menu-info">8 × 8 · 지뢰 10개</span></button>
+        <button class="menu-btn"><span class="menu-name">중수</span><span class="menu-info">16 × 16 · 지뢰 40개</span></button>
+      </div>
+
+      <!-- E -->
+      <div class="preview-label">E — 다이얼로그 박스 (타이틀바 있는 윈도우 느낌)</div>
+      <div class="att-buttons-only">
+        <button class="att-e">
+          <span class="att-e-titlebar">🗓 출석체크</span>
+          <span class="att-e-body">
+            <span class="att-e-icon">📅</span>
+            <span class="att-e-name">도장 받으러 가기</span>
+            <span class="att-e-info">12개</span>
+          </span>
+        </button>
+        <button class="menu-btn"><span class="menu-name">초보</span><span class="menu-info">8 × 8 · 지뢰 10개</span></button>
+        <button class="menu-btn"><span class="menu-name">중수</span><span class="menu-info">16 × 16 · 지뢰 40개</span></button>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

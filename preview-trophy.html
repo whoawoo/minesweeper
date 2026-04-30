@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#6d6d6d" />
+  <title>트로피 미리보기 — P / Q</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ====== 미리보기 전용 (style.css 안 건드림) ====== */
+
+    .preview-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+      align-items: center;
+      padding: 20px 12px 60px;
+    }
+    .preview-label {
+      color: #f0f0f0;
+      font-size: 0.95rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      margin-bottom: -28px;
+      text-shadow: 0 1px 0 #000;
+      text-align: center;
+    }
+    .preview-frame {
+      width: 100%;
+      max-width: 360px;
+    }
+
+    /* ====== 12개 사운드 테스트 그리드 ====== */
+    .sound-test {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      width: 100%;
+      max-width: 360px;
+      padding: 12px;
+      background: var(--gray);
+      border-top: 3px solid var(--light);
+      border-left: 3px solid var(--light);
+      border-right: 3px solid var(--shadow);
+      border-bottom: 3px solid var(--shadow);
+    }
+    .sound-btn {
+      background: var(--gray);
+      border-top: 2px solid var(--light);
+      border-left: 2px solid var(--light);
+      border-right: 2px solid var(--shadow);
+      border-bottom: 2px solid var(--shadow);
+      padding: 8px 4px;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .sound-btn:active {
+      border-top: 2px solid var(--shadow);
+      border-left: 2px solid var(--shadow);
+      border-right: 2px solid var(--light);
+      border-bottom: 2px solid var(--light);
+    }
+    .sound-btn-emoji {
+      font-size: 1.7rem;
+      line-height: 1;
+    }
+    .sound-btn-label {
+      font-size: 0.7rem;
+      font-weight: bold;
+      color: #000;
+      letter-spacing: 0;
+    }
+
+    /* ====== 공통: J 베이스 ====== */
+    .j-base {
+      position: relative;
+      padding: 22px 0 22px !important;
+      min-height: 124px !important;
+    }
+    .j-base .cal-trophy-emoji {
+      font-size: 3.8rem !important;
+      margin: 3px 0 0 0 !important;
+    }
+    .j-base .j-stamp {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2.5px solid #b3331f;
+      background: rgba(255, 248, 224, 0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: Georgia, serif;
+      font-size: 0.6rem;
+      font-weight: 800;
+      color: #b3331f;
+      letter-spacing: 0.12em;
+      text-align: center;
+      line-height: 1;
+      transform: rotate(-14deg);
+      box-shadow: 0 2px 4px rgba(179, 51, 31, 0.25);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+      text-transform: uppercase;
+      z-index: 2;
+    }
+    .j-base .j-stamp .num {
+      font-size: 1.1rem;
+      margin: 2px 0;
+    }
+    .j-base .j-caption {
+      position: absolute;
+      bottom: 12px;
+      left: 16px;
+      font-family: "Times New Roman", Times, "Apple SD Gothic Neo", serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #6b3a00;
+      letter-spacing: 0.05em;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+      z-index: 2;
+    }
+    .j-base .j-caption small {
+      display: block;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: #8a5410;
+      margin-top: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .j-base.cal-trophy-row.earned::after {
+      display: none !important;
+    }
+
+    /* ====== P: 트로피 가운데 + 도장 우상 + 캡션 좌하 + 흰 그라 + 양쪽 페이드 줄 ====== */
+    .design-p.cal-trophy-row.earned::before {
+      top: 6px !important; left: 50% !important; margin-left: 10px !important;
+      bottom: auto !important; right: auto !important;
+      z-index: 3 !important;
+    }
+    .design-p .j-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        ellipse 75% 100% at 0% 100%,
+        rgba(255, 255, 255, 0.78) 0%,
+        rgba(255, 255, 255, 0.4) 40%,
+        transparent 72%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+    .design-p .j-rule {
+      position: absolute;
+      left: 8px;
+      bottom: 54px;
+      width: 110px;
+      height: 1.5px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(74, 39, 0, 0.5) 22%,
+        rgba(74, 39, 0, 0.8) 50%,
+        rgba(74, 39, 0, 0.5) 78%,
+        transparent 100%
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ====== Q: 트로피+✨ 좌측 / 도장 우상 / 캡션 우하 + 흰 그라 + 줄 ====== */
+    .design-q.cal-trophy-row {
+      flex-direction: row !important;
+      justify-content: flex-start !important;
+      align-items: center !important;
+      padding: 14px !important;
+      min-height: 156px !important;
+    }
+    .design-q .cal-trophy-emoji {
+      font-size: 4.2rem !important;    /* 3.6 → 4.2 */
+      margin: 0 0 0 52px !important;
+      flex: 0 0 auto;
+    }
+    /* 도장·줄·캡션 가로 중심 동일(우측에서 95px), 그룹 가운데로 이동 */
+    .design-q .j-stamp {
+      top: 20px !important;     /* 14 → 20 (살짝 아래로) */
+      right: 66px !important;
+      width: 58px !important;
+      height: 58px !important;
+    }
+    .design-q .j-stamp .num {
+      font-size: 1rem !important;
+    }
+    .design-q .j-caption {
+      bottom: 16px !important;
+      right: 40px !important;   /* 26 → 40 (가운데로 +14) */
+      left: auto !important;
+      width: 110px;             /* 명시적 폭 → 줄과 정확히 같은 가로 중심 */
+      text-align: center;
+      font-size: 1.15rem !important;
+    }
+    .design-q .j-caption small {
+      text-align: center;
+      letter-spacing: 0.18em;
+    }
+    /* ✨: 트로피 좌상단 위쪽에 (도장 영역과 분리). 트로피 우측 이동에 맞춰 같이 이동 */
+    .design-q.cal-trophy-row.earned::before {
+      top: 24px !important;
+      left: 104px !important;       /* 90 → 104 (트로피와 같이 +14) */
+      margin-left: 0 !important;
+      bottom: auto !important; right: auto !important;
+      z-index: 3 !important;
+    }
+    /* 흰 그라데이션: 우하 캡션쪽 + 도장 밑까지 약간 들어옴 (트로피쪽은 투명 유지) */
+    .design-q .j-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        ellipse 75% 95% at 100% 70%,
+        rgba(255, 255, 255, 0.85) 0%,
+        rgba(255, 255, 255, 0.45) 40%,
+        transparent 80%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+    /* 캡션 위 양쪽 페이드 줄 (캡션과 가로 중심 동일, 좌우 대칭으로 길게) */
+    .design-q .j-rule {
+      position: absolute;
+      right: 30px;          /* 16 → 30 (가운데로 +14, width 130 유지) */
+      bottom: 60px;
+      width: 130px;
+      height: 1.5px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(74, 39, 0, 0.5) 22%,
+        rgba(74, 39, 0, 0.8) 50%,
+        rgba(74, 39, 0, 0.5) 78%,
+        transparent 100%
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ====== P_T: P′(줄 없음) + 인터랙티브 트로피 ======
+       - 기본 bounce 애니 끔
+       - 누르면 잠깐 커지면서 살짝 흔들리는 pop
+       - 누르면 재밌는 소리(C major 아르페지오 + 반짝 sparkle) */
+    .design-p-tap .cal-trophy-emoji {
+      animation: none !important;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: transform 0.18s ease-out;
+    }
+    /* 누르면 커진 상태 유지 → 사운드 끝나면 onended에서 클래스 제거 */
+    .design-p-tap .cal-trophy-emoji.enlarged {
+      transform: scale(1.3);
+    }
+  </style>
+</head>
+<body>
+  <div id="scrollRoot">
+    <div class="preview-stack">
+
+      <!-- 12개월 P_T 카드는 JS가 채움 -->
+
+    </div>
+  </div>
+
+  <script>
+    // 옵션 2 절기 기반 매핑: 양력 1월=소, 2월=호랑이, ...
+    const MONTH_ANIMAL = {
+      1: "cow", 2: "tiger", 3: "rabbit", 4: "dragon",
+      5: "snake", 6: "horse", 7: "sheep", 8: "monkey",
+      9: "rooster", 10: "dog", 11: "pig", 12: "mouse",
+    };
+    const MONTH_INFO = {
+      1:  { ko: "1월",  en: "January",   days: 31 },
+      2:  { ko: "2월",  en: "February",  days: 28 },
+      3:  { ko: "3월",  en: "March",     days: 31 },
+      4:  { ko: "4월",  en: "April",     days: 30 },
+      5:  { ko: "5월",  en: "May",       days: 31 },
+      6:  { ko: "6월",  en: "June",      days: 30 },
+      7:  { ko: "7월",  en: "July",      days: 31 },
+      8:  { ko: "8월",  en: "August",    days: 31 },
+      9:  { ko: "9월",  en: "September", days: 30 },
+      10: { ko: "10월", en: "October",   days: 31 },
+      11: { ko: "11월", en: "November",  days: 30 },
+      12: { ko: "12월", en: "December",  days: 31 },
+    };
+
+    // 사운드 풀: 같은 파일을 미리 만들어두고 재사용
+    const audioCache = {};
+    function getAudio(path) {
+      let a = audioCache[path];
+      if (!a) {
+        a = new Audio(path);
+        a.preload = "auto";
+        audioCache[path] = a;
+      }
+      return a;
+    }
+    function playFile(path, onEnd) {
+      const a = getAudio(path);
+      try {
+        a.currentTime = 0;
+        a.onended = onEnd || null;
+        a.play().catch(() => { onEnd && onEnd(); });
+      } catch (e) { onEnd && onEnd(); }
+    }
+    function playAnimalSound(month, onEnd) {
+      const name = MONTH_ANIMAL[month];
+      if (!name) { onEnd && onEnd(); return; }
+      playFile(`./sounds/${name}.mp3`, onEnd);
+    }
+    // 가끔(약 5번 중 1번) 동물 소리 대신 랜덤 웃음소리
+    const LAUGH_FILES = ["sitcom", "crazy", "sinister", "evil"];
+    const LAUGH_CHANCE = 0.2;
+    function playLaughSound(onEnd) {
+      const name = LAUGH_FILES[Math.floor(Math.random() * LAUGH_FILES.length)];
+      playFile(`./sounds/laugh/${name}.mp3`, onEnd);
+    }
+
+    // 12개월 P_T 카드 렌더
+    const stack = document.querySelector(".preview-stack");
+    for (let m = 1; m <= 12; m++) {
+      const info = MONTH_INFO[m];
+      const html = `
+        <div class="preview-label">${info.ko}</div>
+        <div class="cal-frame preview-frame">
+          <div class="cal-header">
+            <button class="cal-nav">◀</button>
+            <span class="cal-month-label">2026년 ${info.ko}</span>
+            <button class="cal-nav">▶</button>
+          </div>
+          <div class="cal-trophy-row earned j-base design-p design-p-tap" data-month="${m}">
+            <span class="j-bg" aria-hidden="true"></span>
+            <span class="j-stamp">
+              <span>perfect</span>
+              <span class="num">${info.days}</span>
+              <span>days</span>
+            </span>
+            <span class="cal-trophy-emoji">🏆</span>
+            <span class="j-caption">${info.ko} CLEAR<small>${info.en} 2026</small></span>
+          </div>
+        </div>
+      `;
+      const tmp = document.createElement("div");
+      tmp.innerHTML = html;
+      while (tmp.firstChild) stack.appendChild(tmp.firstChild);
+    }
+
+    // 트로피 인터랙션: 누르면 커진 상태 유지, 사운드 끝나면 작아짐.
+    // 웃음 → 동물 → 웃음 식으로 연속 웃음은 피함 (lastWasLaugh)
+    let lastWasLaugh = false;
+    document.querySelectorAll(".design-p-tap .cal-trophy-emoji").forEach((trophy) => {
+      const row = trophy.closest(".design-p-tap");
+      const month = parseInt(row.dataset.month, 10);
+      const onTap = (e) => {
+        e.preventDefault();
+        trophy.classList.add("enlarged");
+        const onEnd = () => trophy.classList.remove("enlarged");
+        if (!lastWasLaugh && Math.random() < LAUGH_CHANCE) {
+          lastWasLaugh = true;
+          playLaughSound(onEnd);
+        } else {
+          lastWasLaugh = false;
+          playAnimalSound(month, onEnd);
+        }
+      };
+      trophy.addEventListener("click", onTap);
+      trophy.addEventListener("touchstart", onTap, { passive: false });
+    });
+  </script>
+</body>
+</html>

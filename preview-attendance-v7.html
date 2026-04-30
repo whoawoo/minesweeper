@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>출석 v7 — 포레스트 결로 5종</title>
+  <style>
+    body {
+      font-family: -apple-system, "Apple SD Gothic Neo", Tahoma, sans-serif;
+      background: #2e2e2e; margin: 0; padding: 30px 12px 60px;
+    }
+    #scrollRoot { display: flex; flex-direction: column; gap: 56px; align-items: center; }
+    .demo-label {
+      color: #fff; font-weight: 700; letter-spacing: 0.06em;
+      text-shadow: 1px 1px 0 #000; font-size: 0.95rem; text-align: center;
+      margin-bottom: -10px;
+    }
+    .demo-card { width: 100%; max-width: 360px; }
+
+    /* ======= 공통 카드 결 (포레스트 베이스) ======= */
+    .v7 {
+      padding: 18px;
+      border: 3px solid var(--frame, #6a4a20);
+      box-shadow: 0 8px 22px rgba(40, 25, 5, 0.32);
+      color: var(--ink, #3a2814);
+      position: relative;
+      background-color: var(--paper, #ede0c8);
+      background-image:
+        repeating-linear-gradient(90deg,
+          var(--grain1, rgba(120, 80, 30, 0.04)) 0 2px,
+          transparent 2px 14px),
+        repeating-linear-gradient(0deg,
+          var(--grain2, rgba(120, 80, 30, 0.025)) 0 30px,
+          transparent 30px 31px);
+    }
+    .v7-back {
+      background: var(--btn, #c8a070); color: var(--ink, #3a2814);
+      border: 2px solid var(--frame, #6a4a20);
+      border-radius: 4px; padding: 4px 10px; font-size: 0.78rem;
+      font-weight: 700; cursor: pointer;
+    }
+    .v7-display {
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 90%, var(--display-shade, rgba(60, 40, 10, 0.2)) 0 50%, transparent 70%),
+        linear-gradient(180deg, var(--display-light, #f8eed0) 0%, var(--display-dark, #d8b878) 100%);
+      padding: 18px 14px 14px;
+      margin: 12px 0;
+      border-radius: 4px;
+      position: relative;
+      text-align: center;
+      border: 2px solid var(--frame, #6a4a20);
+    }
+    .v7-pedestal {
+      width: 140px; height: 36px;
+      margin: 0 auto -6px;
+      position: relative;
+    }
+    .v7-pedestal svg { width: 100%; height: 100%; display: block; }
+    .v7-trophy-emoji {
+      font-size: 3.2rem; line-height: 1;
+      filter: drop-shadow(0 3px 4px rgba(60, 30, 0, 0.4));
+      margin-bottom: -4px; cursor: pointer;
+      user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+      transition: transform 0.18s ease-out;
+      display: inline-block;
+    }
+    .v7-trophy-emoji.enlarged { transform: scale(1.3); }
+    .v7-caption {
+      font-family: Georgia, serif; font-style: italic; font-weight: 700;
+      font-size: 1.1rem; color: var(--ink, #3a2814); letter-spacing: 0.04em;
+      padding-top: 12px;
+    }
+    .v7-caption small {
+      display: block; font-size: 0.65rem; letter-spacing: 0.18em;
+      color: var(--ink-mute, #6a4a20); margin-top: 4px; text-transform: uppercase;
+      font-weight: 700; font-family: inherit; font-style: normal;
+    }
+    .v7-month {
+      font-size: 0.85rem; letter-spacing: 0.06em; color: var(--ink-mute, #6a4a20);
+      text-align: center; margin-bottom: 8px; font-weight: 700;
+    }
+    .v7-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .v7-wk {
+      text-align: center; font-size: 0.65rem; padding: 3px 0;
+      color: var(--ink-mute, #6a4a20); font-weight: 700; letter-spacing: 0.08em;
+    }
+    .v7-wk.sun { color: var(--sun, #b03220); }
+    .v7-wk.sat { color: var(--sat, #4a6a20); }
+    .v7-day {
+      aspect-ratio: 1; background: var(--cell, rgba(120, 80, 30, 0.08));
+      border: none; font-family: inherit; font-weight: 700; font-size: 0.85rem;
+      color: var(--ink, #3a2814); cursor: pointer; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 3px;
+    }
+    .v7-day.stamped::after {
+      content: ""; position: absolute; inset: 14%;
+      border: 2.4px solid #c93026; border-radius: 50%;
+    }
+    .v7-day.stamped { color: #b02016; }
+    /* 미드나잇용 도장 (어두운 위에서 더 밝게) */
+    .v7.midnight-tone .v7-day.stamped::after {
+      border-color: #ff5a4a;
+      box-shadow: 0 0 6px rgba(255, 90, 74, 0.45);
+    }
+    .v7.midnight-tone .v7-day.stamped { color: #ff8a78; }
+
+    /* ===== 1. FOREST ===== */
+    .v7.forest {
+      --frame: #6a4a20;
+      --ink: #3a2814;
+      --ink-mute: #6a4a20;
+      --paper: #ede0c8;
+      --btn: #c8a070;
+      --display-light: #f8eed0;
+      --display-dark: #d8b878;
+      --display-shade: rgba(60, 40, 10, 0.2);
+      --cell: rgba(120, 80, 30, 0.08);
+      --grain1: rgba(120, 80, 30, 0.04);
+      --grain2: rgba(120, 80, 30, 0.025);
+      --sun: #b03220;
+      --sat: #4a6a20;
+    }
+
+    /* ===== 2. LAVENDER ===== */
+    .v7.lavender {
+      --frame: #6a4a8a;
+      --ink: #3a1f5c;
+      --ink-mute: #7858a0;
+      --paper: #ece0f0;
+      --btn: #d4b8e8;
+      --display-light: #f8effa;
+      --display-dark: #ccaae0;
+      --display-shade: rgba(80, 40, 110, 0.18);
+      --cell: rgba(120, 80, 180, 0.1);
+      --grain1: rgba(80, 40, 110, 0.04);
+      --grain2: rgba(80, 40, 110, 0.025);
+      --sun: #b04488;
+      --sat: #4860b0;
+    }
+
+    /* ===== 3. OCEAN ===== */
+    .v7.ocean {
+      --frame: #2e5a8a;
+      --ink: #0e2848;
+      --ink-mute: #4878a0;
+      --paper: #d8e8ec;
+      --btn: #9ec0d8;
+      --display-light: #e8f0f4;
+      --display-dark: #98b8c8;
+      --display-shade: rgba(20, 50, 90, 0.22);
+      --cell: rgba(40, 90, 140, 0.1);
+      --grain1: rgba(20, 50, 90, 0.04);
+      --grain2: rgba(20, 50, 90, 0.025);
+      --sun: #b04050;
+      --sat: #1e4a78;
+    }
+
+    /* ===== 4. CHERRY ===== */
+    .v7.cherry {
+      --frame: #a04860;
+      --ink: #5a1830;
+      --ink-mute: #9a4870;
+      --paper: #f4dde4;
+      --btn: #ecb8c8;
+      --display-light: #fce8ee;
+      --display-dark: #e0a8c0;
+      --display-shade: rgba(140, 40, 70, 0.22);
+      --cell: rgba(180, 80, 130, 0.1);
+      --grain1: rgba(140, 40, 70, 0.045);
+      --grain2: rgba(140, 40, 70, 0.025);
+      --sun: #c0286c;
+      --sat: #6048b0;
+    }
+
+    /* ===== 5. MIDNIGHT ===== */
+    .v7.midnight {
+      --frame: #2e2a5a;
+      --ink: #f0eef8;
+      --ink-mute: rgba(245, 233, 192, 0.65);
+      --paper: #181830;
+      --btn: rgba(245, 233, 192, 0.16);
+      --display-light: #2e2a5a;
+      --display-dark: #14142a;
+      --display-shade: rgba(0, 0, 0, 0.4);
+      --cell: rgba(255, 255, 255, 0.06);
+      --grain1: rgba(255, 255, 255, 0.025);
+      --grain2: rgba(245, 233, 192, 0.02);
+      --sun: #ee8898;
+      --sat: #98b8ff;
+    }
+    .v7.midnight .v7-back { background: var(--btn); color: #f5e9c0; border-color: rgba(245, 233, 192, 0.3); }
+    .v7.midnight .v7-caption { color: #f5e9c0; text-shadow: 0 0 6px rgba(245, 233, 192, 0.3); }
+  </style>
+</head>
+<body>
+<div id="scrollRoot"></div>
+
+<script>
+  const FIRST_DOW = 3, LAST = 30;
+  const STAMPED_ALL = Array.from({length:30}, (_, i) => i+1);
+
+  function buildGrid(rootEl) {
+    const wks = ["일","월","화","수","목","금","토"];
+    wks.forEach((n, i) => {
+      const h = document.createElement("div");
+      h.className = "v7-wk" + (i === 0 ? " sun" : i === 6 ? " sat" : "");
+      h.textContent = n;
+      rootEl.appendChild(h);
+    });
+    for (let i = 0; i < FIRST_DOW; i++) rootEl.appendChild(document.createElement("div"));
+    for (let d = 1; d <= LAST; d++) {
+      const c = document.createElement("button");
+      c.className = "v7-day";
+      c.type = "button";
+      c.textContent = d;
+      if (STAMPED_ALL.includes(d)) c.classList.add("stamped");
+      rootEl.appendChild(c);
+    }
+  }
+
+  // 받침대 SVG들 — 각 테마 모티프
+  const PEDESTALS = {
+    forest: `
+      <svg viewBox="0 0 140 36">
+        <ellipse cx="70" cy="32" rx="64" ry="4" fill="rgba(40, 20, 5, 0.3)"/>
+        <path d="M 18 30 Q 70 16 122 30 L 122 32 L 18 32 Z" fill="#6a3e18"/>
+        <path d="M 18 30 Q 70 16 122 30 Q 122 22 122 14 Q 70 4 18 14 Q 18 22 18 30 Z" fill="#8a5a30"/>
+        <ellipse cx="70" cy="13" rx="50" ry="6" fill="#a06838"/>
+        <ellipse cx="70" cy="12" rx="32" ry="3.5" fill="#704818"/>
+        <ellipse cx="70" cy="11" rx="14" ry="1.6" fill="#3e2810"/>
+      </svg>`,
+    lavender: `
+      <svg viewBox="0 0 140 36">
+        <!-- 라벤더 꽃다발 받침 -->
+        <ellipse cx="70" cy="33" rx="58" ry="3.5" fill="rgba(80, 40, 110, 0.3)"/>
+        <!-- 꽃대 다발 -->
+        <path d="M 50 30 Q 50 20 56 12" stroke="#5a7038" stroke-width="2" fill="none"/>
+        <path d="M 60 30 Q 60 22 64 12" stroke="#5a7038" stroke-width="2" fill="none"/>
+        <path d="M 70 30 Q 70 22 70 10" stroke="#5a7038" stroke-width="2" fill="none"/>
+        <path d="M 80 30 Q 80 22 76 12" stroke="#5a7038" stroke-width="2" fill="none"/>
+        <path d="M 90 30 Q 90 20 84 12" stroke="#5a7038" stroke-width="2" fill="none"/>
+        <!-- 라벤더 꽃송이 -->
+        <ellipse cx="56" cy="11" rx="3" ry="5" fill="#9060c0"/>
+        <ellipse cx="64" cy="9" rx="3" ry="5" fill="#a070d0"/>
+        <ellipse cx="70" cy="8" rx="3.2" ry="5.5" fill="#9060c0"/>
+        <ellipse cx="76" cy="9" rx="3" ry="5" fill="#a070d0"/>
+        <ellipse cx="84" cy="11" rx="3" ry="5" fill="#9060c0"/>
+        <!-- 묶는 끈 -->
+        <rect x="50" y="22" width="40" height="5" fill="#c890e0" rx="1.5"/>
+        <rect x="50" y="22" width="40" height="1.5" fill="#a070d0"/>
+      </svg>`,
+    ocean: `
+      <svg viewBox="0 0 140 36">
+        <!-- 모래 위 둥근 돌들 -->
+        <ellipse cx="70" cy="33" rx="62" ry="4" fill="rgba(20, 50, 90, 0.32)"/>
+        <ellipse cx="40" cy="28" rx="14" ry="6" fill="#88a8c0"/>
+        <ellipse cx="40" cy="26" rx="10" ry="3" fill="#a0c0d8" opacity="0.7"/>
+        <ellipse cx="100" cy="28" rx="13" ry="5.5" fill="#7898b0"/>
+        <ellipse cx="100" cy="26" rx="9" ry="2.8" fill="#98b8d0" opacity="0.7"/>
+        <ellipse cx="70" cy="22" rx="20" ry="9" fill="#5878a0"/>
+        <ellipse cx="70" cy="18" rx="14" ry="4.5" fill="#7898c0" opacity="0.8"/>
+        <ellipse cx="62" cy="14" rx="3" ry="1.5" fill="#a0c0e0" opacity="0.7"/>
+      </svg>`,
+    cherry: `
+      <svg viewBox="0 0 140 36">
+        <!-- 꽃잎 쿠션 -->
+        <ellipse cx="70" cy="33" rx="60" ry="3.5" fill="rgba(140, 40, 70, 0.28)"/>
+        <path d="M 16 30 Q 70 14 124 30 L 124 32 L 16 32 Z" fill="#d05878"/>
+        <path d="M 16 30 Q 70 14 124 30 Q 124 22 124 18 Q 70 6 16 18 Q 16 22 16 30 Z" fill="#ecb0c8"/>
+        <ellipse cx="70" cy="17" rx="48" ry="6" fill="#f4d0de"/>
+        <!-- 떨어진 작은 꽃잎 -->
+        <ellipse cx="38" cy="33" rx="3" ry="1.8" fill="#f8c0d6" transform="rotate(20 38 33)"/>
+        <ellipse cx="105" cy="34" rx="3" ry="1.8" fill="#f8c0d6" transform="rotate(-20 105 34)"/>
+        <!-- 위에 작은 꽃 한 송이 -->
+        <g transform="translate(70 9)">
+          <circle cx="0" cy="-4" r="2.5" fill="#f8b8d0"/>
+          <circle cx="3.5" cy="-1" r="2.5" fill="#f8b8d0"/>
+          <circle cx="2" cy="3" r="2.5" fill="#f8b8d0"/>
+          <circle cx="-2" cy="3" r="2.5" fill="#f8b8d0"/>
+          <circle cx="-3.5" cy="-1" r="2.5" fill="#f8b8d0"/>
+          <circle cx="0" cy="0" r="1.4" fill="#d0688a"/>
+        </g>
+      </svg>`,
+    midnight: `
+      <svg viewBox="0 0 140 36">
+        <!-- 구름 받침 + 빛나는 별 -->
+        <ellipse cx="70" cy="34" rx="58" ry="3" fill="rgba(0, 0, 0, 0.5)"/>
+        <path d="M 24 30 Q 22 20 30 18 Q 35 10 48 14 Q 58 6 72 12 Q 86 6 96 14 Q 110 12 116 20 Q 120 28 110 30 Z"
+              fill="#5a5078" stroke="#7878a0" stroke-width="0.8"/>
+        <path d="M 24 30 Q 22 20 30 18 Q 35 10 48 14 Q 58 6 72 12 Q 86 6 96 14 Q 110 12 116 20"
+              stroke="rgba(245, 233, 192, 0.4)" stroke-width="1" fill="none"/>
+        <!-- 작은 별 두 개 -->
+        <circle cx="32" cy="20" r="1" fill="#fff5c0"/>
+        <circle cx="108" cy="22" r="1.2" fill="#fff5c0"/>
+        <circle cx="70" cy="26" r="0.8" fill="#fff5c0"/>
+      </svg>`,
+  };
+
+  const THEMES = [
+    { key: "forest",   name: "포레스트",   month: "April 2026 · 30 days", caption: "4월 완벽 출석!" },
+    { key: "lavender", name: "라벤더",     month: "April 2026 · 30 days", caption: "4월 완벽 출석!" },
+    { key: "ocean",    name: "오션",       month: "April 2026 · 30 days", caption: "4월 완벽 출석!" },
+    { key: "cherry",   name: "체리",       month: "April 2026 · 30 days", caption: "4월 완벽 출석!" },
+    { key: "midnight", name: "미드나잇",   month: "April 2026 · 30 days", caption: "4월 완벽 출석!" },
+  ];
+
+  const root = document.getElementById("scrollRoot");
+  THEMES.forEach((t, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "demo-card";
+    wrap.innerHTML = `
+      <div class="demo-label">${i+1}️⃣  ${t.name}</div>
+      <div class="v7 ${t.key} ${t.key === 'midnight' ? 'midnight-tone' : ''}">
+        <button class="v7-back">‹ 메뉴</button>
+        <div class="v7-display">
+          <div class="v7-trophy-emoji" data-sound="dragon">🏆</div>
+          <div class="v7-pedestal">${PEDESTALS[t.key]}</div>
+          <div class="v7-caption">${t.caption}<small>${t.month}</small></div>
+        </div>
+        <div class="v7-month">2026년 4월</div>
+        <div class="v7-grid"></div>
+      </div>`;
+    root.appendChild(wrap);
+    buildGrid(wrap.querySelector(".v7-grid"));
+  });
+
+  // 트로피 사운드 + 스케일 인터랙션
+  document.querySelectorAll(".v7-trophy-emoji").forEach((t) => {
+    let timer;
+    const onTap = (e) => {
+      e.preventDefault();
+      t.classList.add("enlarged");
+      const a = new Audio(`./sounds/${t.dataset.sound}.mp3`);
+      a.play().catch(() => {});
+      a.onended = () => t.classList.remove("enlarged");
+      clearTimeout(timer);
+      timer = setTimeout(() => t.classList.remove("enlarged"), 4000);
+    };
+    t.addEventListener("click", onTap);
+    t.addEventListener("touchstart", onTap, { passive: false });
+  });
+</script>
+</body>
+</html>

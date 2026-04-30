@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A1 · B1 · C1 (화려)</title>
+  <style>
+    body {
+      font-family: -apple-system, "Apple SD Gothic Neo", Tahoma, sans-serif;
+      background: #6a7050; margin: 0; padding: 60px 12px;
+      color: #f4ecd8;
+    }
+    .row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+      max-width: 600px; margin: 0 auto;
+    }
+    .item {
+      background: #f4ecd8;
+      border-radius: 10px; padding: 18px 10px 12px;
+      text-align: center;
+      color: #4a5028;
+    }
+    .item svg { width: 130px; height: 130px; display: block; margin: 0 auto 6px; overflow: visible; }
+    .item .label {
+      font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+<div class="row">
+
+  <!-- A1: 화려한 클래식 컵 (별 보석 + 다층 받침 + 이중 손잡이) -->
+  <div class="item">
+    <svg viewBox="0 0 110 110">
+      <!-- 다층 받침 -->
+      <rect x="30" y="92" width="50" height="9" fill="#5a2810" rx="2"/>
+      <rect x="34" y="84" width="42" height="9" fill="#7a3810" rx="1.5"/>
+      <rect x="38" y="80" width="34" height="2" fill="#b07028"/>
+      <!-- stem with 마디 -->
+      <rect x="46" y="68" width="14" height="14" fill="#d4a040"/>
+      <ellipse cx="53" cy="68" rx="9" ry="2.5" fill="#a07820"/>
+      <ellipse cx="53" cy="80" rx="10" ry="2.5" fill="#a07820"/>
+      <!-- 이중 손잡이 (어두운 외곽 + 밝은 안쪽) -->
+      <path d="M 26 30 Q 8 36 8 50 Q 8 64 26 66" stroke="#8a5418" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M 26 30 Q 12 36 12 50 Q 12 64 26 66" stroke="#f4c840" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M 80 30 Q 98 36 98 50 Q 98 64 80 66" stroke="#8a5418" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M 80 30 Q 94 36 94 50 Q 94 64 80 66" stroke="#f4c840" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- 컵 본체 -->
+      <path d="M 24 22 L 24 50 Q 24 70 53 70 Q 82 70 82 50 L 82 22 Z"
+            fill="#f4c840" stroke="#6a3818" stroke-width="2.4" stroke-linejoin="round"/>
+      <!-- 새겨진 가로 무늬 -->
+      <line x1="28" y1="50" x2="78" y2="50" stroke="#a07820" stroke-width="1"/>
+      <line x1="30" y1="56" x2="76" y2="56" stroke="#a07820" stroke-width="1"/>
+      <!-- 별 보석 가운데 -->
+      <polygon points="53,32 56,40 65,40 58,46 60,55 53,49 46,55 48,46 41,40 50,40"
+               fill="#b03228" stroke="#6a1808" stroke-width="1.2"/>
+      <!-- 윗 림 (이중) -->
+      <ellipse cx="53" cy="22" rx="29" ry="4.5" fill="#fce088" stroke="#6a3818" stroke-width="2"/>
+      <ellipse cx="53" cy="22" rx="29" ry="2" fill="#fff5d0"/>
+    </svg>
+    <div class="label">A1 · 별 보석 + 이중 손잡이</div>
+  </div>
+
+  <!-- B1: 화려한 월계관 (잎 + 베리 + 가운데 메달 + 리본) -->
+  <div class="item">
+    <svg viewBox="0 0 110 110">
+      <g transform="translate(55 50)">
+        <g>
+          <ellipse cx="-32" cy="0" rx="9" ry="4" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-30 -32 0)"/>
+          <ellipse cx="-30" cy="-14" rx="9" ry="4" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-55 -30 -14)"/>
+          <ellipse cx="-22" cy="-26" rx="8" ry="3.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-75 -22 -26)"/>
+          <ellipse cx="-8" cy="-32" rx="7" ry="3" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-95 -8 -32)"/>
+          <ellipse cx="-30" cy="14" rx="9" ry="4" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-130 -30 14)"/>
+          <ellipse cx="-22" cy="26" rx="8" ry="3.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-150 -22 26)"/>
+          <ellipse cx="-10" cy="33" rx="7" ry="3" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-170 -10 33)"/>
+          <!-- 베리 -->
+          <circle cx="-26" cy="-6" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+          <circle cx="-18" cy="-22" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+          <circle cx="-22" cy="20" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+        </g>
+        <g transform="scale(-1 1)">
+          <ellipse cx="-32" cy="0" rx="9" ry="4" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-30 -32 0)"/>
+          <ellipse cx="-30" cy="-14" rx="9" ry="4" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-55 -30 -14)"/>
+          <ellipse cx="-22" cy="-26" rx="8" ry="3.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-75 -22 -26)"/>
+          <ellipse cx="-8" cy="-32" rx="7" ry="3" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-95 -8 -32)"/>
+          <ellipse cx="-30" cy="14" rx="9" ry="4" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-130 -30 14)"/>
+          <ellipse cx="-22" cy="26" rx="8" ry="3.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8" transform="rotate(-150 -22 26)"/>
+          <ellipse cx="-10" cy="33" rx="7" ry="3" fill="#6a9038" stroke="#3a5018" stroke-width="0.8" transform="rotate(-170 -10 33)"/>
+          <circle cx="-26" cy="-6" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+          <circle cx="-18" cy="-22" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+          <circle cx="-22" cy="20" r="2" fill="#b03228" stroke="#6a1808" stroke-width="0.6"/>
+        </g>
+      </g>
+      <!-- 중앙 황금 메달 -->
+      <circle cx="55" cy="50" r="16" fill="#f4c840" stroke="#6a3818" stroke-width="2"/>
+      <circle cx="55" cy="50" r="12" fill="none" stroke="#a07820" stroke-width="0.8"/>
+      <polygon points="55,40 58,48 66,48 60,53 62,62 55,57 48,62 50,53 44,48 52,48"
+               fill="#b03228" stroke="#6a1808" stroke-width="1"/>
+      <!-- 아래 리본 -->
+      <path d="M 38 84 L 55 76 L 72 84 L 64 92 L 55 88 L 46 92 Z"
+            fill="#b03228" stroke="#6a1808" stroke-width="1.2" stroke-linejoin="round"/>
+    </svg>
+    <div class="label">B1 · 월계관 + 메달 + 리본</div>
+  </div>
+
+  <!-- C1: 화려한 5-spike 로얄 크라운 (다보석 + 진주) -->
+  <div class="item">
+    <svg viewBox="0 0 110 110">
+      <rect x="18" y="86" width="74" height="6" fill="#7a1810" rx="2"/>
+      <rect x="20" y="78" width="70" height="9" fill="#a07820" rx="1.5"/>
+      <!-- 본체 -->
+      <path d="M 22 78 L 14 30 L 32 56 L 44 18 L 55 56 L 66 18 L 78 56 L 96 30 L 88 78 Z"
+            fill="#f4c840" stroke="#6a3818" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M 22 78 L 18 56 L 30 68 L 44 32 L 55 70 L 66 32 L 80 68 L 92 56 L 88 78 Z" fill="#f8d860"/>
+      <!-- 새김선 -->
+      <path d="M 24 64 Q 55 70 86 64" stroke="#a07820" stroke-width="1" fill="none"/>
+      <path d="M 26 72 Q 55 76 84 72" stroke="#a07820" stroke-width="1" fill="none"/>
+      <!-- 가운데 큰 보석 (루비) -->
+      <ellipse cx="55" cy="68" rx="6.5" ry="5" fill="#b03228" stroke="#6a1808" stroke-width="1.3"/>
+      <ellipse cx="53" cy="66" rx="2" ry="1.5" fill="#fff" opacity="0.6"/>
+      <!-- 좌우 사파이어 -->
+      <circle cx="32" cy="64" r="3.5" fill="#3a6090" stroke="#1a3060" stroke-width="1"/>
+      <circle cx="78" cy="64" r="3.5" fill="#3a6090" stroke="#1a3060" stroke-width="1"/>
+      <!-- 더 작은 에메랄드 -->
+      <circle cx="22" cy="74" r="2.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8"/>
+      <circle cx="88" cy="74" r="2.5" fill="#5a8030" stroke="#3a5018" stroke-width="0.8"/>
+      <!-- spike 끝 보석 -->
+      <circle cx="14" cy="30" r="4" fill="#fce088" stroke="#6a3818" stroke-width="1.5"/>
+      <circle cx="44" cy="18" r="4" fill="#fce088" stroke="#6a3818" stroke-width="1.5"/>
+      <circle cx="66" cy="18" r="4" fill="#fce088" stroke="#6a3818" stroke-width="1.5"/>
+      <circle cx="96" cy="30" r="4" fill="#fce088" stroke="#6a3818" stroke-width="1.5"/>
+      <!-- 진주 줄 (받침 위) -->
+      <circle cx="28" cy="80" r="1.6" fill="#fff5d0" stroke="#8a5418" stroke-width="0.5"/>
+      <circle cx="40" cy="80" r="1.6" fill="#fff5d0" stroke="#8a5418" stroke-width="0.5"/>
+      <circle cx="55" cy="80" r="1.8" fill="#fff5d0" stroke="#8a5418" stroke-width="0.6"/>
+      <circle cx="70" cy="80" r="1.6" fill="#fff5d0" stroke="#8a5418" stroke-width="0.5"/>
+      <circle cx="82" cy="80" r="1.6" fill="#fff5d0" stroke="#8a5418" stroke-width="0.5"/>
+    </svg>
+    <div class="label">C1 · 다보석 + 진주</div>
+  </div>
+
+</div>
+</body>
+</html>

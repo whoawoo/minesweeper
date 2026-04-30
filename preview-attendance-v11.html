@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>출석 v11 — 테마별 컬러 풀 오버라이드</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* 스크롤 풀기 */
+    html, body {
+      position: static !important; inset: auto !important;
+      height: auto !important; min-height: 100vh !important;
+      overflow: visible !important; overflow-y: auto !important;
+    }
+    body {
+      background: #2e2e2e !important; background-image: none !important;
+      padding: 0 !important; margin: 0;
+    }
+    #scrollRoot {
+      display: flex; flex-direction: column; gap: 50px;
+      align-items: center; padding: 30px 12px 60px;
+    }
+    .demo-label {
+      color: #fff; font-weight: 700; letter-spacing: 0.06em;
+      text-shadow: 1px 1px 0 #000; font-size: 0.95rem; text-align: center;
+      margin-bottom: -16px;
+    }
+    .demo-card {
+      width: 100%; max-width: 360px;
+      padding: 24px 14px 22px; border-radius: 8px;
+      position: relative; overflow: hidden;
+    }
+    .demo-card .view {
+      min-height: 0; padding: 0; gap: 12px; position: relative; z-index: 1;
+    }
+    .demo-card .cal-hint { display: none; }
+
+    /* ━━━━━━━━━━━━━━ 1. 클래식 ━━━━━━━━━━━━━━ */
+    .demo-classic {
+      background-color: #5d5d5d;
+      background-image: url('./bg-pattern.svg');
+      background-size: 480px 480px;
+    }
+
+    /* ━━━━━━━━━━━━━━ 2. 포레스트 — 우드 + 올리브 ━━━━━━━━━━━━━━ */
+    .demo-forest {
+      background-color: #6a7050;
+      background-image: url('./bg-pattern-forest.svg');
+      background-size: 480px 480px;
+    }
+    .demo-forest .back-btn {
+      background: #d4c094; color: #2e3818; border: none;
+      border-radius: 3px;
+      font-size: 0.85rem; padding: 8px 12px; min-height: 0; font-weight: 600;
+    }
+    .demo-forest .cal-frame {
+      background: #f4ecd8; border: none;
+      border-radius: 6px;
+    }
+    .demo-forest .cal-header { background: #7a8a64; color: #f8f0dc; border: none; }
+    .demo-forest .cal-nav {
+      background: #d4c094; color: #2e3818; border: none;
+      border-radius: 3px;
+      align-self: center;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+    .demo-forest .cal-trophy-row {
+      background: linear-gradient(135deg, #f8efdc, #e4d4a4);
+      color: #4a5028; border: none;
+    }
+    .demo-forest .cal-trophy-progress { color: #4a5028; }
+    .demo-forest .cal-trophy-progress strong { color: #6a7838; }
+    .demo-forest .cal-trophy-empty { filter: sepia(1); }
+    .demo-forest .cal-grid {
+      background: #8a9070; border: none;
+      padding: 5px; gap: 4px;
+    }
+    /* 포레스트: 도장 = 빨간 동그라미 X, 나무/버섯 번갈아가며 */
+    .demo-forest .cal-day.stamped::after { display: none; }
+    .demo-forest .cal-day.stamp-pine::after,
+    .demo-forest .cal-day.stamp-mushroom::after {
+      content: ""; display: block; position: absolute;
+      inset: 14%; border: none;
+      background-position: center; background-repeat: no-repeat; background-size: contain;
+      pointer-events: none;
+    }
+    .demo-forest .cal-day.stamp-pine::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpolygon points='12,3 6,13 18,13' fill='%232a4220'/%3E%3Cpolygon points='12,8 4,18 20,18' fill='%231f3018'/%3E%3Crect x='10.5' y='18' width='3' height='3.5' fill='%235a3018'/%3E%3C/svg%3E");
+    }
+    .demo-forest .cal-day.stamp-mushroom::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3.5 13 Q12 1.5 20.5 13 Z' fill='%23a0301c'/%3E%3Ccircle cx='8.5' cy='10.5' r='1.4' fill='%23fff5e0'/%3E%3Cellipse cx='14' cy='12.5' rx='1.2' ry='0.9' fill='%23fff5e0'/%3E%3Crect x='8.5' y='13' width='7' height='7' fill='%23f4e4c0'/%3E%3C/svg%3E");
+    }
+    /* ⬇⬇ 날짜 셀: 은은한 fill ⬇⬇ */
+    .demo-forest .cal-day {
+      background: #e4ebcc; border: none; border-radius: 4px;
+      color: #2e3818; font-weight: 600;
+      box-shadow: none;
+    }
+    .demo-forest .cal-day:hover { background: #ecf2d8; }
+    /* 도장 찍힌 셀: 숫자 숨김 + 부드러운 초록 fill */
+    .demo-forest .cal-day.stamp-pine,
+    .demo-forest .cal-day.stamp-mushroom {
+      color: transparent;
+      background: #a8be88;
+      box-shadow: none;
+    }
+    /* 요일 헤더: cream 띠로 연결, 보더 X */
+    .demo-forest .cal-wkhead {
+      background: #f4ecd8; color: #4a5028;
+      box-shadow: -2px 0 0 #f4ecd8, 2px 0 0 #f4ecd8;
+      position: relative; z-index: 1;
+    }
+    .demo-forest .cal-wkhead::after {
+      content: ""; position: absolute;
+      top: 4px; bottom: 4px;
+      right: -3px;          /* 4px gap 가운데 정렬 */
+      width: 2.5px;
+      background: rgba(74, 106, 32, 0.28);
+      border-radius: 2px;
+    }
+    .demo-forest .cal-wkhead:last-of-type::after,
+    .demo-forest .cal-wkhead.sat::after { display: none; }
+    .demo-forest .cal-wkhead.sun { color: #b03220; }
+    .demo-forest .cal-wkhead.sat { color: #4a6a20; }
+    .demo-forest .cal-day.today {
+      outline: none;
+      box-shadow: inset 0 0 0 1.5px #4a5a30;
+    }
+    .demo-forest .cal-day.selected {
+      background: #f4d870;
+      box-shadow: inset 0 0 0 1.5px #a07020;
+    }
+    .demo-forest .cal-hint { color: #f4ecdc; }
+    .demo-forest .big-btn {
+      background: #d4c094; color: #2e3818; border: none;
+      border-radius: 5px;
+      font-size: 1rem; padding: 12px 16px; font-weight: 600;
+    }
+
+    /* ━━━━━━━━━━━━━━ 3. 라벤더 — 보라 / 핑크 ━━━━━━━━━━━━━━ */
+    .demo-lavender {
+      background-color: #b8a0d8;
+      background-image: url('./bg-pattern-lavender.svg');
+      background-size: 480px 480px;
+    }
+    .demo-lavender .back-btn {
+      background: #d4b8e0; color: #3a1f5c;
+      border-top: 2px solid #ede0f4; border-left: 2px solid #ede0f4;
+      border-right: 2px solid #6a4a8a; border-bottom: 2px solid #6a4a8a;
+      font-size: 0.85rem; padding: 8px 12px; min-height: 0; font-weight: 700;
+    }
+    .demo-lavender .cal-frame {
+      background: #f4ecf8;
+      border-top: 3px solid #fff8fc; border-left: 3px solid #fff8fc;
+      border-right: 3px solid #6a4a8a; border-bottom: 3px solid #6a4a8a;
+    }
+    .demo-lavender .cal-header { background: #9866b8; color: #f4ecf8; }
+    .demo-lavender .cal-nav {
+      background: #d4b8e0; color: #3a1f5c;
+      border-top: 2px solid #ede0f4; border-left: 2px solid #ede0f4;
+      border-right: 2px solid #6a4a8a; border-bottom: 2px solid #6a4a8a;
+    }
+    .demo-lavender .cal-trophy-row {
+      background: linear-gradient(135deg, #faf0fc, #d8b8f0);
+      color: #3a1f5c;
+      border-top: 2px solid #a890c0; border-left: 2px solid #a890c0;
+      border-right: 2px solid #f4ecf8; border-bottom: 2px solid #f4ecf8;
+    }
+    .demo-lavender .cal-trophy-progress { color: #3a1f5c; }
+    .demo-lavender .cal-trophy-progress strong { color: #6a3aa0; }
+    .demo-lavender .cal-grid {
+      background: #6a4a8a;
+      border-top: 2px solid #8a6aa0; border-left: 2px solid #8a6aa0;
+      border-right: 2px solid #c8b0d8; border-bottom: 2px solid #c8b0d8;
+    }
+    .demo-lavender .cal-day { background: #faf0fc; color: #3a1f5c; }
+    .demo-lavender .cal-wkhead { background: #f4ecf8; color: #5a3aa0; }
+    .demo-lavender .cal-wkhead.sun { color: #b04488; }
+    .demo-lavender .cal-wkhead.sat { color: #4860b0; }
+    .demo-lavender .cal-day.today { outline: 2px dashed #6a3aa0; outline-offset: -4px; }
+    .demo-lavender .cal-day.selected { background: #d8b8f0; }
+    .demo-lavender .cal-hint { color: #f4ecf8; }
+    .demo-lavender .big-btn {
+      background: #9866b8; color: #fff;
+      border-top: 3px solid #b890cc; border-left: 3px solid #b890cc;
+      border-right: 3px solid #5a3a7a; border-bottom: 3px solid #5a3a7a;
+      font-size: 1rem; padding: 12px 16px;
+    }
+
+    /* ━━━━━━━━━━━━━━ 4. 오션 — 파랑 / 시원 ━━━━━━━━━━━━━━ */
+    .demo-ocean {
+      background-color: #88b8d8;
+      background-image: url('./bg-pattern-ocean.svg');
+      background-size: 480px 480px;
+    }
+    .demo-ocean .back-btn {
+      background: #c0d8e8; color: #0e2848;
+      border-top: 2px solid #e0ecf4; border-left: 2px solid #e0ecf4;
+      border-right: 2px solid #1a4878; border-bottom: 2px solid #1a4878;
+      font-size: 0.85rem; padding: 8px 12px; min-height: 0; font-weight: 700;
+    }
+    .demo-ocean .cal-frame {
+      background: #ecf4fa;
+      border-top: 3px solid #fafdfe; border-left: 3px solid #fafdfe;
+      border-right: 3px solid #1a4878; border-bottom: 3px solid #1a4878;
+    }
+    .demo-ocean .cal-header { background: #356088; color: #ecf4fa; }
+    .demo-ocean .cal-nav {
+      background: #c0d8e8; color: #0e2848;
+      border-top: 2px solid #e0ecf4; border-left: 2px solid #e0ecf4;
+      border-right: 2px solid #1a4878; border-bottom: 2px solid #1a4878;
+    }
+    .demo-ocean .cal-trophy-row {
+      background: linear-gradient(135deg, #f4f8fc, #b0d0e8);
+      color: #0e2848;
+      border-top: 2px solid #88aac8; border-left: 2px solid #88aac8;
+      border-right: 2px solid #f4f8fc; border-bottom: 2px solid #f4f8fc;
+    }
+    .demo-ocean .cal-trophy-progress { color: #0e2848; }
+    .demo-ocean .cal-trophy-progress strong { color: #1a4878; }
+    .demo-ocean .cal-grid {
+      background: #4a78a8;
+      border-top: 2px solid #5a88b0; border-left: 2px solid #5a88b0;
+      border-right: 2px solid #b8d0e0; border-bottom: 2px solid #b8d0e0;
+    }
+    .demo-ocean .cal-day { background: #f0f8fc; color: #0e2848; }
+    .demo-ocean .cal-wkhead { background: #ecf4fa; color: #1e4a78; }
+    .demo-ocean .cal-wkhead.sun { color: #b04050; }
+    .demo-ocean .cal-wkhead.sat { color: #1e4a78; }
+    .demo-ocean .cal-day.today { outline: 2px dashed #1a4878; outline-offset: -4px; }
+    .demo-ocean .cal-day.selected { background: #b0d0e8; }
+    .demo-ocean .cal-hint { color: #ecf4fa; }
+    .demo-ocean .big-btn {
+      background: #356088; color: #fff;
+      border-top: 3px solid #5e88b0; border-left: 3px solid #5e88b0;
+      border-right: 3px solid #1a3a58; border-bottom: 3px solid #1a3a58;
+      font-size: 1rem; padding: 12px 16px;
+    }
+
+    /* ━━━━━━━━━━━━━━ 5. 체리 — 핑크 / 카와이 ━━━━━━━━━━━━━━ */
+    .demo-cherry {
+      background-color: #e8a8c0;
+      background-image: url('./bg-pattern-cherry.svg');
+      background-size: 480px 480px;
+    }
+    .demo-cherry .back-btn {
+      background: #f0c8d8; color: #5a1830;
+      border-top: 2px solid #fce8f0; border-left: 2px solid #fce8f0;
+      border-right: 2px solid #b07590; border-bottom: 2px solid #b07590;
+      font-size: 0.85rem; padding: 8px 12px; min-height: 0; font-weight: 700;
+    }
+    .demo-cherry .cal-frame {
+      background: #fce8f0;
+      border-top: 3px solid #fff5f8; border-left: 3px solid #fff5f8;
+      border-right: 3px solid #b07590; border-bottom: 3px solid #b07590;
+    }
+    .demo-cherry .cal-header { background: #c45481; color: #fce8f0; }
+    .demo-cherry .cal-nav {
+      background: #f0c8d8; color: #5a1830;
+      border-top: 2px solid #fce8f0; border-left: 2px solid #fce8f0;
+      border-right: 2px solid #b07590; border-bottom: 2px solid #b07590;
+    }
+    .demo-cherry .cal-trophy-row {
+      background: linear-gradient(135deg, #fff0f5, #f8c0d6);
+      color: #5a1830;
+      border-top: 2px solid #d09cb0; border-left: 2px solid #d09cb0;
+      border-right: 2px solid #fff0f5; border-bottom: 2px solid #fff0f5;
+    }
+    .demo-cherry .cal-trophy-progress { color: #5a1830; }
+    .demo-cherry .cal-trophy-progress strong { color: #c0286c; }
+    .demo-cherry .cal-grid {
+      background: #b07590;
+      border-top: 2px solid #a06888; border-left: 2px solid #a06888;
+      border-right: 2px solid #ecc0d4; border-bottom: 2px solid #ecc0d4;
+    }
+    .demo-cherry .cal-day { background: #fef4f8; color: #5a1830; }
+    .demo-cherry .cal-wkhead { background: #fce8f0; color: #8a3050; }
+    .demo-cherry .cal-wkhead.sun { color: #c0286c; }
+    .demo-cherry .cal-wkhead.sat { color: #6048b0; }
+    .demo-cherry .cal-day.today { outline: 2px dashed #c0286c; outline-offset: -4px; }
+    .demo-cherry .cal-day.selected { background: #f8c0d6; }
+    .demo-cherry .cal-hint { color: #fce8f0; }
+    .demo-cherry .big-btn {
+      background: #c45481; color: #fff;
+      border-top: 3px solid #dc7ea0; border-left: 3px solid #dc7ea0;
+      border-right: 3px solid #8a3458; border-bottom: 3px solid #8a3458;
+      font-size: 1rem; padding: 12px 16px;
+    }
+
+    /* ━━━━━━━━━━━━━━ 6. 미드나잇 — 어둠 + 달빛 ━━━━━━━━━━━━━━ */
+    .demo-midnight {
+      background-color: #0a0a1a;
+      background-image: url('./bg-pattern-black.svg');
+      background-size: 480px 480px;
+    }
+    .demo-midnight .back-btn {
+      background: rgba(245, 233, 192, 0.15); color: #f5e9c0;
+      border-top: 2px solid rgba(245, 233, 192, 0.4);
+      border-left: 2px solid rgba(245, 233, 192, 0.4);
+      border-right: 2px solid #1a1a30; border-bottom: 2px solid #1a1a30;
+      font-size: 0.85rem; padding: 8px 12px; min-height: 0; font-weight: 700;
+    }
+    .demo-midnight .cal-frame {
+      background: #1a1a3a;
+      border-top: 3px solid #3a3a5e; border-left: 3px solid #3a3a5e;
+      border-right: 3px solid #050510; border-bottom: 3px solid #050510;
+    }
+    .demo-midnight .cal-header { background: #b0a888; color: #2a2440; }
+    .demo-midnight .cal-nav {
+      background: rgba(245, 233, 192, 0.2); color: #f5e9c0;
+      border-top: 2px solid rgba(245, 233, 192, 0.4);
+      border-left: 2px solid rgba(245, 233, 192, 0.4);
+      border-right: 2px solid #1a1a30; border-bottom: 2px solid #1a1a30;
+    }
+    .demo-midnight .cal-trophy-row {
+      background: linear-gradient(135deg, #2a2a5e, #1a1a3a);
+      color: #f5e9c0;
+      border-top: 2px solid #4a4a6a; border-left: 2px solid #4a4a6a;
+      border-right: 2px solid #1a1a30; border-bottom: 2px solid #1a1a30;
+    }
+    .demo-midnight .cal-trophy-progress { color: #f5e9c0; }
+    .demo-midnight .cal-trophy-progress strong { color: #ffd060; }
+    .demo-midnight .cal-trophy-empty { filter: brightness(2.5) grayscale(0.3); }
+    .demo-midnight .cal-grid {
+      background: #050510;
+      border-top: 2px solid #1a1a2e; border-left: 2px solid #1a1a2e;
+      border-right: 2px solid #3e3e5e; border-bottom: 2px solid #3e3e5e;
+    }
+    .demo-midnight .cal-day { background: #2a2a4e; color: #f0eef8; }
+    .demo-midnight .cal-wkhead { background: #1a1a3a; color: rgba(245, 233, 192, 0.7); }
+    .demo-midnight .cal-wkhead.sun { color: #ee8898; }
+    .demo-midnight .cal-wkhead.sat { color: #98b8ff; }
+    .demo-midnight .cal-day.today { outline: 2px dashed #f5e9c0; outline-offset: -4px; }
+    .demo-midnight .cal-day.selected { background: rgba(245, 233, 192, 0.28); }
+    .demo-midnight .cal-day.stamped::after { border-color: #ff5a4a; box-shadow: 0 0 6px rgba(255, 90, 74, 0.45); }
+    .demo-midnight .cal-day.stamped { color: #ff8a78; }
+    .demo-midnight .cal-hint { color: rgba(245, 233, 192, 0.85); }
+    .demo-midnight .big-btn {
+      background: #b0a888; color: #2a2440;
+      border-top: 3px solid #cec0a0; border-left: 3px solid #cec0a0;
+      border-right: 3px solid #6a5e44; border-bottom: 3px solid #6a5e44;
+      font-size: 1rem; padding: 12px 16px;
+    }
+  </style>
+</head>
+<body>
+<div id="scrollRoot"></div>
+
+<script>
+  const FIRST_DOW = 3, LAST = 30;
+  const STAMPED = [1,2,3,4,5,6,7,8,9,10,11,12,13,14];
+  const TODAY = 18;
+  const SEL = 18;
+
+  function renderAttendance(cardEl) {
+    cardEl.insertAdjacentHTML("afterbegin", `
+      <div class="view" style="display:flex; flex-direction:column;">
+        <button class="back-btn">← 메뉴</button>
+        <div class="cal-frame">
+          <div class="cal-header">
+            <button class="cal-nav">◀</button>
+            <span class="cal-month-label">2026년 4월</span>
+            <button class="cal-nav">▶</button>
+          </div>
+          <div class="cal-trophy-row"></div>
+          <div class="cal-grid"></div>
+        </div>
+        <div class="cal-hint">날짜를 선택하세요 (없으면 오늘)</div>
+        <button class="big-btn">계속하기 ▶</button>
+      </div>`);
+    const grid = cardEl.querySelector(".cal-grid");
+    const wks = ["일","월","화","수","목","금","토"];
+    wks.forEach((n, i) => {
+      const h = document.createElement("div");
+      h.className = "cal-wkhead" + (i === 0 ? " sun" : i === 6 ? " sat" : "");
+      h.textContent = n;
+      grid.appendChild(h);
+    });
+    for (let i = 0; i < FIRST_DOW; i++) {
+      const b = document.createElement("div");
+      b.className = "cal-blank";
+      grid.appendChild(b);
+    }
+    for (let d = 1; d <= LAST; d++) {
+      const c = document.createElement("button");
+      c.className = "cal-day";
+      c.type = "button";
+      c.textContent = d;
+      if (STAMPED.includes(d)) c.classList.add("stamped");
+      if (d > TODAY) { c.classList.add("future"); c.disabled = true; }
+      if (d === TODAY) c.classList.add("today");
+      if (d === SEL) c.classList.add("selected");
+      grid.appendChild(c);
+    }
+    cardEl.querySelector(".cal-trophy-row").innerHTML =
+      `<span class="cal-trophy-empty">🏆</span>` +
+      `<span class="cal-trophy-progress"><strong>${STAMPED.length}</strong> / ${LAST} — 모두 채우면 트로피!</span>`;
+  }
+
+  const THEMES = [
+    { cls: "demo-classic", name: "클래식" },
+    { cls: "demo-forest", name: "포레스트" },
+    { cls: "demo-lavender", name: "라벤더" },
+    { cls: "demo-ocean", name: "오션" },
+    { cls: "demo-cherry", name: "체리" },
+    { cls: "demo-midnight", name: "미드나잇" },
+  ];
+
+  const root = document.getElementById("scrollRoot");
+  THEMES.forEach((t, i) => {
+    const wrap = document.createElement("div");
+    wrap.style.width = "100%"; wrap.style.maxWidth = "360px";
+    wrap.innerHTML = `<div class="demo-label">${i+1}️⃣  ${t.name}</div>`;
+    const card = document.createElement("div");
+    card.className = `demo-card ${t.cls}`;
+    wrap.appendChild(card);
+    renderAttendance(card);
+    // 포레스트: stamped 셀에 나무/버섯 번갈아 표시
+    if (t.cls === "demo-forest") {
+      const stamped = card.querySelectorAll(".cal-day.stamped");
+      stamped.forEach((c, idx) => {
+        c.classList.add(idx % 2 === 0 ? "stamp-pine" : "stamp-mushroom");
+      });
+    }
+    root.appendChild(wrap);
+  });
+</script>
+</body>
+</html>

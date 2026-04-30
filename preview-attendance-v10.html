@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>출석 v10 — 푸시 베이스 + 테마별 데코</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* 스크롤 풀기 (production은 PWA pull-to-refresh 차단용으로 fixed) */
+    html, body {
+      position: static !important;
+      inset: auto !important;
+      height: auto !important;
+      min-height: 100vh !important;
+      overflow: visible !important;
+      overflow-y: auto !important;
+    }
+    body {
+      background: #2e2e2e !important;
+      background-image: none !important;
+      padding: 0 !important;
+      margin: 0;
+    }
+    #scrollRoot {
+      display: flex; flex-direction: column; gap: 50px;
+      align-items: center; padding: 30px 12px 60px;
+      height: auto !important;
+      overflow: visible !important;
+      position: static !important;
+    }
+    .demo-label {
+      color: #fff; font-weight: 700; letter-spacing: 0.06em;
+      text-shadow: 1px 1px 0 #000; font-size: 0.95rem; text-align: center;
+      margin-bottom: -16px;
+    }
+    .demo-card {
+      width: 100%; max-width: 360px;
+      padding: 24px 14px 22px;
+      background-color: var(--bg);
+      background-image: var(--bg-img);
+      background-size: 480px 480px;
+      background-repeat: repeat;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .demo-card.theme-forest    { --bg-img: url('./bg-pattern-forest.svg'); }
+    .demo-card.theme-lavender  { --bg-img: url('./bg-pattern-lavender.svg'); }
+    .demo-card.theme-ocean     { --bg-img: url('./bg-pattern-ocean.svg'); }
+    .demo-card.theme-cherry    { --bg-img: url('./bg-pattern-cherry.svg'); }
+    .demo-card.theme-midnight  { --bg-img: url('./bg-pattern-black.svg'); }
+    .demo-classic { --bg: #5d5d5d; --bg-img: url('./bg-pattern.svg'); }
+
+    .demo-card .view {
+      min-height: 0; padding: 0; gap: 12px;
+      position: relative; z-index: 1;
+    }
+    .demo-card .cal-frame { max-width: 100%; }
+    .demo-card .back-btn { font-size: 0.85rem; padding: 8px 12px; min-height: 0; }
+    .demo-card .big-btn { font-size: 1rem; padding: 12px 16px; }
+
+    /* 테마별 today / selected 색상 보정 */
+    .theme-forest .cal-day.today  { outline-color: #4a6a20; }
+    .theme-forest .cal-day.selected { background: #d8c688; }
+    .theme-lavender .cal-day.today  { outline-color: #6a3aa0; }
+    .theme-lavender .cal-day.selected { background: #e8d0f4; }
+    .theme-ocean .cal-day.today  { outline-color: #1a4878; }
+    .theme-ocean .cal-day.selected { background: #c0dcec; }
+    .theme-cherry .cal-day.today  { outline-color: #a02868; }
+    .theme-cherry .cal-day.selected { background: #fad0e0; }
+    .theme-midnight .cal-day.today  { outline-color: #f5e9c0; }
+    .theme-midnight .cal-day.selected { background: rgba(245, 233, 192, 0.25); }
+
+    /* ==================== 테마별 장식 ==================== */
+    /* 캘린더 프레임 주변에 떠다니는 요소들 + 트로피 행 톤 살짝 */
+
+    /* 포레스트: 코너에 잎사귀 */
+    .theme-forest .deco-leaf {
+      position: absolute; pointer-events: none;
+      width: 42px; height: 42px; opacity: 0.8;
+    }
+    .theme-forest .deco-leaf.tl { top: -4px; left: 4px; transform: rotate(-22deg); }
+    .theme-forest .deco-leaf.br { bottom: 4px; right: 6px; transform: rotate(160deg); }
+
+    /* 라벤더: 작은 꽃송이들 */
+    .theme-lavender .deco-flower {
+      position: absolute; pointer-events: none;
+      width: 28px; height: 28px;
+    }
+    .theme-lavender .deco-flower.tl { top: 6px; left: 8px; }
+    .theme-lavender .deco-flower.tr { top: 14px; right: 12px; transform: rotate(20deg); }
+    .theme-lavender .deco-flower.bl { bottom: 50px; left: 10px; transform: rotate(-15deg); }
+    .theme-lavender .deco-flower.br { bottom: 8px; right: 8px; transform: rotate(35deg); }
+
+    /* 오션: 거품 점들 */
+    .theme-ocean .deco-bubble {
+      position: absolute; pointer-events: none;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+    }
+    .theme-ocean .deco-bubble.b1 { top: 20px; left: 16px; width: 10px; height: 10px; }
+    .theme-ocean .deco-bubble.b2 { top: 60px; right: 12px; width: 6px; height: 6px; }
+    .theme-ocean .deco-bubble.b3 { bottom: 70px; left: 8px; width: 8px; height: 8px; }
+    .theme-ocean .deco-bubble.b4 { bottom: 16px; right: 16px; width: 12px; height: 12px; }
+
+    /* 체리: 떨어지는 꽃잎 */
+    .theme-cherry .deco-petal {
+      position: absolute; pointer-events: none;
+      width: 16px; height: 12px;
+      background: #f8c0d6;
+      border-radius: 100% 0;
+    }
+    .theme-cherry .deco-petal.p1 { top: 22px; left: 10px; transform: rotate(15deg); opacity: 0.85; }
+    .theme-cherry .deco-petal.p2 { top: 70px; right: 8px; transform: rotate(-30deg); opacity: 0.7; width: 12px; height: 9px; }
+    .theme-cherry .deco-petal.p3 { bottom: 80px; left: 14px; transform: rotate(50deg); opacity: 0.75; width: 14px; height: 10px; }
+    .theme-cherry .deco-petal.p4 { bottom: 18px; right: 14px; transform: rotate(-15deg); opacity: 0.85; }
+
+    /* 미드나잇: 별 글로우 점 */
+    .theme-midnight .deco-star {
+      position: absolute; pointer-events: none;
+      border-radius: 50%;
+      background: #fff5c0;
+      box-shadow: 0 0 8px rgba(255, 245, 192, 0.7);
+    }
+    .theme-midnight .deco-star.s1 { top: 16px; left: 30px; width: 3px; height: 3px; }
+    .theme-midnight .deco-star.s2 { top: 36px; right: 26px; width: 2px; height: 2px; }
+    .theme-midnight .deco-star.s3 { top: 80px; left: 14px; width: 2.5px; height: 2.5px; }
+    .theme-midnight .deco-star.s4 { bottom: 90px; right: 20px; width: 3px; height: 3px; }
+    .theme-midnight .deco-star.s5 { bottom: 30px; left: 24px; width: 2px; height: 2px; }
+    .theme-midnight .deco-star.s6 { bottom: 56px; right: 12px; width: 3.5px; height: 3.5px; }
+  </style>
+</head>
+<body>
+<div id="scrollRoot"></div>
+
+<script>
+  const FIRST_DOW = 3, LAST = 30;
+  const STAMPED = [1,2,3,4,5,6,7,8,9,10,11,12,13,14];
+  const TODAY = 18;
+  const SEL = 18;
+
+  function leafSvg() {
+    return `<svg class="deco-leaf tl" viewBox="0 0 42 42">
+      <path d="M 8 34 Q 8 8 34 8 Q 34 28 18 34 Q 14 36 8 34 Z" fill="#5a8030" stroke="#3a5018" stroke-width="1"/>
+      <line x1="8" y1="34" x2="32" y2="10" stroke="#3a5018" stroke-width="1.2"/>
+    </svg>
+    <svg class="deco-leaf br" viewBox="0 0 42 42">
+      <path d="M 8 34 Q 8 8 34 8 Q 34 28 18 34 Q 14 36 8 34 Z" fill="#7a9050" stroke="#3a5018" stroke-width="1"/>
+      <line x1="8" y1="34" x2="32" y2="10" stroke="#3a5018" stroke-width="1.2"/>
+    </svg>`;
+  }
+
+  function flowerSvg() {
+    const flower = (cls, color, center) => `<svg class="deco-flower ${cls}" viewBox="0 0 28 28">
+      <circle cx="14" cy="6" r="5" fill="${color}"/>
+      <circle cx="22" cy="12" r="5" fill="${color}"/>
+      <circle cx="20" cy="22" r="5" fill="${color}"/>
+      <circle cx="8" cy="22" r="5" fill="${color}"/>
+      <circle cx="6" cy="12" r="5" fill="${color}"/>
+      <circle cx="14" cy="14" r="3" fill="${center}"/>
+    </svg>`;
+    return flower("tl", "#c890e0", "#7a4ab0") +
+           flower("tr", "#a070d0", "#5a3a90") +
+           flower("bl", "#d4a8e8", "#7a4ab0") +
+           flower("br", "#c890e0", "#7a4ab0");
+  }
+
+  function bubbleHtml() {
+    return `<span class="deco-bubble b1"></span>
+            <span class="deco-bubble b2"></span>
+            <span class="deco-bubble b3"></span>
+            <span class="deco-bubble b4"></span>`;
+  }
+
+  function petalHtml() {
+    return `<span class="deco-petal p1"></span>
+            <span class="deco-petal p2"></span>
+            <span class="deco-petal p3"></span>
+            <span class="deco-petal p4"></span>`;
+  }
+
+  function starHtml() {
+    return `<span class="deco-star s1"></span>
+            <span class="deco-star s2"></span>
+            <span class="deco-star s3"></span>
+            <span class="deco-star s4"></span>
+            <span class="deco-star s5"></span>
+            <span class="deco-star s6"></span>`;
+  }
+
+  const DECO = {
+    "demo-classic": "",
+    "theme-forest": leafSvg(),
+    "theme-lavender": flowerSvg(),
+    "theme-ocean": bubbleHtml(),
+    "theme-cherry": petalHtml(),
+    "theme-midnight": starHtml(),
+  };
+
+  function renderAttendance(cardEl) {
+    cardEl.insertAdjacentHTML("afterbegin", `
+      <div class="view" style="display:flex; flex-direction:column;">
+        <button class="back-btn">← 메뉴</button>
+        <div class="cal-frame">
+          <div class="cal-header">
+            <button class="cal-nav">◀</button>
+            <span class="cal-month-label">2026년 4월</span>
+            <button class="cal-nav">▶</button>
+          </div>
+          <div class="cal-trophy-row"></div>
+          <div class="cal-grid"></div>
+        </div>
+        <div class="cal-hint">날짜를 선택하세요 (없으면 오늘)</div>
+        <button class="big-btn">계속하기 ▶</button>
+      </div>`);
+    const grid = cardEl.querySelector(".cal-grid");
+    const wks = ["일","월","화","수","목","금","토"];
+    wks.forEach((n, i) => {
+      const h = document.createElement("div");
+      h.className = "cal-wkhead" + (i === 0 ? " sun" : i === 6 ? " sat" : "");
+      h.textContent = n;
+      grid.appendChild(h);
+    });
+    for (let i = 0; i < FIRST_DOW; i++) {
+      const b = document.createElement("div");
+      b.className = "cal-blank";
+      grid.appendChild(b);
+    }
+    for (let d = 1; d <= LAST; d++) {
+      const c = document.createElement("button");
+      c.className = "cal-day";
+      c.type = "button";
+      c.textContent = d;
+      if (STAMPED.includes(d)) c.classList.add("stamped");
+      if (d > TODAY) { c.classList.add("future"); c.disabled = true; }
+      if (d === TODAY) c.classList.add("today");
+      if (d === SEL) c.classList.add("selected");
+      grid.appendChild(c);
+    }
+    const trophyRow = cardEl.querySelector(".cal-trophy-row");
+    trophyRow.innerHTML =
+      `<span class="cal-trophy-empty">🏆</span>` +
+      `<span class="cal-trophy-progress"><strong>${STAMPED.length}</strong> / ${LAST} — 모두 채우면 트로피!</span>`;
+  }
+
+  const THEMES = [
+    { cls: "demo-classic", name: "클래식" },
+    { cls: "theme-forest", name: "포레스트 · 잎사귀" },
+    { cls: "theme-lavender", name: "라벤더 · 꽃송이" },
+    { cls: "theme-ocean", name: "오션 · 거품" },
+    { cls: "theme-cherry", name: "체리 · 꽃잎" },
+    { cls: "theme-midnight", name: "미드나잇 · 별빛" },
+  ];
+
+  const root = document.getElementById("scrollRoot");
+  THEMES.forEach((t, i) => {
+    const wrap = document.createElement("div");
+    wrap.style.width = "100%"; wrap.style.maxWidth = "360px";
+
+    const lbl = document.createElement("div");
+    lbl.className = "demo-label";
+    lbl.textContent = `${i+1}️⃣  ${t.name}`;
+    wrap.appendChild(lbl);
+
+    const card = document.createElement("div");
+    card.className = `demo-card ${t.cls}`;
+    wrap.appendChild(card);
+
+    renderAttendance(card);
+    // 테마 데코 추가
+    if (DECO[t.cls]) {
+      card.insertAdjacentHTML("beforeend", DECO[t.cls]);
+    }
+    root.appendChild(wrap);
+  });
+</script>
+</body>
+</html>

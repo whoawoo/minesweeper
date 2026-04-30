@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#008080" />
+  <title>메인 페이지 데모</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ====== 미리보기 전용 (style.css 안 건드림) ====== */
+
+    /* 배경: 폭탄과 깃발이 흩뿌려진 패턴 (옅게) */
+    body {
+      background-color: #5d5d5d !important;
+      background-image: url('./bg-pattern.svg') !important;
+      background-size: 480px 480px !important;
+      background-repeat: repeat !important;
+    }
+    /* 화면 세로 가운데 + 살짝만 위쪽 (padding-bottom 더 줘서 위로 살짝 이동) */
+    #scrollRoot {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      min-height: 100dvh !important;
+      padding: 30px 12px 90px !important;
+    }
+
+    /* ====== Win95 다이얼로그 창 — 그라데이션 X, 평평한 베벨만 ====== */
+    .dialog-window {
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto;
+      background: var(--gray);
+      border-top: 3px solid var(--light);
+      border-left: 3px solid var(--light);
+      border-right: 3px solid var(--shadow);
+      border-bottom: 3px solid var(--shadow);
+      padding: 3px;
+      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    /* ====== 타이틀바 — 원래 네이비 + 두꺼운 글씨 ====== */
+    .dialog-titlebar {
+      background: #000080;
+      color: #fff;
+      padding: 18px 8px 11px;        /* top 더, bottom 덜 → 제목 시각적으로 아래로 */
+      text-align: center;
+      letter-spacing: 0.12em;
+    }
+    .dialog-title {
+      font-size: 1.6rem;
+      font-family: inherit;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      text-shadow: 2px 2px 0 #000050;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .title-bomb {
+      width: 1.3em;
+      height: 1.3em;
+      flex-shrink: 0;
+      filter: drop-shadow(2px 2px 0 rgba(0, 0, 80, 0.6));
+    }
+
+    /* ====== 본문 영역: inset (안이 파인 느낌), 그라데이션 X ====== */
+    .dialog-body {
+      margin-top: 4px;
+      padding: 14px 12px 14px;
+      background: var(--gray);
+      border-top: 2px solid var(--shadow);
+      border-left: 2px solid var(--shadow);
+      border-right: 2px solid var(--light);
+      border-bottom: 2px solid var(--light);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ====== 출석체크 (D 스타일, LED 카운터) — 설정과 같은 밝은 회색 ====== */
+    .att-d {
+      background: #d4d4d4;
+      color: #000;
+      border-top: 3px solid #f0f0f0;
+      border-left: 3px solid #f0f0f0;
+      border-right: 3px solid #909090;
+      border-bottom: 3px solid #909090;
+      padding: 12px 14px;
+      width: 100%;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+    .att-d:active {
+      border-top: 3px solid #909090;
+      border-left: 3px solid #909090;
+      border-right: 3px solid #f0f0f0;
+      border-bottom: 3px solid #f0f0f0;
+    }
+    .att-d-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+    }
+    .att-d-name {
+      font-size: 1.1rem;
+      font-weight: bold;
+      flex: 1;
+      letter-spacing: 0.02em;
+    }
+    .att-d-led {
+      flex-shrink: 0;
+      background: #000;
+      color: #ff0000;
+      font-family: "Courier New", "Consolas", monospace;
+      font-weight: bold;
+      font-size: 1.05rem;
+      padding: 7px 9px 3px;        /* 위쪽 더, 아래쪽 덜 → 숫자 시각적으로 아래로 */
+      border-top: 2px solid var(--shadow);
+      border-left: 2px solid var(--shadow);
+      border-right: 2px solid var(--light);
+      border-bottom: 2px solid var(--light);
+      letter-spacing: 0.12em;
+      line-height: 1;
+    }
+
+    /* ====== 난이도 메뉴 버튼: 평평한 Win95 ====== */
+    .dialog-body .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      max-width: none;
+    }
+    .dialog-body .menu-btn {
+      background: var(--gray);
+      padding: 12px 14px;
+    }
+    .dialog-body .menu-btn .menu-name {
+      font-size: 1.1rem;
+      letter-spacing: 0.02em;
+    }
+    .dialog-body .menu-btn .menu-info {
+      font-size: 0.82rem;
+      color: #555;
+    }
+
+    /* 본문 하단 힌트 + 살짝 구분선 */
+    .body-divider {
+      height: 1px;
+      margin: 4px 0 0;
+      background: linear-gradient(90deg, transparent, var(--shadow), transparent);
+    }
+    .dialog-hint {
+      text-align: center;
+      color: #555;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      margin: 0;
+      padding: 4px 0 0;
+    }
+
+    /* 라벨 (preview 헤더) */
+    .preview-label {
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      margin: 0 0 14px;
+      text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
+      text-align: center;
+      opacity: 0.7;
+    }
+
+    /* ====== 설정 버튼 — 주변과 같은 회색 톤에서 살짝만 밝게 ====== */
+    .settings-btn {
+      width: 100%;
+      background: #d4d4d4;
+      border-top: 3px solid #f0f0f0;
+      border-left: 3px solid #f0f0f0;
+      border-right: 3px solid #909090;
+      border-bottom: 3px solid #909090;
+      padding: 12px 14px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #000;
+      cursor: pointer;
+      margin-top: 6px;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .settings-btn:active {
+      border-top: 3px solid #909090;
+      border-left: 3px solid #909090;
+      border-right: 3px solid #f0f0f0;
+      border-bottom: 3px solid #f0f0f0;
+    }
+    .settings-icon {
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    /* ====== 모달 (설정 창) ====== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+    .modal-backdrop.hidden { display: none; }
+    .modal-window {
+      width: 100%;
+      max-width: 300px;
+      background: var(--gray);
+      border-top: 3px solid var(--light);
+      border-left: 3px solid var(--light);
+      border-right: 3px solid var(--shadow);
+      border-bottom: 3px solid var(--shadow);
+      padding: 3px;
+      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+    }
+    .modal-window .dialog-body {
+      gap: 8px;
+      padding: 12px;
+    }
+    .setting-label {
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin: 0 0 4px;
+      color: #000;
+    }
+    .theme-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .theme-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+      background: transparent;
+      border: 1px dashed transparent;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.9rem;
+      text-align: left;
+      color: #000;
+    }
+    .theme-item:hover { background: rgba(0, 0, 0, 0.05); }
+    .theme-item.active {
+      background: rgba(0, 0, 64, 0.18);
+      border-color: rgba(0, 0, 64, 0.5);
+    }
+    .theme-swatch {
+      width: 36px;
+      height: 24px;
+      display: block;
+      border: 1px solid #000;
+      flex-shrink: 0;
+    }
+    .swatch-classic { background: linear-gradient(90deg, #c0c0c0 60%, #000080 60%); }
+    .swatch-dark    { background: linear-gradient(90deg, #3a3a3a 60%, #1a1a4a 60%); }
+    .swatch-sunset  { background: linear-gradient(90deg, #f0d2b8 60%, #80302a 60%); }
+    .swatch-mint    { background: linear-gradient(90deg, #d0e8d8 60%, #2a7a5a 60%); }
+    .swatch-forest  { background: linear-gradient(90deg, #b0a888 60%, #4a5a3a 60%); }
+
+    .btn-close {
+      align-self: center;
+      background: var(--gray);
+      border-top: 2px solid var(--light);
+      border-left: 2px solid var(--light);
+      border-right: 2px solid var(--shadow);
+      border-bottom: 2px solid var(--shadow);
+      padding: 5px 18px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      color: #000;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    .btn-close:active {
+      border-top: 2px solid var(--shadow);
+      border-left: 2px solid var(--shadow);
+      border-right: 2px solid var(--light);
+      border-bottom: 2px solid var(--light);
+    }
+
+    /* ====== 테마 정의 (CSS 변수 오버라이드) ====== */
+    body.theme-dark {
+      --gray: #3a3a3a;
+      --light: #6a6a6a;
+      --shadow: #1a1a1a;
+      background-color: #1a1a1a !important;
+    }
+    body.theme-dark .dialog-titlebar { background: #1a1a4a; }
+    body.theme-dark,
+    body.theme-dark .menu-name,
+    body.theme-dark .menu-info,
+    body.theme-dark .att-d-name,
+    body.theme-dark .setting-label,
+    body.theme-dark .settings-btn,
+    body.theme-dark .btn-close,
+    body.theme-dark .theme-item { color: #e8e8e8; }
+    body.theme-dark .menu-info { color: #a8a8a8; }
+
+    body.theme-sunset {
+      --gray: #f0d2b8;
+      --light: #fff0e0;
+      --shadow: #a06a4a;
+      background-color: #b87060 !important;
+    }
+    body.theme-sunset .dialog-titlebar { background: #80302a; }
+
+    body.theme-mint {
+      --gray: #d0e8d8;
+      --light: #f0fff0;
+      --shadow: #5a8870;
+      background-color: #6ab09a !important;
+    }
+    body.theme-mint .dialog-titlebar { background: #2a7a5a; }
+
+    body.theme-forest {
+      --gray: #b0a888;
+      --light: #d8d0a8;
+      --shadow: #6a6850;
+      background-color: #6a7050 !important;
+    }
+    body.theme-forest .dialog-titlebar { background: #4a5a3a; }
+
+  </style>
+</head>
+<body>
+  <div id="scrollRoot">
+    <div class="preview-label">메인 페이지 데모</div>
+
+    <div class="dialog-window">
+      <div class="dialog-titlebar">
+        <span class="dialog-title">
+          <svg class="title-bomb" viewBox="0 0 512 512" aria-hidden="true">
+            <circle cx="256" cy="256" r="100" fill="#fff"/>
+            <g stroke="#fff" stroke-width="22" stroke-linecap="round">
+              <line x1="256" y1="176" x2="256" y2="100"/>
+              <line x1="256" y1="336" x2="256" y2="412"/>
+              <line x1="176" y1="256" x2="100" y2="256"/>
+              <line x1="336" y1="256" x2="412" y2="256"/>
+              <line x1="199" y1="199" x2="146" y2="146"/>
+              <line x1="313" y1="313" x2="366" y2="366"/>
+              <line x1="199" y1="313" x2="146" y2="366"/>
+              <line x1="313" y1="199" x2="366" y2="146"/>
+            </g>
+          </svg>
+          <span>지뢰찾기</span>
+          <svg class="title-bomb" viewBox="0 0 512 512" aria-hidden="true">
+            <circle cx="256" cy="256" r="100" fill="#fff"/>
+            <g stroke="#fff" stroke-width="22" stroke-linecap="round">
+              <line x1="256" y1="176" x2="256" y2="100"/>
+              <line x1="256" y1="336" x2="256" y2="412"/>
+              <line x1="176" y1="256" x2="100" y2="256"/>
+              <line x1="336" y1="256" x2="412" y2="256"/>
+              <line x1="199" y1="199" x2="146" y2="146"/>
+              <line x1="313" y1="313" x2="366" y2="366"/>
+              <line x1="199" y1="313" x2="146" y2="366"/>
+              <line x1="313" y1="199" x2="366" y2="146"/>
+            </g>
+          </svg>
+        </span>
+      </div>
+
+      <div class="dialog-body">
+        <button class="att-d" type="button">
+          <span class="att-d-icon">📅</span>
+          <span class="att-d-name">출석체크</span>
+          <span class="att-d-led">012</span>
+        </button>
+
+        <div class="menu">
+          <button class="menu-btn">
+            <span class="menu-name">초보</span>
+            <span class="menu-info">8 × 8 · 지뢰 10개</span>
+          </button>
+          <button class="menu-btn">
+            <span class="menu-name">중수</span>
+            <span class="menu-info">16 × 16 · 지뢰 40개</span>
+          </button>
+          <button class="menu-btn">
+            <span class="menu-name">고수</span>
+            <span class="menu-info">16 × 30 · 지뢰 99개</span>
+          </button>
+        </div>
+
+        <button class="settings-btn" type="button" id="openSettings">
+          <svg class="settings-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.03 7.03 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.55-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.66 8.78a.5.5 0 00.12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 00-.12.64l1.92 3.32a.5.5 0 00.61.22l2.39-.96c.49.39 1.03.7 1.62.94l.36 2.54a.5.5 0 00.5.42h3.84a.5.5 0 00.5-.42l.36-2.54c.59-.24 1.13-.55 1.62-.94l2.39.96a.5.5 0 00.61-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z"/>
+          </svg>
+          <span>설정</span>
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 설정 모달 -->
+  <div class="modal-backdrop hidden" id="settingsModal">
+    <div class="modal-window">
+      <div class="dialog-titlebar">
+        <span class="dialog-title" style="font-size: 1.1rem;">설정</span>
+      </div>
+      <div class="dialog-body">
+        <p class="setting-label">테마</p>
+        <div class="theme-list">
+          <button class="theme-item active" data-theme="classic">
+            <span class="theme-swatch swatch-classic"></span>
+            <span>클래식 (Win95 회색)</span>
+          </button>
+          <button class="theme-item" data-theme="dark">
+            <span class="theme-swatch swatch-dark"></span>
+            <span>다크</span>
+          </button>
+          <button class="theme-item" data-theme="sunset">
+            <span class="theme-swatch swatch-sunset"></span>
+            <span>선셋 (피치)</span>
+          </button>
+          <button class="theme-item" data-theme="mint">
+            <span class="theme-swatch swatch-mint"></span>
+            <span>민트</span>
+          </button>
+          <button class="theme-item" data-theme="forest">
+            <span class="theme-swatch swatch-forest"></span>
+            <span>포레스트</span>
+          </button>
+        </div>
+        <button class="btn-close" type="button" id="closeSettings">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById("settingsModal");
+    document.getElementById("openSettings").addEventListener("click", () => {
+      modal.classList.remove("hidden");
+    });
+    document.getElementById("closeSettings").addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.add("hidden");
+    });
+    document.querySelectorAll(".theme-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const theme = btn.dataset.theme;
+        document.body.classList.remove("theme-classic", "theme-dark", "theme-sunset", "theme-mint", "theme-forest");
+        document.body.classList.add(`theme-${theme}`);
+        document.querySelectorAll(".theme-item").forEach((x) => x.classList.toggle("active", x === btn));
+      });
+    });
+  </script>
+</body>
+</html>

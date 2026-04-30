@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>출석 v6 — 테마별 트로피 전시대</title>
+  <style>
+    body {
+      font-family: -apple-system, "Apple SD Gothic Neo", Tahoma, sans-serif;
+      background: #2e2e2e; margin: 0; padding: 30px 12px 60px;
+    }
+    #scrollRoot { display: flex; flex-direction: column; gap: 56px; align-items: center; }
+    .demo-label {
+      color: #fff; font-weight: 700; letter-spacing: 0.06em;
+      text-shadow: 1px 1px 0 #000; font-size: 0.95rem; text-align: center;
+      margin-bottom: -10px;
+    }
+    .demo-card { width: 100%; max-width: 360px; }
+    .trophy-emoji {
+      cursor: pointer; user-select: none; -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.18s ease-out;
+      display: inline-block;
+    }
+    .trophy-emoji.enlarged { transform: scale(1.3); }
+
+    /* ───────── 1. 포레스트: 우드 + 나무 그루터기 전시대 ───────── */
+    .f6 {
+      background: #ede0c8;
+      background-image:
+        repeating-linear-gradient(90deg,
+          rgba(120, 80, 30, 0.04) 0 2px,
+          transparent 2px 14px),
+        repeating-linear-gradient(0deg,
+          rgba(120, 80, 30, 0.025) 0 30px,
+          transparent 30px 31px);
+      padding: 18px;
+      box-shadow: 0 8px 22px rgba(50, 30, 10, 0.35);
+      color: #3a2814;
+      border: 3px solid #6a4a20;
+      position: relative;
+    }
+    .f6-back {
+      background: #c8a070; color: #3a2814; border: 2px solid #6a4a20;
+      border-radius: 4px; padding: 4px 10px; font-size: 0.78rem;
+      font-weight: 700; cursor: pointer;
+    }
+    .f6-display {
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 90%, rgba(60, 40, 10, 0.2) 0 50%, transparent 70%),
+        linear-gradient(180deg, #f8eed0 0%, #d8b878 100%);
+      padding: 18px 14px 6px;
+      margin: 12px 0;
+      border-radius: 4px;
+      position: relative;
+      text-align: center;
+      border: 2px solid #6a4a20;
+    }
+    .f6-stump {
+      width: 130px; height: 30px;
+      background: linear-gradient(180deg, #8a5a30 0%, #6a3e18 100%);
+      border-radius: 50% 50% 8px 8px / 60% 60% 10% 10%;
+      margin: 0 auto -2px;
+      position: relative;
+      box-shadow: 0 4px 8px rgba(40, 20, 5, 0.4);
+    }
+    .f6-stump::before {
+      content: ""; position: absolute; top: 4px; left: 50%;
+      transform: translateX(-50%);
+      width: 70px; height: 8px;
+      background: radial-gradient(ellipse, #a06838 0 40%, transparent 70%);
+    }
+    .f6-trophy {
+      font-size: 3.2rem; line-height: 1;
+      filter: drop-shadow(0 3px 4px rgba(60, 30, 0, 0.4));
+      margin-bottom: -10px;
+    }
+    .f6-caption {
+      font-family: Georgia, serif; font-style: italic; font-weight: 700;
+      font-size: 1.1rem; color: #3a2814; letter-spacing: 0.04em;
+      padding-top: 14px;
+    }
+    .f6-caption small {
+      display: block; font-size: 0.65rem; letter-spacing: 0.18em;
+      color: #6a4a20; margin-top: 4px; text-transform: uppercase; font-weight: 700;
+      font-family: inherit;
+    }
+    .f6-month {
+      font-size: 0.85rem; letter-spacing: 0.06em; color: #6a4a20;
+      text-align: center; margin-bottom: 8px; font-weight: 700;
+    }
+    .f6-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .f6-wk {
+      text-align: center; font-size: 0.65rem; padding: 3px 0;
+      color: #6a4a20; font-weight: 700; letter-spacing: 0.08em;
+    }
+    .f6-day {
+      aspect-ratio: 1; background: rgba(120, 80, 30, 0.08);
+      border: none; font-family: inherit; font-weight: 700; font-size: 0.85rem;
+      color: #3a2814; cursor: pointer; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 3px;
+    }
+    .f6-day.stamped::after {
+      content: ""; position: absolute; inset: 14%;
+      border: 2.4px solid #c93026; border-radius: 50%;
+    }
+    .f6-day.stamped { color: #b02016; }
+    .f6-cta {
+      display: none; /* 달성 상태에선 CTA 숨김 */
+    }
+
+    /* ───────── 2. 라벤더: 꽃 화환 트로피 ───────── */
+    .l6 {
+      background: linear-gradient(160deg, #f8eef8 0%, #d8c0e8 100%);
+      border-radius: 24px; padding: 20px 18px 18px;
+      box-shadow: 0 8px 22px rgba(120, 80, 180, 0.25);
+      color: #3a1f5c; position: relative; overflow: hidden;
+    }
+    .l6-back {
+      background: rgba(120, 80, 180, 0.15); border: none; color: #5a2890;
+      border-radius: 100px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer;
+    }
+    .l6-wreath {
+      position: relative; width: 200px; height: 200px;
+      margin: 14px auto 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .l6-wreath svg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+    }
+    .l6-trophy {
+      font-size: 3.6rem; z-index: 1; position: relative;
+      filter: drop-shadow(0 3px 6px rgba(120, 60, 160, 0.4));
+    }
+    .l6-caption {
+      text-align: center; font-family: Georgia, serif; font-style: italic;
+      font-size: 1.3rem; font-weight: 700; color: #5a2890; letter-spacing: 0.02em;
+      margin-bottom: 4px;
+    }
+    .l6-caption small {
+      display: block; font-style: normal; font-family: inherit;
+      font-size: 0.7rem; letter-spacing: 0.18em; color: #8a6ab0;
+      margin-top: 4px; text-transform: uppercase; font-weight: 700;
+    }
+    .l6-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-top: 14px; }
+    .l6-wk {
+      text-align: center; font-size: 0.65rem; padding: 3px 0;
+      color: #8a6ab0; font-weight: 700; letter-spacing: 0.1em;
+    }
+    .l6-day {
+      aspect-ratio: 1; background: rgba(255, 255, 255, 0.45);
+      border: none; border-radius: 50%; font-family: inherit;
+      font-weight: 700; font-size: 0.8rem; color: #3a1f5c;
+      cursor: pointer; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .l6-day.stamped::after {
+      content: ""; position: absolute; inset: 14%;
+      border: 2.4px solid #c93026; border-radius: 50%;
+    }
+    .l6-day.stamped { color: #b02016; }
+
+    /* ───────── 3. 오션: 조개 위의 보물 트로피 ───────── */
+    .o6 {
+      background: linear-gradient(180deg, #b0d8ec 0%, #6ea0c8 100%);
+      border-radius: 18px; padding: 18px;
+      box-shadow: 0 8px 22px rgba(40, 80, 130, 0.3);
+      color: #0e2848; position: relative; overflow: hidden;
+    }
+    .o6::before {
+      /* 거품 */
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(3px 3px at 12% 28%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(2px 2px at 85% 18%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(2.5px 2.5px at 35% 52%, rgba(255,255,255,0.35), transparent),
+        radial-gradient(2px 2px at 78% 65%, rgba(255,255,255,0.4), transparent);
+    }
+    .o6-back {
+      background: rgba(40, 80, 130, 0.18); border: none; color: #1a4878;
+      border-radius: 100px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; position: relative;
+    }
+    .o6-display {
+      text-align: center; padding: 14px 0 8px; position: relative;
+    }
+    .o6-shell-wrap {
+      position: relative; width: 180px; height: 130px; margin: 0 auto 6px;
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .o6-shell-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .o6-trophy {
+      font-size: 3rem; z-index: 1; position: relative; margin-bottom: 22px;
+      filter: drop-shadow(0 3px 5px rgba(40, 80, 130, 0.5));
+    }
+    .o6-caption {
+      font-family: "Brush Script MT", "Apple SD Gothic Neo", cursive;
+      font-size: 1.5rem; font-weight: 700; color: #0e2848;
+      letter-spacing: 0.02em;
+    }
+    .o6-caption small {
+      display: block; font-family: inherit; font-style: normal;
+      font-size: 0.7rem; letter-spacing: 0.2em; color: #4878a8;
+      margin-top: 2px; text-transform: uppercase; font-weight: 700;
+    }
+    .o6-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-top: 14px; position: relative; }
+    .o6-wk {
+      text-align: center; font-size: 0.65rem; padding: 3px 0;
+      color: #4878a8; font-weight: 700; letter-spacing: 0.08em;
+    }
+    .o6-day {
+      aspect-ratio: 1; background: rgba(255, 255, 255, 0.42);
+      border: none; border-radius: 50%; font-family: inherit;
+      font-weight: 700; font-size: 0.8rem; color: #0e2848;
+      cursor: pointer; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .o6-day.stamped::after {
+      content: ""; position: absolute; inset: 14%;
+      border: 2.4px solid #c93026; border-radius: 50%;
+    }
+    .o6-day.stamped { color: #b02016; }
+
+    /* ───────── 4. 체리: 벚꽃 가지에 매달린 트로피 ───────── */
+    .c6 {
+      background: linear-gradient(160deg, #fff0f5 0%, #fcc8d8 100%);
+      border-radius: 22px; padding: 18px;
+      box-shadow: 0 8px 22px rgba(180, 80, 130, 0.25);
+      color: #5a1830; position: relative; overflow: hidden;
+    }
+    .c6-back {
+      background: rgba(180, 80, 130, 0.15); border: none; color: #8a2a4a;
+      border-radius: 100px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer;
+    }
+    .c6-branch {
+      position: relative; width: 100%; height: 130px; margin: 8px 0;
+    }
+    .c6-branch svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .c6-trophy {
+      position: absolute; top: 38px; left: 50%; transform: translateX(-50%);
+      font-size: 3rem;
+      filter: drop-shadow(0 3px 5px rgba(160, 60, 100, 0.4));
+    }
+    .c6-caption {
+      text-align: center;
+      font-family: "Apple SD Gothic Neo", "Comic Sans MS", sans-serif;
+      font-size: 1.35rem; font-weight: 800; color: #8a2a5a; letter-spacing: 0.02em;
+      margin-bottom: 8px;
+    }
+    .c6-caption small {
+      display: block; font-family: Georgia, serif; font-style: italic;
+      font-size: 0.7rem; letter-spacing: 0.18em; color: #c0286c;
+      margin-top: 2px; text-transform: uppercase; font-weight: 600;
+    }
+    .c6-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .c6-wk {
+      text-align: center; font-size: 0.65rem; padding: 3px 0;
+      color: #8a4a6a; font-weight: 700; letter-spacing: 0.08em;
+    }
+    .c6-day {
+      aspect-ratio: 1; background: rgba(255, 255, 255, 0.5);
+      border: none; border-radius: 12px; font-family: inherit;
+      font-weight: 700; font-size: 0.85rem; color: #5a1830;
+      cursor: pointer; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .c6-day.stamped::after {
+      content: ""; position: absolute; inset: 14%;
+      border: 2.4px solid #c93026; border-radius: 50%;
+    }
+    .c6-day.stamped { color: #b02016; }
+
+    /* ───────── 5. 미드나잇: 달 후광 위 트로피 ───────── */
+    .m6 {
+      background: radial-gradient(ellipse at top, #2a2865 0%, #08081e 80%);
+      border-radius: 18px; padding: 18px;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6);
+      color: #f0eef8; position: relative; overflow: hidden;
+    }
+    .m6::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(1.4px 1.4px at 14% 12%, #fff5c0, transparent),
+        radial-gradient(1.2px 1.2px at 80% 18%, #fff5c0, transparent),
+        radial-gradient(1px 1px at 24% 80%, #fff5c0, transparent),
+        radial-gradient(1.6px 1.6px at 88% 65%, #fff5c0, transparent),
+        radial-gradient(1.2px 1.2px at 60% 90%, #fff5c0, transparent),
+        radial-gradient(1px 1px at 94% 88%, #fff5c0, transparent),
+        radial-gradient(1.2px 1.2px at 6% 56%, #fff5c0, transparent);
+    }
+    .m6-back {
+      background: rgba(255, 255, 255, 0.08); border: none; color: #f5e9c0;
+      border-radius: 100px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; position: relative;
+    }
+    .m6-display {
+      position: relative; text-align: center; padding: 18px 0 12px; z-index: 1;
+    }
+    .m6-moon-halo {
+      position: relative; width: 170px; height: 170px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .m6-moon-halo svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .m6-trophy {
+      font-size: 3.4rem; z-index: 2; position: relative;
+      filter: drop-shadow(0 0 12px rgba(245, 233, 192, 0.6));
+    }
+    .m6-caption {
+      font-family: Georgia, serif; font-style: italic; font-weight: 700;
+      font-size: 1.25rem; color: #f5e9c0; letter-spacing: 0.04em;
+      margin-top: 6px;
+      text-shadow: 0 0 8px rgba(245, 233, 192, 0.3);
+    }
+    .m6-caption small {
+      display: block; font-family: inherit; font-style: normal;
+      font-size: 0.7rem; letter-spacing: 0.22em; color: rgba(245, 233, 192, 0.65);
+      margin-top: 4px; text-transform: uppercase; font-weight: 600;
+    }
+    .m6-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-top: 14px; position: relative; z-index: 1; }
+    .m6-wk {
+      text-align: center; font-size: 0.65rem; padding: 3px 0;
+      color: rgba(245, 233, 192, 0.6); font-weight: 700; letter-spacing: 0.1em;
+    }
+    .m6-day {
+      aspect-ratio: 1; background: rgba(255, 255, 255, 0.06);
+      border: none; border-radius: 6px; font-family: inherit;
+      font-weight: 700; font-size: 0.8rem; color: #f0eef8;
+      cursor: pointer; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .m6-day.stamped::after {
+      content: ""; position: absolute; inset: 14%;
+      border: 2.4px solid #ff5a4a; border-radius: 50%;
+      box-shadow: 0 0 6px rgba(255, 90, 74, 0.5);
+    }
+    .m6-day.stamped { color: #ff8a78; }
+  </style>
+</head>
+<body>
+<div id="scrollRoot"></div>
+
+<script>
+  const FIRST_DOW = 3, LAST = 30;
+  const STAMPED_ALL = Array.from({length:30}, (_, i) => i+1);
+
+  function buildGrid(rootEl, dayCls, wkCls) {
+    const wks = ["일","월","화","수","목","금","토"];
+    wks.forEach((n, i) => {
+      const h = document.createElement("div");
+      h.className = wkCls;
+      h.textContent = n;
+      rootEl.appendChild(h);
+    });
+    for (let i = 0; i < FIRST_DOW; i++) rootEl.appendChild(document.createElement("div"));
+    for (let d = 1; d <= LAST; d++) {
+      const c = document.createElement("button");
+      c.className = dayCls;
+      c.type = "button";
+      c.textContent = d;
+      if (STAMPED_ALL.includes(d)) c.classList.add("stamped");
+      rootEl.appendChild(c);
+    }
+  }
+
+  function makeSection(label, html, gridSel, dayCls, wkCls) {
+    const wrap = document.createElement("div");
+    wrap.className = "demo-card";
+    wrap.innerHTML = `<div class="demo-label">${label}</div>` + html;
+    document.getElementById("scrollRoot").appendChild(wrap);
+    buildGrid(wrap.querySelector(gridSel), dayCls, wkCls);
+  }
+
+  // 사운드: 4월 = dragon
+  const audioCache = {};
+  function playSound(name) {
+    let a = audioCache[name];
+    if (!a) { a = new Audio(`./sounds/${name}.mp3`); a.preload = "auto"; audioCache[name] = a; }
+    try { a.currentTime = 0; a.onended = () => {}; a.play().catch(() => {}); } catch(e) {}
+  }
+
+  // 1. 포레스트 — 그루터기 위 트로피
+  makeSection("1️⃣  포레스트 · 우드 + 그루터기 전시대",
+    `<div class="f6">
+      <button class="f6-back">‹ 메뉴</button>
+      <div class="f6-display">
+        <div class="f6-trophy"><span class="trophy-emoji" data-sound="dragon">🏆</span></div>
+        <div class="f6-stump"></div>
+        <div class="f6-caption">4월 완벽 출석!<small>April 2026 · 30 days</small></div>
+      </div>
+      <div class="f6-month">2026년 4월</div>
+      <div class="f6-grid"></div>
+    </div>`,
+    ".f6-grid", "f6-day", "f6-wk");
+
+  // 2. 라벤더 — 꽃 화환
+  makeSection("2️⃣  라벤더 · 꽃 화환 트로피",
+    `<div class="l6">
+      <button class="l6-back">‹ 메뉴</button>
+      <div class="l6-wreath">
+        <svg viewBox="0 0 200 200">
+          <!-- 꽃 화환: 작은 보라 동그라미 + 잎 -->
+          <g>
+            ${Array.from({length:14}, (_, i) => {
+              const a = (i / 14) * Math.PI * 2 - Math.PI/2;
+              const r = 78;
+              const x = 100 + Math.cos(a) * r;
+              const y = 100 + Math.sin(a) * r;
+              const isLeaf = i % 3 === 0;
+              if (isLeaf) {
+                return `<ellipse cx="${x}" cy="${y}" rx="6" ry="3.5" fill="#7a9050" transform="rotate(${a*180/Math.PI + 90} ${x} ${y})"/>`;
+              } else {
+                const colors = ['#c890e0', '#e0a0d0', '#a878c8'];
+                const color = colors[i % 3];
+                return `<g transform="translate(${x} ${y})">
+                  <circle cx="0" cy="-5" r="3.5" fill="${color}"/>
+                  <circle cx="4.5" cy="-1.5" r="3.5" fill="${color}"/>
+                  <circle cx="3" cy="4" r="3.5" fill="${color}"/>
+                  <circle cx="-3" cy="4" r="3.5" fill="${color}"/>
+                  <circle cx="-4.5" cy="-1.5" r="3.5" fill="${color}"/>
+                  <circle cx="0" cy="0" r="2" fill="#604078"/>
+                </g>`;
+              }
+            }).join('')}
+          </g>
+        </svg>
+        <span class="l6-trophy"><span class="trophy-emoji" data-sound="dragon">🏆</span></span>
+      </div>
+      <div class="l6-caption">4월 완벽 출석<small>April 2026</small></div>
+      <div class="l6-grid"></div>
+    </div>`,
+    ".l6-grid", "l6-day", "l6-wk");
+
+  // 3. 오션 — 조개 위 보물
+  makeSection("3️⃣  오션 · 조개 위의 보물",
+    `<div class="o6">
+      <button class="o6-back">‹ 메뉴</button>
+      <div class="o6-display">
+        <div class="o6-shell-wrap">
+          <svg viewBox="0 0 180 130">
+            <!-- 조개 -->
+            <defs>
+              <radialGradient id="shellGrad" cx="50%" cy="100%" r="80%">
+                <stop offset="0%" stop-color="#fff5e8"/>
+                <stop offset="100%" stop-color="#e0a890"/>
+              </radialGradient>
+            </defs>
+            <path d="M 90 100 Q 30 100 22 60 Q 90 35 158 60 Q 150 100 90 100 Z" fill="url(#shellGrad)" stroke="#a06850" stroke-width="2"/>
+            <line x1="90" y1="98" x2="50" y2="60" stroke="#b07868" stroke-width="1.2"/>
+            <line x1="90" y1="98" x2="70" y2="55" stroke="#b07868" stroke-width="1.2"/>
+            <line x1="90" y1="98" x2="90" y2="50" stroke="#b07868" stroke-width="1.2"/>
+            <line x1="90" y1="98" x2="110" y2="55" stroke="#b07868" stroke-width="1.2"/>
+            <line x1="90" y1="98" x2="130" y2="60" stroke="#b07868" stroke-width="1.2"/>
+            <!-- 모래 그늘 -->
+            <ellipse cx="90" cy="118" rx="65" ry="6" fill="rgba(40, 80, 130, 0.2)"/>
+          </svg>
+          <span class="o6-trophy"><span class="trophy-emoji" data-sound="dragon">🏆</span></span>
+        </div>
+        <div class="o6-caption">4월 완벽 출석<small>April 2026</small></div>
+      </div>
+      <div class="o6-grid"></div>
+    </div>`,
+    ".o6-grid", "o6-day", "o6-wk");
+
+  // 4. 체리 — 벚꽃 가지
+  makeSection("4️⃣  체리 · 벚꽃 가지에 트로피",
+    `<div class="c6">
+      <button class="c6-back">‹ 메뉴</button>
+      <div class="c6-branch">
+        <svg viewBox="0 0 320 130">
+          <!-- 가지 -->
+          <path d="M 0 35 Q 80 25 160 40 Q 240 55 320 35" stroke="#5a3018" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <path d="M 60 35 Q 70 25 80 30" stroke="#5a3018" stroke-width="2" fill="none"/>
+          <path d="M 240 50 Q 245 60 250 65" stroke="#5a3018" stroke-width="2" fill="none"/>
+          <!-- 매달린 줄 -->
+          <line x1="160" y1="40" x2="160" y2="60" stroke="#8a6048" stroke-width="1.5"/>
+          <!-- 꽃송이들 -->
+          ${[
+            [50, 32], [105, 35], [200, 48], [275, 42], [30, 40], [240, 55]
+          ].map(([x, y]) => `
+            <g transform="translate(${x} ${y})">
+              <circle cx="0" cy="-6" r="5" fill="#f8b8d0"/>
+              <circle cx="6" cy="-2" r="5" fill="#f8b8d0"/>
+              <circle cx="4" cy="5" r="5" fill="#f8b8d0"/>
+              <circle cx="-4" cy="5" r="5" fill="#f8b8d0"/>
+              <circle cx="-6" cy="-2" r="5" fill="#f8b8d0"/>
+              <circle cx="0" cy="0" r="2.5" fill="#e08090"/>
+            </g>`).join('')}
+          <!-- 떨어지는 꽃잎 -->
+          <ellipse cx="60" cy="100" rx="3" ry="2" fill="#f8c0d6" opacity="0.7" transform="rotate(20 60 100)"/>
+          <ellipse cx="270" cy="105" rx="2.5" ry="1.8" fill="#f8c0d6" opacity="0.7" transform="rotate(-15 270 105)"/>
+          <ellipse cx="140" cy="115" rx="3" ry="2" fill="#f8c0d6" opacity="0.6" transform="rotate(40 140 115)"/>
+        </svg>
+        <span class="c6-trophy"><span class="trophy-emoji" data-sound="dragon">🏆</span></span>
+      </div>
+      <div class="c6-caption">4월 완벽 출석<small>April 2026</small></div>
+      <div class="c6-grid"></div>
+    </div>`,
+    ".c6-grid", "c6-day", "c6-wk");
+
+  // 5. 미드나잇 — 달 후광
+  makeSection("5️⃣  미드나잇 · 달 후광 트로피",
+    `<div class="m6">
+      <button class="m6-back">‹ 메뉴</button>
+      <div class="m6-display">
+        <div class="m6-moon-halo">
+          <svg viewBox="0 0 170 170">
+            <defs>
+              <radialGradient id="haloGrad" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="rgba(245, 233, 192, 0.55)"/>
+                <stop offset="60%" stop-color="rgba(245, 233, 192, 0.15)"/>
+                <stop offset="100%" stop-color="rgba(245, 233, 192, 0)"/>
+              </radialGradient>
+            </defs>
+            <circle cx="85" cy="85" r="80" fill="url(#haloGrad)"/>
+            <!-- 초승달 호 -->
+            <path d="M 130 60 A 35 35 0 1 0 130 110 A 28 28 0 1 1 130 60 Z" fill="#f5e9c0"/>
+            <!-- 별 장식 -->
+            <circle cx="20" cy="30" r="1.5" fill="#fff5c0"/>
+            <circle cx="155" cy="40" r="1.2" fill="#fff5c0"/>
+            <circle cx="30" cy="140" r="1.4" fill="#fff5c0"/>
+            <circle cx="145" cy="135" r="1.6" fill="#fff5c0"/>
+          </svg>
+          <span class="m6-trophy"><span class="trophy-emoji" data-sound="dragon">🏆</span></span>
+        </div>
+        <div class="m6-caption">4월 완벽 출석<small>April 2026</small></div>
+      </div>
+      <div class="m6-grid"></div>
+    </div>`,
+    ".m6-grid", "m6-day", "m6-wk");
+
+  // 트로피 인터랙션 — 모든 trophy-emoji에 클릭 → 사운드 + scale
+  document.querySelectorAll(".trophy-emoji").forEach((t) => {
+    let timer;
+    const onTap = (e) => {
+      e.preventDefault();
+      t.classList.add("enlarged");
+      const a = new Audio(`./sounds/${t.dataset.sound}.mp3`);
+      a.play().catch(() => {});
+      a.onended = () => t.classList.remove("enlarged");
+      clearTimeout(timer);
+      timer = setTimeout(() => t.classList.remove("enlarged"), 4000); // safety fallback
+    };
+    t.addEventListener("click", onTap);
+    t.addEventListener("touchstart", onTap, { passive: false });
+  });
+</script>
+</body>
+</html>

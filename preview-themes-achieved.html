@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6 테마 트로피 달성 데모</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    html, body {
+      position: static !important; inset: auto !important;
+      height: auto !important; min-height: 100vh !important;
+      overflow: visible !important; overflow-y: auto !important;
+    }
+    body {
+      background: #2e2e2e !important; background-image: none !important;
+      padding: 0 !important; margin: 0;
+    }
+    #scrollRoot {
+      display: flex; flex-direction: column; gap: 36px;
+      align-items: center; padding: 24px 12px 60px;
+    }
+    .demo-label {
+      color: #fff; font-weight: 700; letter-spacing: 0.06em;
+      text-shadow: 1px 1px 0 #000; font-size: 0.95rem; text-align: center;
+      margin-bottom: -12px;
+    }
+    .demo-card {
+      width: 100%; max-width: 360px;
+      padding: 24px 14px; border-radius: 8px;
+      position: relative; overflow: hidden;
+      background-size: 480px 480px; background-repeat: repeat;
+    }
+    .demo-card .view {
+      min-height: 0; padding: 0; gap: 10px;
+      display: flex; flex-direction: column;
+    }
+    .demo-card .cal-hint { display: none; }
+    .demo-card .back-btn { padding: 12px 14px; font-size: 0.95rem; min-height: 0; border: none; border-radius: 3px; }
+    .demo-card .big-btn { padding: 12px 14px; font-size: 1rem; border: none; border-radius: 5px; }
+    .demo-card .cal-frame { border: none; border-radius: 6px; }
+    .demo-card .cal-header { border: none; }
+    .demo-card .cal-nav {
+      border: none; border-radius: 3px;
+      align-self: center;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+    .demo-card .cal-grid { border: none; padding: 5px; gap: 4px; }
+    .demo-card .cal-day { border: none; border-radius: 4px; font-weight: 600; }
+
+    /* 요일 헤더 띠 + 세로 구분선 (포레스트 스타일) */
+    .demo-card .cal-wkhead {
+      box-shadow: -2px 0 0 var(--wk-bg), 2px 0 0 var(--wk-bg);
+      background: var(--wk-bg); color: var(--wk-fg);
+      position: relative; z-index: 1;
+    }
+    .demo-card .cal-wkhead::after {
+      content: ""; position: absolute;
+      top: 4px; bottom: 4px;
+      right: -3px; width: 2.5px;
+      background: var(--wk-divider);
+      border-radius: 2px;
+    }
+    .demo-card .cal-wkhead:last-of-type::after,
+    .demo-card .cal-wkhead.sat::after { display: none; }
+
+    /* 트로피 영역 */
+    .cal-trophy-row.earned {
+      animation: none !important;
+      box-shadow: none !important;
+      background: var(--trophy-bg) !important;
+      border: none !important;
+      padding: 14px 12px 16px;
+      min-height: 0;
+      display: flex; flex-direction: column; align-items: center;
+      overflow: hidden;
+    }
+    .cal-trophy-row.earned::before { display: none !important; }
+    .trophy-svg {
+      width: 130px; height: 130px;
+      cursor: pointer; user-select: none; -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.18s ease-out;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+    }
+    .trophy-svg.enlarged { transform: scale(1.3); }
+    .trophy-caption {
+      margin-top: 4px;
+      font-family: "Times New Roman", Times, "Apple SD Gothic Neo", serif;
+      font-size: 1.15rem; font-weight: 900;
+      letter-spacing: 0.06em; text-align: center;
+      color: var(--caption-fg);
+    }
+    .trophy-caption .clear-text {
+      color: var(--caption-clear);
+      text-shadow:
+        1px 1px 0 rgba(255, 255, 255, 0.5),
+        0 1px 2px rgba(0, 0, 0, 0.18);
+    }
+    .trophy-caption small {
+      display: block; font-size: 0.65rem;
+      letter-spacing: 0.2em; margin-top: 2px;
+      text-transform: uppercase; font-weight: 600;
+      font-family: inherit; color: inherit; opacity: 0.7;
+    }
+
+    .demo-card .cal-day.stamped::after {
+      content: ""; position: absolute;
+      inset: 14%; border: none;
+      background-position: center; background-repeat: no-repeat; background-size: contain;
+      pointer-events: none;
+    }
+
+    /* ============ CLASSIC (기본 빨간 동그라미) ============ */
+    .demo-classic {
+      background-color: #5d5d5d; background-image: url('./bg-pattern.svg');
+      --wk-bg: #c0c0c0; --wk-fg: #000; --wk-divider: rgba(0,0,0,0.18);
+      --trophy-bg: linear-gradient(135deg, #f4f4f4, #c8c8c8);
+      --caption-fg: #2a2a2a; --caption-clear: #c00000;
+    }
+    .demo-classic .back-btn { background: #c0c0c0; color: #000; }
+    .demo-classic .cal-frame { background: #c0c0c0; }
+    .demo-classic .cal-header { background: #000080; color: #fff; }
+    .demo-classic .cal-nav { background: #c0c0c0; color: #000; }
+    .demo-classic .cal-grid { background: #808080; }
+    .demo-classic .cal-day { background: #c0c0c0; color: #000; }
+    .demo-classic .big-btn { background: #c0c0c0; color: #000; }
+    .demo-classic .cal-day.stamped::after {
+      inset: 8%; border: 2px solid #c00000; border-radius: 50%;
+    }
+
+    /* ============ FOREST (그대로) ============ */
+    .theme-forest {
+      background-color: #6a7050; background-image: url('./bg-pattern-forest.svg');
+      --wk-bg: #f4ecd8; --wk-fg: #4a5028; --wk-divider: rgba(74, 106, 32, 0.28);
+      --trophy-bg: linear-gradient(135deg, #f8efdc, #e4d4a4);
+      --caption-fg: #4a3018; --caption-clear: #a87018;
+    }
+    .theme-forest .back-btn { background: #d4c094; color: #2e3818; }
+    .theme-forest .cal-frame { background: #f4ecd8; }
+    .theme-forest .cal-header { background: #7a8a64; color: #f8f0dc; }
+    .theme-forest .cal-nav { background: #d4c094; color: #2e3818; }
+    .theme-forest .cal-grid { background: #8a9070; }
+    .theme-forest .cal-day { background: #e4ebcc; color: #2e3818; }
+    .theme-forest .big-btn { background: #d4c094; color: #2e3818; }
+    .theme-forest .cal-day.stamp-a, .theme-forest .cal-day.stamp-b {
+      background: #a8be88; color: transparent;
+    }
+    .theme-forest .cal-day.stamp-a::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpolygon points='12,3 6,13 18,13' fill='%232a4220'/%3E%3Cpolygon points='12,8 4,18 20,18' fill='%231f3018'/%3E%3Crect x='10.5' y='18' width='3' height='3.5' fill='%235a3018'/%3E%3C/svg%3E");
+    }
+    .theme-forest .cal-day.stamp-b::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3.5 13 Q12 1.5 20.5 13 Z' fill='%23a0301c'/%3E%3Ccircle cx='8.5' cy='10.5' r='1.4' fill='%23fff5e0'/%3E%3Cellipse cx='14' cy='12.5' rx='1.2' ry='0.9' fill='%23fff5e0'/%3E%3Crect x='8.5' y='13' width='7' height='7' fill='%23f4e4c0'/%3E%3C/svg%3E");
+    }
+
+    /* ============ LAVENDER ============ */
+    .theme-lavender {
+      background-color: #b8a8d8; background-image: url('./bg-pattern-lavender.svg');
+      --wk-bg: #f4ecf8; --wk-fg: #5a3aa0; --wk-divider: rgba(120, 60, 180, 0.3);
+      --trophy-bg: linear-gradient(135deg, #faf0fc, #d8b8f0);
+      --caption-fg: #3a1f5c; --caption-clear: #8a3aa8;
+    }
+    .theme-lavender .back-btn { background: #d4b8e0; color: #2e1e4a; }
+    .theme-lavender .cal-frame { background: #f4ecf8; }
+    .theme-lavender .cal-header { background: #9866b8; color: #faf0fc; }
+    .theme-lavender .cal-nav { background: #d4b8e0; color: #2e1e4a; }
+    .theme-lavender .cal-grid { background: #b090c8; }
+    .theme-lavender .cal-day { background: #ecdef4; color: #3a1f5c; }
+    .theme-lavender .big-btn { background: #d4b8e0; color: #2e1e4a; }
+    .theme-lavender .cal-day.stamp-a, .theme-lavender .cal-day.stamp-b {
+      background: #d8b8f0; color: transparent;
+    }
+    .theme-lavender .cal-day.stamp-a::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='6' r='3.5' fill='%238a4ab0'/%3E%3Ccircle cx='17.5' cy='10' r='3.5' fill='%238a4ab0'/%3E%3Ccircle cx='15' cy='17' r='3.5' fill='%238a4ab0'/%3E%3Ccircle cx='9' cy='17' r='3.5' fill='%238a4ab0'/%3E%3Ccircle cx='6.5' cy='10' r='3.5' fill='%238a4ab0'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%233a1a4a'/%3E%3C/svg%3E");
+    }
+    .theme-lavender .cal-day.stamp-b::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='7' cy='8' rx='4' ry='5' fill='%23a040c8'/%3E%3Cellipse cx='17' cy='8' rx='4' ry='5' fill='%23a040c8'/%3E%3Cellipse cx='8' cy='16' rx='3' ry='4' fill='%237a30a0'/%3E%3Cellipse cx='16' cy='16' rx='3' ry='4' fill='%237a30a0'/%3E%3Cline x1='12' y1='4' x2='12' y2='20' stroke='%233a1a4a' stroke-width='1.5'/%3E%3C/svg%3E");
+    }
+
+    /* ============ OCEAN ============ */
+    .theme-ocean {
+      background-color: #88b8d8; background-image: url('./bg-pattern-ocean.svg');
+      --wk-bg: #ecf4fa; --wk-fg: #1e4a78; --wk-divider: rgba(20, 50, 90, 0.28);
+      --trophy-bg: linear-gradient(135deg, #e8f0f6, #b0d0e8);
+      --caption-fg: #0e2848; --caption-clear: #1e6aa8;
+    }
+    .theme-ocean .back-btn { background: #c0d8e8; color: #182e58; }
+    .theme-ocean .cal-frame { background: #ecf4fa; }
+    .theme-ocean .cal-header { background: #356088; color: #ecf4fa; }
+    .theme-ocean .cal-nav { background: #c0d8e8; color: #182e58; }
+    .theme-ocean .cal-grid { background: #6a8aa8; }
+    .theme-ocean .cal-day { background: #d4e0ec; color: #182e58; }
+    .theme-ocean .big-btn { background: #c0d8e8; color: #182e58; }
+    .theme-ocean .cal-day.stamp-a, .theme-ocean .cal-day.stamp-b {
+      background: #98c0d8; color: transparent;
+    }
+    .theme-ocean .cal-day.stamp-a::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12 Q12 6 19 12 Q12 18 5 12 Z' fill='%231a4878'/%3E%3Cpolygon points='5,12 1,8 1,16' fill='%231a4878'/%3E%3Ccircle cx='15' cy='11' r='1' fill='%23fff'/%3E%3C/svg%3E");
+    }
+    .theme-ocean .cal-day.stamp-b::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 14 Q7 8 12 14 T21 14' stroke='%231a4878' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    }
+
+    /* ============ CHERRY ============ */
+    .theme-cherry {
+      background-color: #e8a8c0; background-image: url('./bg-pattern-cherry.svg');
+      --wk-bg: #fce8f0; --wk-fg: #8a3050; --wk-divider: rgba(180, 40, 100, 0.28);
+      --trophy-bg: linear-gradient(135deg, #fff0f5, #f4c0d4);
+      --caption-fg: #5a1830; --caption-clear: #c0286c;
+    }
+    .theme-cherry .back-btn { background: #f0c8d8; color: #581a36; }
+    .theme-cherry .cal-frame { background: #fce8f0; }
+    .theme-cherry .cal-header { background: #c45481; color: #fce8f0; }
+    .theme-cherry .cal-nav { background: #f0c8d8; color: #581a36; }
+    .theme-cherry .cal-grid { background: #b07590; }
+    .theme-cherry .cal-day { background: #fadce4; color: #581a36; }
+    .theme-cherry .big-btn { background: #f0c8d8; color: #581a36; }
+    .theme-cherry .cal-day.stamp-a, .theme-cherry .cal-day.stamp-b {
+      background: #f4c0d4; color: transparent;
+    }
+    .theme-cherry .cal-day.stamp-a::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='5' r='4' fill='%23f0a0bc'/%3E%3Ccircle cx='18' cy='10' r='4' fill='%23f0a0bc'/%3E%3Ccircle cx='15' cy='18' r='4' fill='%23f0a0bc'/%3E%3Ccircle cx='9' cy='18' r='4' fill='%23f0a0bc'/%3E%3Ccircle cx='6' cy='10' r='4' fill='%23f0a0bc'/%3E%3Ccircle cx='12' cy='12' r='2.4' fill='%23d06088'/%3E%3C/svg%3E");
+    }
+    .theme-cherry .cal-day.stamp-b::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 7 C9 2 2 2 2 8 C2 14 12 21 12 21 C12 21 22 14 22 8 C22 2 15 2 12 7 Z' fill='%23c04880'/%3E%3C/svg%3E");
+    }
+
+    /* ============ MIDNIGHT ============ */
+    .theme-midnight {
+      background-color: #0a0a1a; background-image: url('./bg-pattern-black.svg');
+      --wk-bg: #1a1a3a; --wk-fg: #f5e9c0; --wk-divider: rgba(245, 233, 192, 0.28);
+      --trophy-bg: linear-gradient(135deg, #2a2a5a, #18183a);
+      --caption-fg: #f0eef8; --caption-clear: #f5e9c0;
+    }
+    .theme-midnight .back-btn { background: #2a2a4e; color: #f5e9c0; }
+    .theme-midnight .cal-frame { background: #1a1a3a; }
+    .theme-midnight .cal-header { background: #b0a888; color: #2a2440; }
+    .theme-midnight .cal-nav { background: #2a2a4e; color: #f5e9c0; }
+    .theme-midnight .cal-grid { background: #050510; }
+    .theme-midnight .cal-day { background: #2a2a4e; color: #f0eef8; }
+    .theme-midnight .big-btn { background: #b0a888; color: #2a2440; }
+    .theme-midnight .cal-day.stamp-a, .theme-midnight .cal-day.stamp-b {
+      background: #1a1a44; color: transparent;
+    }
+    .theme-midnight .cal-day.stamp-a::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpolygon points='12,3 14.5,9.5 21.5,10 16,15 17.5,22 12,18 6.5,22 8,15 2.5,10 9.5,9.5' fill='%23fff5c0'/%3E%3C/svg%3E");
+    }
+    .theme-midnight .cal-day.stamp-b::after {
+      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='%23f4ecc8'/%3E%3Ccircle cx='15' cy='10' r='8' fill='%231a1a40'/%3E%3C/svg%3E");
+    }
+  </style>
+</head>
+<body>
+<div id="scrollRoot"></div>
+
+<script>
+  const FIRST_DOW = 3, LAST = 30;
+
+  const A1_SVG = `<svg class="trophy-svg" viewBox="0 0 110 110" data-sound="dragon">
+    <rect x="30" y="92" width="50" height="9" fill="#5a2810" rx="2"/>
+    <rect x="34" y="84" width="42" height="9" fill="#7a3810" rx="1.5"/>
+    <rect x="38" y="80" width="34" height="2" fill="#b07028"/>
+    <rect x="48" y="68" width="14" height="14" fill="#d4a040"/>
+    <ellipse cx="55" cy="68" rx="9" ry="2.5" fill="#a07820"/>
+    <ellipse cx="55" cy="80" rx="10" ry="2.5" fill="#a07820"/>
+    <path d="M 28 30 Q 10 36 10 50 Q 10 64 28 66" stroke="#8a5418" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M 28 30 Q 14 36 14 50 Q 14 64 28 66" stroke="#f4c840" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M 82 30 Q 100 36 100 50 Q 100 64 82 66" stroke="#8a5418" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M 82 30 Q 96 36 96 50 Q 96 64 82 66" stroke="#f4c840" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M 26 22 L 26 50 Q 26 70 55 70 Q 84 70 84 50 L 84 22 Z"
+          fill="#f4c840" stroke="#6a3818" stroke-width="2.4" stroke-linejoin="round"/>
+    <line x1="30" y1="50" x2="80" y2="50" stroke="#a07820" stroke-width="1"/>
+    <line x1="32" y1="56" x2="78" y2="56" stroke="#a07820" stroke-width="1"/>
+    <polygon points="55,32 58,40 67,40 60,46 62,55 55,49 48,55 50,46 43,40 52,40"
+             fill="#b03228" stroke="#6a1808" stroke-width="1.2"/>
+    <ellipse cx="55" cy="22" rx="29" ry="4.5" fill="#fce088" stroke="#6a3818" stroke-width="2"/>
+    <ellipse cx="55" cy="22" rx="29" ry="2" fill="#fff5d0"/>
+  </svg>`;
+
+  const THEMES = [
+    { cls: "demo-classic", name: "클래식" },
+    { cls: "theme-forest", name: "포레스트" },
+    { cls: "theme-lavender", name: "라벤더" },
+    { cls: "theme-ocean", name: "오션" },
+    { cls: "theme-cherry", name: "체리" },
+    { cls: "theme-midnight", name: "미드나잇" },
+  ];
+
+  const root = document.getElementById("scrollRoot");
+  THEMES.forEach((t) => {
+    const wrap = document.createElement("div");
+    wrap.style.width = "100%"; wrap.style.maxWidth = "360px";
+    const lbl = document.createElement("div");
+    lbl.className = "demo-label";
+    lbl.textContent = t.name;
+    wrap.appendChild(lbl);
+    const card = document.createElement("div");
+    card.className = `demo-card ${t.cls}`;
+    card.innerHTML = `
+      <div class="view">
+        <button class="back-btn">← 메뉴</button>
+        <div class="cal-frame">
+          <div class="cal-header">
+            <button class="cal-nav">◀</button>
+            <span class="cal-month-label">2026년 4월</span>
+            <button class="cal-nav">▶</button>
+          </div>
+          <div class="cal-trophy-row earned">
+            ${A1_SVG}
+            <div class="trophy-caption">4월 <span class="clear-text">CLEAR!</span><small>April 2026</small></div>
+          </div>
+          <div class="cal-grid"></div>
+        </div>
+        <button class="big-btn">계속하기 ▶</button>
+      </div>
+    `;
+    wrap.appendChild(card);
+    root.appendChild(wrap);
+
+    const grid = card.querySelector(".cal-grid");
+    const wks = ["일","월","화","수","목","금","토"];
+    wks.forEach((n, i) => {
+      const h = document.createElement("div");
+      h.className = "cal-wkhead" + (i === 0 ? " sun" : i === 6 ? " sat" : "");
+      h.textContent = n;
+      grid.appendChild(h);
+    });
+    for (let i = 0; i < FIRST_DOW; i++) {
+      const b = document.createElement("div");
+      b.className = "cal-blank";
+      grid.appendChild(b);
+    }
+    for (let d = 1; d <= LAST; d++) {
+      const c = document.createElement("button");
+      c.className = "cal-day stamped";
+      c.classList.add((d - 1) % 2 === 0 ? "stamp-a" : "stamp-b");
+      c.type = "button"; c.textContent = d;
+      grid.appendChild(c);
+    }
+  });
+
+  const LAUGH_FILES = ["sitcom", "crazy", "sinister", "evil"];
+  const LAUGH_CHANCE = 0.2;
+  let lastWasLaugh = false;
+  document.querySelectorAll(".trophy-svg").forEach((trophy) => {
+    let timer;
+    const onTap = (e) => {
+      e.preventDefault();
+      trophy.classList.add("enlarged");
+      let path;
+      if (!lastWasLaugh && Math.random() < LAUGH_CHANCE) {
+        lastWasLaugh = true;
+        const name = LAUGH_FILES[Math.floor(Math.random() * LAUGH_FILES.length)];
+        path = `./sounds/laugh/${name}.mp3`;
+      } else {
+        lastWasLaugh = false;
+        path = `./sounds/${trophy.dataset.sound}.mp3`;
+      }
+      const a = new Audio(path);
+      a.play().catch(() => {});
+      a.onended = () => trophy.classList.remove("enlarged");
+      clearTimeout(timer);
+      timer = setTimeout(() => trophy.classList.remove("enlarged"), 6000);
+    };
+    trophy.addEventListener("click", onTap);
+    trophy.addEventListener("touchstart", onTap, { passive: false });
+  });
+</script>
+</body>
+</html>

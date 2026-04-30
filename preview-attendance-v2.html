@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>출석체크 화면 데모</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ===== 출석체크 새 디자인: 메인페이지와 같은 다이얼로그 창 안에 ===== */
+
+    /* 메인뷰랑 동일한 위치/패딩 */
+    #attendanceView {
+      justify-content: center;
+      padding: 30px 12px 90px;
+    }
+
+    /* 다이얼로그 안 캘린더 영역 */
+    #attendanceView .dialog-window { width: 100%; max-width: 360px; }
+
+    /* 메뉴로 돌아가기: 본문 좌상단 깔끔한 텍스트 버튼 */
+    .att-back-soft {
+      align-self: flex-start;
+      background: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.18);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--title-bg);
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: background 0.1s, border-color 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .att-back-soft:hover {
+      background: rgba(0, 0, 0, 0.04);
+      border-color: rgba(0, 0, 0, 0.32);
+    }
+    body.theme-midnight .att-back-soft {
+      color: #f5e9c0;
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+    body.theme-midnight .att-back-soft:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.42);
+    }
+
+    /* ===== 부드러운 카드/버튼 (Win95 베벨 X) ===== */
+
+    /* 상단 stat — 깔끔한 카드, 얇은 1px 보더 */
+    .att-stats {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .att-stat {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.42);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+      padding: 10px 10px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: center;
+    }
+    body.theme-midnight .att-stat {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .att-stat-num {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: 0;
+      color: var(--title-bg);
+      line-height: 1;
+    }
+    .att-stat-num.has-trophy { color: #2a8a3a; }
+    body.theme-midnight .att-stat-num { color: #f5e9c0; }
+    body.theme-midnight .att-stat-num.has-trophy { color: #88e090; }
+    .att-stat-label {
+      font-size: 0.66rem;
+      letter-spacing: 0.2em;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.5);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    body.theme-midnight .att-stat-label { color: rgba(255, 255, 255, 0.55); }
+
+    /* 월 네비 — 깔끔한 작은 버튼, 큰 텍스트 */
+    .att-monthnav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 2px 4px;
+    }
+    .att-monthnav .att-month {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--title-bg);
+    }
+    body.theme-midnight .att-monthnav .att-month { color: #f5e9c0; }
+    .att-monthnav button {
+      background: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.18);
+      border-radius: 4px;
+      width: 30px;
+      height: 28px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--title-bg);
+      cursor: pointer;
+      transition: background 0.1s, border-color 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .att-monthnav button:hover {
+      background: rgba(0, 0, 0, 0.04);
+      border-color: rgba(0, 0, 0, 0.32);
+    }
+    body.theme-midnight .att-monthnav button {
+      color: #f5e9c0;
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+    body.theme-midnight .att-monthnav button:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.42);
+    }
+
+    /* 캘린더 그리드: 더 부드럽게 */
+    .att-grid-wrap {
+      background: var(--gray);
+      padding: 4px;
+      border-top: 2px solid var(--shadow);
+      border-left: 2px solid var(--shadow);
+      border-right: 2px solid var(--light);
+      border-bottom: 2px solid var(--light);
+    }
+    .att-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+    .att-wkhead {
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 0 6px;
+      color: #444;
+      letter-spacing: 0.06em;
+    }
+    .att-wkhead.sun { color: #b03020; }
+    .att-wkhead.sat { color: #2050b0; }
+    .att-day {
+      aspect-ratio: 1;
+      background: var(--gray-light);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 4px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #000;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: background 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .att-day:hover { background: var(--light); }
+    .att-blank {
+      aspect-ratio: 1;
+      background: transparent;
+    }
+    .att-day.future {
+      opacity: 0.32;
+      cursor: not-allowed;
+    }
+    /* 도장: 부드러운 빨간 원 (테마 LED 색상이랑 살짝 매칭 가능) */
+    .att-day.stamped::after {
+      content: "";
+      position: absolute;
+      inset: 13%;
+      border: 2.4px solid #c93026;
+      border-radius: 50%;
+      pointer-events: none;
+      box-shadow: 0 0 4px rgba(201, 48, 38, 0.25);
+    }
+    .att-day.stamped { color: #b02016; }
+    /* 오늘: 부드러운 황금 ring */
+    .att-day.today {
+      box-shadow:
+        inset 0 0 0 2px #d8a020,
+        inset 0 -1px 2px rgba(0, 0, 0, 0.1);
+    }
+    /* 선택된 날 */
+    .att-day.selected {
+      background: #ffe080;
+      box-shadow:
+        inset 0 0 0 2px #c08020,
+        inset 0 -1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 힌트 */
+    .att-hint {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #555;
+      padding: 6px 0 0;
+      letter-spacing: 0.04em;
+    }
+
+    /* 계속하기: 깔끔한 액센트 버튼, 작은 radius */
+    .att-continue {
+      background: var(--title-bg);
+      color: var(--title-fg);
+      border: none;
+      border-radius: 6px;
+      padding: 13px 18px;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      width: 100%;
+      transition: filter 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .att-continue:hover { filter: brightness(1.06); }
+    .att-continue:active { filter: brightness(0.94); }
+
+    /* 테마 스위처 */
+    .theme-switcher {
+      position: fixed;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      background: var(--gray);
+      border-top: 3px solid var(--light);
+      border-left: 3px solid var(--light);
+      border-right: 3px solid var(--shadow);
+      border-bottom: 3px solid var(--shadow);
+      padding: 4px;
+      display: flex;
+      gap: 4px;
+      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+      max-width: calc(100% - 24px);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .theme-switcher button {
+      background: var(--gray);
+      border-top: 2px solid var(--light);
+      border-left: 2px solid var(--light);
+      border-right: 2px solid var(--shadow);
+      border-bottom: 2px solid var(--shadow);
+      padding: 5px 9px;
+      font-family: inherit;
+      font-size: 0.74rem;
+      font-weight: bold;
+      color: #000;
+      cursor: pointer;
+    }
+    .theme-switcher button.active {
+      border-top: 2px solid var(--shadow);
+      border-left: 2px solid var(--shadow);
+      border-right: 2px solid var(--light);
+      border-bottom: 2px solid var(--light);
+      background: var(--gray-light);
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-switcher" id="themeSwitcher">
+    <button data-theme="classic" class="active">클래식</button>
+    <button data-theme="forest">포레스트</button>
+    <button data-theme="lavender">라벤더</button>
+    <button data-theme="ocean">오션</button>
+    <button data-theme="cherry">체리</button>
+    <button data-theme="midnight">미드나잇</button>
+  </div>
+
+  <div id="scrollRoot">
+    <div id="attendanceView" class="view">
+      <div class="dialog-window">
+        <div class="dialog-body">
+          <!-- 메뉴로 돌아가기 (부드러운 pill) -->
+          <button class="att-back-soft" type="button">‹ 메뉴</button>
+
+          <!-- 월 네비 (제목 위치 대신) -->
+          <div class="att-monthnav">
+            <button type="button">◀</button>
+            <span class="att-month">2026년 4월</span>
+            <button type="button">▶</button>
+          </div>
+
+          <!-- stat 행 -->
+          <div class="att-stats">
+            <div class="att-stat">
+              <span class="att-stat-num">42</span>
+              <span class="att-stat-label">도장</span>
+            </div>
+            <div class="att-stat">
+              <span class="att-stat-num has-trophy">1</span>
+              <span class="att-stat-label">트로피</span>
+            </div>
+          </div>
+
+          <!-- 그리드 -->
+          <div class="att-grid-wrap">
+            <div class="att-grid" id="attGrid"></div>
+          </div>
+
+          <p class="att-hint">날짜를 선택하세요 (없으면 오늘)</p>
+
+          <button class="att-continue" type="button">계속하기 ▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 4월 2026 캘린더 더미 — 1일 = 수요일, 30일까지, 1~14일 도장 / 18일 today
+    const grid = document.getElementById("attGrid");
+    const wks = ["일","월","화","수","목","금","토"];
+    wks.forEach((n, i) => {
+      const h = document.createElement("div");
+      h.className = "att-wkhead" + (i === 0 ? " sun" : i === 6 ? " sat" : "");
+      h.textContent = n;
+      grid.appendChild(h);
+    });
+    const firstDow = 3;        // 수요일 시작
+    for (let i = 0; i < firstDow; i++) {
+      const b = document.createElement("div");
+      b.className = "att-blank";
+      grid.appendChild(b);
+    }
+    const today = 18;
+    const stamped = [1,2,3,4,5,6,7,8,9,10,11,12,13,14];
+    let selected = 18;
+    for (let d = 1; d <= 30; d++) {
+      const c = document.createElement("button");
+      c.className = "att-day";
+      c.type = "button";
+      c.textContent = d;
+      if (stamped.includes(d)) c.classList.add("stamped");
+      if (d > today) c.classList.add("future");
+      if (d === today) c.classList.add("today");
+      if (d === selected) c.classList.add("selected");
+      c.addEventListener("click", () => {
+        if (c.classList.contains("future")) return;
+        document.querySelectorAll(".att-day.selected").forEach(x => x.classList.remove("selected"));
+        c.classList.add("selected");
+      });
+      grid.appendChild(c);
+    }
+
+    // 테마 스위처
+    const buttons = document.querySelectorAll(".theme-switcher button");
+    buttons.forEach((b) => {
+      b.addEventListener("click", () => {
+        const theme = b.dataset.theme;
+        document.body.classList.remove(
+          "theme-forest", "theme-lavender", "theme-ocean", "theme-cherry", "theme-midnight"
+        );
+        if (theme !== "classic") document.body.classList.add(`theme-${theme}`);
+        buttons.forEach((x) => x.classList.toggle("active", x === b));
+      });
+    });
+  </script>
+</body>
+</html>

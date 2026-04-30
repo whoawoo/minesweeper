@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>테마 미리보기</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ====== 미리보기: 새 테마 색상 + 배경 SVG (production CSS 위에 덮어쓰기) ====== */
+
+    /* 클래식: 기본값 위에 타이틀바만 은은한 더스티 네이비로 */
+    :root {
+      --title-bg: #3e5278;
+    }
+
+    /* 포레스트: 색상 그대로 + 테마 SVG 배경 */
+    body.theme-forest {
+      --gray: #b0a888;
+      --gray-light: #c4bc9c;
+      --light: #d8d0a8;
+      --shadow: #6a6850;
+      --bg: #6a7050;
+      --title-bg: #4a5a3a;
+      background-image: url('./bg-pattern-forest.svg') !important;
+    }
+
+    /* 라벤더 (NEW): 부드러운 보라 */
+    body.theme-lavender {
+      --gray: #d4c8e4;
+      --gray-light: #e4d8f0;
+      --light: #f0e8fa;
+      --shadow: #8a78a8;
+      --bg: #b8a8d8;
+      --title-bg: #8a78b0;
+      background-image: url('./bg-pattern-lavender.svg') !important;
+    }
+
+    /* 오션 (NEW): 시원한 하늘색 */
+    body.theme-ocean {
+      --gray: #c0d4e4;
+      --gray-light: #d4e0ec;
+      --light: #ecf4fa;
+      --shadow: #6a8aa8;
+      --bg: #88b8d8;
+      --title-bg: #5e90b0;
+      background-image: url('./bg-pattern-ocean.svg') !important;
+    }
+
+    /* 체리 (NEW): 따뜻한 핑크 */
+    body.theme-cherry {
+      --gray: #ecccd6;
+      --gray-light: #f4dce4;
+      --light: #fce8f0;
+      --shadow: #b07a8c;
+      --bg: #e8a8c0;
+      --title-bg: #b07590;
+      background-image: url('./bg-pattern-cherry.svg') !important;
+    }
+
+    /* 미드나잇 (NEW): 깊은 밤하늘 + 달빛 색 타이틀 */
+    body.theme-midnight {
+      --gray: #2a2a3c;
+      --gray-light: #3a3a4e;
+      --light: #5a5a78;
+      --shadow: #0a0a18;
+      --bg: #0a0a1a;
+      --title-bg: #b8ac80;       /* 달빛 크림 (조금 진한 톤) */
+      --title-fg: #2a2440;       /* 달빛 위 어두운 글씨 */
+      background-image: url('./bg-pattern-black.svg') !important;
+      color: #e8e8f0;
+    }
+    body.theme-midnight .menu-info { color: #b0b0c0; }
+    body.theme-midnight .att-title-line,
+    body.theme-midnight .menu-name,
+    body.theme-midnight .settings-btn,
+    body.theme-midnight .setting-label,
+    body.theme-midnight .theme-item,
+    body.theme-midnight .btn-close { color: #e8e8f0; }
+    /* 달빛 타이틀: 어두운 글씨 + 부드러운 그림자, 폭탄도 어둡게 */
+    body.theme-midnight .dialog-title {
+      text-shadow: 1px 1px 0 rgba(168, 148, 80, 0.55);
+    }
+    body.theme-midnight .title-bomb circle { fill: #2a2440; }
+    body.theme-midnight .title-bomb g { stroke: #2a2440; }
+
+    /* 다크/선셋/민트 같이 옛 테마 클래스는 preview에서 비우기 — 새 6종만 사용 */
+    body.theme-dark, body.theme-sunset, body.theme-mint {
+      /* no-op: 이 preview에선 안 씀 */
+    }
+
+    /* ====== 테마별 본문 글자색 + 타이틀 그림자 (각 테마 톤에 맞게) ====== */
+
+    /* 클래식: 본문 그대로 검정 + 타이틀 그림자 더스티 네이비 */
+    .dialog-title { text-shadow: 2px 2px 0 #1e2a48; }
+
+    /* 포레스트: 따뜻한 다크 브라운 톤 글자 + 짙은 숲 그림자 */
+    body.theme-forest .att-title-line,
+    body.theme-forest .menu-name,
+    body.theme-forest .menu-btn,
+    body.theme-forest .settings-btn,
+    body.theme-forest .setting-label,
+    body.theme-forest .theme-item,
+    body.theme-forest .btn-close { color: #2e2814; }
+    body.theme-forest .menu-info { color: #5e5028; }
+    body.theme-forest .dialog-title { text-shadow: 2px 2px 0 #1a2810; }
+
+    /* 라벤더: 깊은 보라 글자 */
+    body.theme-lavender .att-title-line,
+    body.theme-lavender .menu-name,
+    body.theme-lavender .menu-btn,
+    body.theme-lavender .settings-btn,
+    body.theme-lavender .setting-label,
+    body.theme-lavender .theme-item,
+    body.theme-lavender .btn-close { color: #382258; }
+    body.theme-lavender .menu-info { color: #5a4878; }
+    body.theme-lavender .dialog-title { text-shadow: 2px 2px 0 #2a1a48; }
+
+    /* 오션: 깊은 네이비 글자 */
+    body.theme-ocean .att-title-line,
+    body.theme-ocean .menu-name,
+    body.theme-ocean .menu-btn,
+    body.theme-ocean .settings-btn,
+    body.theme-ocean .setting-label,
+    body.theme-ocean .theme-item,
+    body.theme-ocean .btn-close { color: #182e58; }
+    body.theme-ocean .menu-info { color: #3e587a; }
+    body.theme-ocean .dialog-title { text-shadow: 2px 2px 0 #0e2848; }
+
+    /* 체리: 와인 레드 글자 */
+    body.theme-cherry .att-title-line,
+    body.theme-cherry .menu-name,
+    body.theme-cherry .menu-btn,
+    body.theme-cherry .settings-btn,
+    body.theme-cherry .setting-label,
+    body.theme-cherry .theme-item,
+    body.theme-cherry .btn-close { color: #581a36; }
+    body.theme-cherry .menu-info { color: #7e3e58; }
+    body.theme-cherry .dialog-title { text-shadow: 2px 2px 0 #38122a; }
+
+    /* 미드나잇 — 위에 정의됨 */
+
+    /* ====== 테마별 LED 색상 (검정 박스 + 빨간/초록 숫자도 테마 톤으로) ====== */
+    :root {
+      --led-bg: #000;
+      --led-fg: #ff0000;
+      --led-fg-trophy: #00ff00;
+    }
+    .att-led {
+      background: var(--led-bg) !important;
+      color: var(--led-fg) !important;
+    }
+    .att-led.has-trophy { color: var(--led-fg-trophy) !important; }
+
+    body.theme-forest {
+      --led-bg: #1f3a18;             /* 깊은 숲 그린 */
+      --led-fg: #ffd070;
+      --led-fg-trophy: #b8ff80;
+    }
+    body.theme-lavender {
+      --led-bg: #3e1f5e;             /* 리치 플럼 */
+      --led-fg: #ffb0d8;
+      --led-fg-trophy: #a0ffe0;
+    }
+    body.theme-ocean {
+      --led-bg: #1a4878;             /* 딥 틸-블루 */
+      --led-fg: #b0e8ff;
+      --led-fg-trophy: #b8ff88;
+    }
+    body.theme-cherry {
+      --led-bg: #5e1a3a;             /* 깊은 베리 */
+      --led-fg: #ffd880;
+      --led-fg-trophy: #b8ffc0;
+    }
+    body.theme-midnight {
+      --led-bg: #1a1a44;             /* 깊은 자정 보라-네이비 */
+      --led-fg: #fff0a0;
+      --led-fg-trophy: #a8ff90;
+    }
+
+    /* 화면 상단 고정 테마 스위처 */
+    .theme-switcher {
+      position: fixed;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      background: var(--gray);
+      border-top: 3px solid var(--light);
+      border-left: 3px solid var(--light);
+      border-right: 3px solid var(--shadow);
+      border-bottom: 3px solid var(--shadow);
+      padding: 4px;
+      display: flex;
+      gap: 4px;
+      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+      max-width: calc(100% - 24px);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .theme-switcher button {
+      background: var(--gray);
+      border-top: 2px solid var(--light);
+      border-left: 2px solid var(--light);
+      border-right: 2px solid var(--shadow);
+      border-bottom: 2px solid var(--shadow);
+      padding: 6px 10px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: bold;
+      color: #000;
+      cursor: pointer;
+    }
+    .theme-switcher button.active {
+      border-top: 2px solid var(--shadow);
+      border-left: 2px solid var(--shadow);
+      border-right: 2px solid var(--light);
+      border-bottom: 2px solid var(--light);
+      background: var(--gray-light);
+    }
+    body.theme-dark .theme-switcher button,
+    body.theme-forest .theme-switcher button,
+    body.theme-ocean .theme-switcher button,
+    body.theme-cherry .theme-switcher button,
+    body.theme-lavender .theme-switcher button { color: #000; }
+  </style>
+</head>
+<body>
+  <div class="theme-switcher" id="themeSwitcher">
+    <button data-theme="classic" class="active">클래식</button>
+    <button data-theme="forest">포레스트</button>
+    <button data-theme="lavender">라벤더</button>
+    <button data-theme="ocean">오션</button>
+    <button data-theme="cherry">체리</button>
+    <button data-theme="midnight">미드나잇</button>
+  </div>
+
+  <div id="scrollRoot">
+    <!-- 메인 화면 목업 -->
+    <div id="mainView" class="view">
+      <div class="dialog-window">
+        <div class="dialog-titlebar">
+          <span class="dialog-title">
+            <svg class="title-bomb" viewBox="0 0 512 512" aria-hidden="true">
+              <circle cx="256" cy="256" r="100" fill="#fff"/>
+              <g stroke="#fff" stroke-width="22" stroke-linecap="round">
+                <line x1="256" y1="176" x2="256" y2="100"/>
+                <line x1="256" y1="336" x2="256" y2="412"/>
+                <line x1="176" y1="256" x2="100" y2="256"/>
+                <line x1="336" y1="256" x2="412" y2="256"/>
+                <line x1="199" y1="199" x2="146" y2="146"/>
+                <line x1="313" y1="313" x2="366" y2="366"/>
+                <line x1="199" y1="313" x2="146" y2="366"/>
+                <line x1="313" y1="199" x2="366" y2="146"/>
+              </g>
+            </svg>
+            <span>지뢰찾기</span>
+            <svg class="title-bomb" viewBox="0 0 512 512" aria-hidden="true">
+              <circle cx="256" cy="256" r="100" fill="#fff"/>
+              <g stroke="#fff" stroke-width="22" stroke-linecap="round">
+                <line x1="256" y1="176" x2="256" y2="100"/>
+                <line x1="256" y1="336" x2="256" y2="412"/>
+                <line x1="176" y1="256" x2="100" y2="256"/>
+                <line x1="336" y1="256" x2="412" y2="256"/>
+                <line x1="199" y1="199" x2="146" y2="146"/>
+                <line x1="313" y1="313" x2="366" y2="366"/>
+                <line x1="199" y1="313" x2="146" y2="366"/>
+                <line x1="313" y1="199" x2="366" y2="146"/>
+              </g>
+            </svg>
+          </span>
+        </div>
+
+        <div class="dialog-body">
+          <button class="attendance-card" type="button">
+            <span class="att-icon-wrap"><span class="att-icon">📅</span></span>
+            <span class="att-title-line">출석체크</span>
+            <span class="att-led">042</span>
+          </button>
+
+          <div class="menu">
+            <button class="menu-btn">
+              <span class="menu-name">초보</span>
+              <span class="menu-info">8 × 8 · 지뢰 10개</span>
+            </button>
+            <button class="menu-btn">
+              <span class="menu-name">중수</span>
+              <span class="menu-info">16 × 16 · 지뢰 40개</span>
+            </button>
+            <button class="menu-btn">
+              <span class="menu-name">고수</span>
+              <span class="menu-info">16 × 30 · 지뢰 99개</span>
+            </button>
+          </div>
+
+          <button class="settings-btn" type="button">
+            <svg class="settings-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.03 7.03 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.55-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.66 8.78a.5.5 0 00.12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 00-.12.64l1.92 3.32a.5.5 0 00.61.22l2.39-.96c.49.39 1.03.7 1.62.94l.36 2.54a.5.5 0 00.5.42h3.84a.5.5 0 00.5-.42l.36-2.54c.59-.24 1.13-.55 1.62-.94l2.39.96a.5.5 0 00.61-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z"/>
+            </svg>
+            <span>설정</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const buttons = document.querySelectorAll(".theme-switcher button");
+    buttons.forEach((b) => {
+      b.addEventListener("click", () => {
+        const theme = b.dataset.theme;
+        document.body.classList.remove(
+          "theme-classic", "theme-forest", "theme-lavender", "theme-ocean", "theme-cherry", "theme-midnight"
+        );
+        if (theme !== "classic") document.body.classList.add(`theme-${theme}`);
+        buttons.forEach((x) => x.classList.toggle("active", x === b));
+      });
+    });
+  </script>
+</body>
+</html>
