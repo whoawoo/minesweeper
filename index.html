@@ -137,18 +137,20 @@
 
   <!-- 게임 화면 -->
   <div id="gameView" class="view hidden">
-    <button id="menuBack" class="back-btn">← 메뉴</button>
+    <div class="game-stack">
+      <button id="menuBack" class="back-btn">← 메뉴</button>
 
-    <div id="stampBanner" class="stamp-banner hidden"></div>
+      <div id="stampBanner" class="stamp-banner hidden"></div>
 
-    <div class="game-frame">
-      <div class="status">
-        <div class="led" id="mineCount">010</div>
-        <button id="newGame" class="smiley" aria-label="새 게임">🙂</button>
-        <div class="led" id="timer">000</div>
-      </div>
-      <div class="board-frame">
-        <div id="board"></div>
+      <div class="game-frame">
+        <div class="status">
+          <div class="led" id="mineCount">010</div>
+          <button id="newGame" class="smiley" aria-label="새 게임">🙂</button>
+          <div class="led" id="timer">000</div>
+        </div>
+        <div class="board-frame">
+          <div id="board"></div>
+        </div>
       </div>
     </div>
   </div>

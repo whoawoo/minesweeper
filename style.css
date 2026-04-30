@@ -211,6 +211,16 @@ body {
   align-self: center;
 }
 
+/* 게임 화면 wrapper — game-frame 폭에 맞춰 back-btn/배너가 같은 왼쪽 끝에 정렬됨 */
+.game-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  width: fit-content;
+  max-width: 100%;
+}
+
 .back-btn {
   align-self: flex-start;
   background: var(--gray);
