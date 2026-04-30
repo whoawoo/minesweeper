@@ -600,8 +600,9 @@ body.theme-cherry .cal-trophy-row.earned {
 }
 .cal-wkhead:last-of-type::after,
 .cal-wkhead.sat::after { display: none; }
-.cal-wkhead.sun { color: #c00000; }
-.cal-wkhead.sat { color: #0000a0; }
+/* 첫/마지막 칸은 바깥쪽 그림자 제거 — 그리드 가장자리 밖으로 삐져나가지 않게 */
+.cal-wkhead.sun { color: #c00000; box-shadow: 2px 0 0 var(--wk-bg); }
+.cal-wkhead.sat { color: #0000a0; box-shadow: -2px 0 0 var(--wk-bg); }
 
 .cal-blank {
   background: transparent;
