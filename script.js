@@ -886,7 +886,25 @@ function renderCalendar() {
   }
 }
 
+// 메인 다이얼로그 윗변 Y를 측정해서 출석체크 cal-frame 윗변이 같은 위치에 오도록 padding 보정.
+// mainView가 보이는 동안만 측정 가능 (다른 화면일 땐 마지막 측정값 유지).
+function syncAttendanceTop() {
+  const dialog = document.querySelector(".dialog-window");
+  if (!dialog) return;
+  const dialogRect = dialog.getBoundingClientRect();
+  if (dialogRect.height === 0) return; // mainView 숨김 상태 — 측정 불가
+  const mainRect = mainView.getBoundingClientRect();
+  if (mainRect.height === 0) return;
+  // 다이얼로그 top이 mainView 안에서 어디 있는지
+  const dialogTopInView = dialogRect.top - mainRect.top;
+  // 출석체크에서 cal-frame은 back-btn(min-height 40) + gap 12 = 52px 만큼 padding 아래에서 시작
+  const padding = Math.max(30, dialogTopInView - 52);
+  document.documentElement.style.setProperty("--attendance-padding-top", `${padding}px`);
+}
+
 function showAttendance() {
+  // mainView가 아직 보이는 지금 측정 (hideAllViews 호출 전)
+  syncAttendanceTop();
   const t = todayStr();
   if (calYear === undefined) {
     const d = new Date();
