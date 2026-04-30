@@ -910,7 +910,7 @@ body.theme-lavender {
   --led-bg: #3e1f5e;
   --led-fg: #ffb0d8;
   --led-fg-trophy: #a0ffe0;
-  --resume-bg: #ecddf5;
+  --resume-bg: #c89ae0;
   background-image: url("./bg-pattern-lavender.svg");
 }
 body.theme-lavender .att-title-line,
@@ -934,7 +934,7 @@ body.theme-ocean {
   --led-bg: #1a4878;
   --led-fg: #b0e8ff;
   --led-fg-trophy: #b8ff88;
-  --resume-bg: #d4e4f4;
+  --resume-bg: #6ab8e0;
   background-image: url("./bg-pattern-ocean.svg");
 }
 body.theme-ocean .att-title-line,
@@ -958,7 +958,7 @@ body.theme-cherry {
   --led-bg: #5e1a3a;
   --led-fg: #ffd880;
   --led-fg-trophy: #b8ffc0;
-  --resume-bg: #fadce8;
+  --resume-bg: #f48ab0;
   background-image: url("./bg-pattern-cherry.svg");
 }
 body.theme-cherry .att-title-line,
@@ -983,7 +983,7 @@ body.theme-midnight {
   --led-bg: #1a1a44;
   --led-fg: #fff0a0;
   --led-fg-trophy: #a8ff90;
-  --resume-bg: #2a2a4e;
+  --resume-bg: #6a6aa8;
   background-image: url("./bg-pattern-black.svg");
   color: #e8e8f0;
 }
