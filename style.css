@@ -485,6 +485,9 @@ body {
   font-weight: bold;
   position: relative;
   overflow: hidden;
+  box-shadow:
+    inset 3px 3px 0 rgba(0, 0, 0, 0.4),
+    inset -2px -2px 0 rgba(255, 255, 255, 0.4);
 }
 
 /* 미획득 상태: 흐릿한 트로피 + 진행도 */
