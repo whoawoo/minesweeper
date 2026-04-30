@@ -81,9 +81,13 @@ body {
   justify-content: center;
   padding: 30px 12px 90px;
 }
+/* 출석체크: cal-frame 윗변을 메인 다이얼로그 윗변과 같은 Y에 맞춤
+   메인은 padding 30/90 + center → 다이얼로그 top = 30 + (V-30-90-507)/2 = (V-567)/2
+   출석체크는 flex-start, back-btn(40)+gap(12)=52만큼 cal-frame이 밀림
+   → padding-top + 52 = (V-567)/2 → padding-top = (V-671)/2 */
 #attendanceView {
   justify-content: flex-start;
-  padding: 30px 12px 90px;
+  padding: max(30px, calc((100dvh - 671px) / 2)) 12px 90px;
 }
 
 .dialog-window {
