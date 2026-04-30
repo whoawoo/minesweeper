@@ -889,10 +889,26 @@ refreshAttendanceInfo();
 
 // ---- PWA 등록: 오프라인/홈 화면 설치 ----
 if ("serviceWorker" in navigator) {
+  let swRegistration = null;
+
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js").catch((err) => {
-      console.error("Service worker registration failed:", err);
-    });
+    // updateViaCache:'none' → 브라우저 HTTP 캐시 무시하고 service-worker.js를 네트워크에서 받음
+    navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" })
+      .then((reg) => {
+        swRegistration = reg;
+        // 등록 직후 즉시 한 번 업데이트 체크 — 브라우저 기본 24h 캐시를 뚫음
+        reg.update().catch(() => {});
+      })
+      .catch((err) => {
+        console.error("Service worker registration failed:", err);
+      });
+  });
+
+  // 앱이 포어그라운드로 돌아올 때마다 업데이트 체크 (PWA standalone에선 navigation이 거의 없어 자동 체크가 안 됨)
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && swRegistration) {
+      swRegistration.update().catch(() => {});
+    }
   });
 
   // 새 service worker가 활성화되면 페이지 한 번 자동 새로고침 → 사용자가 두 번 안 껐다 켜도 됨
