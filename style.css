@@ -359,6 +359,7 @@ body {
 /* ---- 출석체크 버튼 (D 스타일: 좌 아이콘 + 가운데 이름 + 우 LED 카운터) ---- */
 .attendance-card {
   width: 100%;
+  min-height: 65px;
   background: var(--gray-light);
   color: #000;
   border-top: 3px solid var(--light);
