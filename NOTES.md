@@ -14,18 +14,21 @@
 
 | 파일 | 역할 |
 |---|---|
-| `index.html` | 메인 / 출석체크(달력) / 게임 — 세 화면을 한 문서에 담음. `#scrollRoot`로 콘텐츠 감쌈 |
-| `style.css` | Win95 클래식 (회색 베벨/빨간 LED/9색 숫자) **+** 모던 일몰 그라데이션 출석체크 카드 / 황금 트로피 영역 |
-| `script.js` | 게임 로직 + 입력 + 사운드 + 화면 전환 + 저장/이어하기 + 도장/달력/트로피 + PWA 등록 |
+| `index.html` | 메인(다이얼로그 윈도우 + 설정 모달) / 출석체크(달력) / 게임 — 세 화면을 한 문서에 담음. `#scrollRoot`로 콘텐츠 감쌈 |
+| `style.css` | Win95 클래식 베이스 + 6테마(`body.theme-*`) CSS 변수 + 출석체크 플랫 디자인(트로피/스탬프/inset 솔리드) |
+| `script.js` | 게임 로직 + 입력 + 사운드 + 화면 전환 + 저장/이어하기 + 도장/달력/트로피 SVG + 테마 + PWA 등록 |
 | `manifest.json` | PWA 메타데이터 (아이콘 `purpose: "any maskable"`) |
-| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** |
+| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v42) |
 | `icon.svg` | 폭탄 벡터 (정중앙, 안전구역 반경 ≤150 — Galaxy 마스크 안 잘리게) |
 | `icon-192.png`, `icon-512.png` | PWA용 PNG (rsvg-convert로 SVG에서 변환) |
+| `bg-pattern*.svg` | 테마별 배경 패턴 (classic/forest/lavender/ocean/cherry/black) |
+| `sounds/*.mp3` | 트로피 사운드. 12지 동물 12개 + `sounds/laugh/` 웃음 4개 |
+| `preview-*.html` | 출석체크/트로피/테마/메인페이지 시안 데모 (production 영향 X) |
 
 ## 구현된 기능
 
 ### 게임 플레이
-- 난이도 3종: 초보 8×8/10지뢰, 중수 16×16/40, 고수 16×30/99
+- 난이도 3종: 초보 8×8/17지뢰, 중수 16×16/54, 고수 16×30/103
 - 첫 클릭은 항상 안전 (클릭 칸과 8이웃 빼고 지뢰 배치)
 - 빈 칸 자동 펼치기 (flood fill)
 - 타이머, 남은 지뢰 카운터 (3자리 LED)
@@ -39,17 +42,38 @@
 - 승/패, 새 게임(스마일), 다른 난이도 시작, 출석체크 게임 시작 시 자동 삭제
 
 ### 출석체크 (localStorage `mw:stamps`)
-- 메인 타이틀 바로 아래 **출석체크 카드** (모던 일몰 그라데이션 — 일부러 Win95와 다른 결로 강조)
-  - 좌측: 흰 원반 안 📅 / 가운데: "출석체크" + 설명 + 흰색 알약 도장 카운트 (트로피 ≥1이면 `🏆 N`도 표시)
-- 카드 누르면 달력 화면 진입
+- 메인 다이얼로그 본문 최상단에 **출석체크 카드** (`📅` 아이콘 + "출석체크" + LED 카운터)
+  - LED는 트로피 ≥1이면 초록(`--led-fg-trophy`), 없으면 빨강(`--led-fg`)
+- 카드 누르면 달력 화면 진입 (메뉴 버튼은 cal-frame 왼쪽 끝과 정렬, `.att-row` wrapper)
 - 날짜 선택 (없으면 오늘) → "계속하기" → **중수 랜덤 게임**으로 진입 (`pendingStampDate` 보존)
-- 클리어 시 그 날짜에 도장(빨간 원). 패배 시 적립 X
+- 날짜 클릭하면 inset 솔리드 + 살짝 어두워짐(filter brightness), 한 번 더 누르면 토글 해제
+- 클리어 시 그 날짜에 도장. 패배 시 적립 X
 - 미래 날짜는 `disabled`/회색, 오늘은 점선 outline
+- **테마별 도장 SVG** (격일 교대로 stamp-a / stamp-b 클래스 부여):
+  - 클래식: 폭탄 / 깃발
+  - 포레스트: 솔잎 / 버섯
+  - 라벤더: 꽃 / 나비
+  - 오션: 물고기 / 파도
+  - 체리: 벚꽃 / 하트
+  - 미드나잇: 별 / 초승달
 - 트로피 영역
-  - 미달성: 흐릿한 🏆 + "N/M — 모두 채우면 트로피!" 진행도
-  - 달성(1일~말일 전부 도장): 황금 그라데이션 + shimmer/bounce/twinkle 애니메이션 + "M월 완벽 출석!" 캡션
+  - 미달성: 🏆 + "N/M — 모두 채우면 트로피!" 진행도
+  - 달성(1일~말일 전부 도장): **A1(컵)/B1(월계관)/C1(크라운) SVG** 월별 순환 (`(month-1) % 3`) + "M월 CLEAR!" 캡션 (CLEAR! 부분만 테마 액센트 컬러)
+  - 트로피 누르면 1.3x 확대 + 사운드 재생 후 원복
 - `countTrophies()` — 월별 도장 그룹화 후 그 달 말일 수와 비교해 누적 카운트
 - 이어하기에 도장 대기 게임도 포함됨 (저장에 `pendingStampDate` 같이 들어감)
+- cal-frame 윗변이 메인 다이얼로그 윗변과 같은 Y에 오도록 JS가 `--attendance-padding-top` 동적 계산 (`syncAttendanceTop()`)
+
+### 테마 (localStorage `mw:theme`)
+- 6 테마: classic / forest / lavender / ocean / cherry / midnight
+- `body.theme-X` 클래스로 전환. 베이스(클래식)는 클래스 없음
+- 각 테마는 CSS 변수(`--gray`, `--shadow`, `--bg`, `--title-bg`, `--led-bg/fg`, `--trophy-bg`, `--caption-fg/clear`, `--wk-bg/fg/divider` 등) + 배경 패턴 SVG로 정의
+- 메인 다이얼로그(설정 ⚙️ 버튼) → 모달에서 6개 테마 스와치로 선택. localStorage 영속
+
+### 트로피 사운드
+- 트로피 클릭 시 그 달의 동물 사운드 재생 (12지 매핑: 1=cow, 2=tiger, ..., 12=mouse)
+- 20% 확률로 랜덤 웃음 사운드 대신 재생 (단 직전이 웃음이면 무조건 동물 — 연달아 웃음 방지)
+- 모든 mp3는 ffmpeg afade out으로 페이드아웃 처리됨
 
 ### 입력
 - **데스크탑**: 좌클릭=공개, 우클릭=깃발 (mousedown button===2로 처리, contextmenu와 분리)
@@ -132,7 +156,33 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 - 해결: `pointerdown`에서 즉시 `init()` 호출 + 200ms 디바운스로 click 폴백과 중복 방지
 - 사용자가 결과 화면(😎/😵)이 떠야만 리셋되는 줄 알았던 원인
 
-### 7. 출석체크 미션 중 `pendingStampDate` 보존
+### 7. ::after는 한 요소당 하나뿐 (display:none 중복 함정)
+- `.cal-day.stamped::after` (빨간 동그라미) 위에 `body.theme-X .cal-day.stamp-a::after` (테마 SVG)를 덮어쓰려고 했는데, 둘 다 같은 ::after를 가리킴
+- 처음에 안전하게 한답시고 `body.theme-X .cal-day.stamped::after { display: none }`을 추가했더니 — 같은 ::after가 통째로 사라져서 SVG도 안 보임
+- **해결**: display:none 제거하고, stamp-a/b ::after 규칙에서 `border: none; border-radius: 0; inset: 14%; background-image: ...` 같은 속성을 명시적으로 덮어쓰기 (specificity로 stamped::after를 이김)
+
+### 8. 테마의 `body.theme-X .cal-day` 색상 specificity
+- `.cal-day.stamp-a, stamp-b { color: transparent }` (0,2,0)이 `body.theme-X .cal-day { color: ... }` (0,2,1)에 specificity로 짐
+- 도장 칸인데 숫자가 그대로 보이던 버그
+- **해결**: 각 테마의 `body.theme-X .cal-day.stamp-a, .stamp-b` 규칙에 `color: transparent` 명시
+
+### 9. 메인 다이얼로그/cal-frame 윗변 Y 맞추기 (CSS calc 한계)
+- 메인은 `justify-content: center` + `padding: 30/90` → 다이얼로그 위치가 뷰포트 따라 가변
+- 출석체크 cal-frame 윗변을 같은 Y에 두려면 다이얼로그 실제 높이를 알아야 함 — CSS만으론 불가능
+- **해결**: `showAttendance()` 시점에 `dialog.getBoundingClientRect().top` 측정 → `back-btn(40)+gap(12)=52` 보정해서 `--attendance-padding-top` 변수에 적용
+- mainView가 보이는 동안만 측정 가능 (display:none 상태에선 0). showAttendance 직전에 항상 새로 측정
+
+### 10. cal-frame과 back-btn 왼쪽 끝 정렬
+- cal-frame은 max-width 360px로 가운데 정렬됨. back-btn은 `align-self: flex-start`라 view 왼쪽 가장자리에 붙음 → 데스크탑/넓은 뷰포트에서 어긋남
+- **해결**: `.att-row` (max-width 360 + align-self:center) wrapper로 back-btn 감쌈 → cal-frame과 같은 max-width 컨테이너 안에 들어가니 왼쪽 끝 일치
+- 게임 화면도 동일 패턴: `.game-stack { width: fit-content }`로 game-frame 폭에 맞춤 (game-frame은 보드 크기에 따라 가변)
+
+### 11. 요일 헤더 box-shadow가 양쪽 그리드 밖으로 삐져나감
+- `.cal-wkhead` 띠 효과는 `box-shadow: -2px 0 0 var(--wk-bg), 2px 0 0 var(--wk-bg)`로 셀 사이 4px 갭을 채움
+- 그런데 첫 칸(일요일)의 왼쪽 그림자, 마지막 칸(토요일)의 오른쪽 그림자는 그리드 가장자리 밖으로 튀어나가 폭이 안 맞음
+- **해결**: `.cal-wkhead.sun`은 오른쪽 그림자만, `.cal-wkhead.sat`은 왼쪽 그림자만 남김
+
+### 12. 출석체크 미션 중 `pendingStampDate` 보존
 - 초기 구현: `handleLose()`와 `resetCurrentGame()`(스마일)에서 `pendingStampDate = null` → 지거나 재시작하면 미션 사라짐
 - **버그**: 동생이 중수(16×16/40지뢰)를 한 번에 클리어 못 하고 재시도하니 도장이 영영 안 찍힘
 - 해결 (커밋 `71b0b6e`): 두 함수 모두 `pendingStampDate` 유지. 같은 날짜로 클리어할 때까지 계속 도전 가능. `resetCurrentGame()`은 init 후 `showStampBannerIfPending()` 다시 호출해서 배너 복원
@@ -187,3 +237,15 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 20. ~~PWA 아이콘 safe zone 안으로 재배치 (Galaxy 하단 잘림 수정)~~ ✅
 21. ~~출석체크 도장이 안 찍히던 버그 수정 (지거나 스마일 재시작해도 `pendingStampDate` 유지)~~ ✅
 22. ~~PWA 자동 갱신 신뢰성 (updateViaCache:'none' + 등록 시·포어그라운드 복귀 시 update())~~ ✅
+23. ~~메인 다이얼로그 윈도우 + 설정 모달 (테마 6종 선택)~~ ✅
+24. ~~6 테마 시스템 (CSS 변수 + body.theme-* 클래스 + 배경 패턴 SVG)~~ ✅
+25. ~~트로피 SVG 일러스트 (A1 컵 / B1 월계관 / C1 크라운) 월별 순환~~ ✅
+26. ~~트로피 사운드 (12지 동물 + 20% 랜덤 웃음, 직전 웃음이면 무조건 동물)~~ ✅
+27. ~~출석체크 플랫 디자인 (Win95 베벨 제거, border-radius)~~ ✅
+28. ~~테마별 도장 SVG 격일 교대 (stamp-a / stamp-b)~~ ✅
+29. ~~트로피 영역에 inset 솔리드 + cal-grid/header 동일 강도 통일~~ ✅
+30. ~~날짜 선택 표시: 테두리 → inset 솔리드, 다시 누르면 토글 해제~~ ✅
+31. ~~메뉴/계속하기 버튼 살짝 둥글게 (border-radius 4)~~ ✅
+32. ~~메뉴 버튼을 cal-frame/game-frame 왼쪽 끝과 정렬 (.att-row / .game-stack wrapper)~~ ✅
+33. ~~출석체크 cal-frame 윗변을 메인 다이얼로그 윗변과 맞춤 (JS 측정)~~ ✅
+34. ~~지뢰 개수 상향: 10/40/99 → 17/54/103~~ ✅
