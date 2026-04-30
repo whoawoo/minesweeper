@@ -79,7 +79,7 @@ body {
 /* ---- 메인 화면: 다이얼로그 창 구조 ---- */
 #mainView,
 #attendanceView {
-  justify-content: center;
+  justify-content: flex-start;
   padding: 30px 12px 90px;
 }
 
