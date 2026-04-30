@@ -96,7 +96,12 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 
 ### 1. PWA 캐시 강제 갱신
 - `service-worker.js`를 변경하면 브라우저가 새 SW 감지 → install → activate → `clients.claim()` → `controllerchange` → 자동 새로고침 1회
-- **단**, 사용자가 캐시된 옛날 `script.js`를 들고 있으면 `controllerchange` 핸들러가 안 깔려있을 수 있어 갱신이 막힘 → **이번 한 번만** 수동으로 클린 재설치 필요했음
+- **단**, 사용자가 캐시된 옛날 `script.js`를 들고 있으면 `controllerchange` 핸들러가 안 깔려있을 수 있어 갱신이 막힘 → 그 한 번만 수동으로 클린 재설치 필요
+- **추가로 PWA standalone에선 navigation이 거의 없어서 브라우저가 새 SW 자체를 자동 체크하지 않음** (Chrome 기본 24h). 와이파이 있어도 옛 버전 계속 받던 원인 → 커밋 `f72ed90` 에서 다음 3가지로 해결:
+  - `register("./service-worker.js", { updateViaCache: "none" })` — SW 파일은 HTTP 캐시 무시하고 네트워크에서 받음
+  - 등록 직후 즉시 `registration.update()` 1회
+  - `visibilitychange`로 포어그라운드 복귀할 때마다 `update()`
+- **localStorage(`mw:stamps`, `mw:save`)는 `caches.delete()`와 무관** — SW 캐시 청소해도 도장/이어하기는 안 사라짐. 진짜 날아가는 경우는 Chrome 사이트 설정 "삭제 및 재설정" 또는 일부 안드로이드의 PWA 제거
 
 ### 2. 갤럭시 PWA에서 pull-to-refresh 막기
 - `overscroll-behavior: none` (CSS) → **갤럭시 standalone PWA에서 안 먹는 경우 있음**
@@ -126,6 +131,12 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 - `click` 이벤트만 걸어두면 게임 도중 탭이 늦거나 다른 핸들러에 막혀서 새 게임 안 되는 경우 있음
 - 해결: `pointerdown`에서 즉시 `init()` 호출 + 200ms 디바운스로 click 폴백과 중복 방지
 - 사용자가 결과 화면(😎/😵)이 떠야만 리셋되는 줄 알았던 원인
+
+### 7. 출석체크 미션 중 `pendingStampDate` 보존
+- 초기 구현: `handleLose()`와 `resetCurrentGame()`(스마일)에서 `pendingStampDate = null` → 지거나 재시작하면 미션 사라짐
+- **버그**: 동생이 중수(16×16/40지뢰)를 한 번에 클리어 못 하고 재시도하니 도장이 영영 안 찍힘
+- 해결 (커밋 `71b0b6e`): 두 함수 모두 `pendingStampDate` 유지. 같은 날짜로 클리어할 때까지 계속 도전 가능. `resetCurrentGame()`은 init 후 `showStampBannerIfPending()` 다시 호출해서 배너 복원
+- 미션을 명시적으로 끝내는 곳만 클리어: `handleWin()`(addStamp 후), `startGame()`(메인에서 다른 난이도 선택), `startAttendanceGame()`(다른 날짜로 재진입)
 
 ## 안 한 것 / 추후 옵션
 
@@ -174,3 +185,5 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 18. ~~출석체크 카드 시각 강조 (모던 그라데이션, 메인 최상단)~~ ✅
 19. ~~트로피 영역 강조 (황금 그라데이션 + 애니메이션 + 진행도)~~ ✅
 20. ~~PWA 아이콘 safe zone 안으로 재배치 (Galaxy 하단 잘림 수정)~~ ✅
+21. ~~출석체크 도장이 안 찍히던 버그 수정 (지거나 스마일 재시작해도 `pendingStampDate` 유지)~~ ✅
+22. ~~PWA 자동 갱신 신뢰성 (updateViaCache:'none' + 등록 시·포어그라운드 복귀 시 update())~~ ✅
