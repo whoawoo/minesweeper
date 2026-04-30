@@ -212,6 +212,7 @@ body {
   border-left: 2px solid var(--light);
   border-right: 2px solid var(--shadow);
   border-bottom: 2px solid var(--shadow);
+  border-radius: 4px;
   padding: 10px 16px;
   font-family: inherit;
   font-size: 0.95rem;
@@ -683,6 +684,7 @@ body.theme-cherry .cal-trophy-row.earned {
   border-left: 3px solid var(--light);
   border-right: 3px solid var(--shadow);
   border-bottom: 3px solid var(--shadow);
+  border-radius: 4px;
   padding: 14px 24px;
   font-family: inherit;
   font-size: 1.1rem;
