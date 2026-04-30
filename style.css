@@ -512,7 +512,7 @@ body {
   background: var(--trophy-bg);
   color: var(--caption-fg);
   border: none;
-  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.18);
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.3);
   animation: none;
   display: flex;
   flex-direction: column;
