@@ -918,7 +918,7 @@ body.theme-forest .cal-day { background: #e4ebcc; color: #2e3818; }
 body.theme-forest .cal-wkhead.sun { color: #b03220; }
 body.theme-forest .cal-wkhead.sat { color: #4a6a20; }
 body.theme-forest .cal-day.stamp-a,
-body.theme-forest .cal-day.stamp-b { background: #a8be88; }
+body.theme-forest .cal-day.stamp-b { background: #a8be88; color: transparent; }
 body.theme-forest .cal-day.stamp-a::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpolygon points='12,3 6,13 18,13' fill='%232a4220'/%3E%3Cpolygon points='12,8 4,18 20,18' fill='%231f3018'/%3E%3Crect x='10.5' y='18' width='3' height='3.5' fill='%235a3018'/%3E%3C/svg%3E");
 }
@@ -961,7 +961,7 @@ body.theme-lavender .cal-nav { background: #d4b8e0; color: #2e1e4a; }
 body.theme-lavender .cal-grid { background: #b090c8; }
 body.theme-lavender .cal-day { background: #ecdef4; color: #3a1f5c; }
 body.theme-lavender .cal-day.stamp-a,
-body.theme-lavender .cal-day.stamp-b { background: #d8b8f0; }
+body.theme-lavender .cal-day.stamp-b { background: #d8b8f0; color: transparent; }
 body.theme-lavender .cal-day.stamp-a::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='6' r='3.5' fill='%238a4ab0'/%3E%3Ccircle cx='17.5' cy='10' r='3.5' fill='%238a4ab0'/%3E%3Ccircle cx='15' cy='17' r='3.5' fill='%238a4ab0'/%3E%3Ccircle cx='9' cy='17' r='3.5' fill='%238a4ab0'/%3E%3Ccircle cx='6.5' cy='10' r='3.5' fill='%238a4ab0'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%233a1a4a'/%3E%3C/svg%3E");
 }
@@ -1004,7 +1004,7 @@ body.theme-ocean .cal-nav { background: #c0d8e8; color: #182e58; }
 body.theme-ocean .cal-grid { background: #6a8aa8; }
 body.theme-ocean .cal-day { background: #d4e0ec; color: #182e58; }
 body.theme-ocean .cal-day.stamp-a,
-body.theme-ocean .cal-day.stamp-b { background: #98c0d8; }
+body.theme-ocean .cal-day.stamp-b { background: #98c0d8; color: transparent; }
 body.theme-ocean .cal-day.stamp-a::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12 Q12 6 19 12 Q12 18 5 12 Z' fill='%231a4878'/%3E%3Cpolygon points='5,12 1,8 1,16' fill='%231a4878'/%3E%3Ccircle cx='15' cy='11' r='1' fill='%23fff'/%3E%3C/svg%3E");
 }
@@ -1047,7 +1047,7 @@ body.theme-cherry .cal-nav { background: #f0c8d8; color: #581a36; }
 body.theme-cherry .cal-grid { background: #b07590; }
 body.theme-cherry .cal-day { background: #fadce4; color: #581a36; }
 body.theme-cherry .cal-day.stamp-a,
-body.theme-cherry .cal-day.stamp-b { background: #f4c0d4; }
+body.theme-cherry .cal-day.stamp-b { background: #f4c0d4; color: transparent; }
 body.theme-cherry .cal-day.stamp-a::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='5' r='4' fill='%23f0a0bc'/%3E%3Ccircle cx='18' cy='10' r='4' fill='%23f0a0bc'/%3E%3Ccircle cx='15' cy='18' r='4' fill='%23f0a0bc'/%3E%3Ccircle cx='9' cy='18' r='4' fill='%23f0a0bc'/%3E%3Ccircle cx='6' cy='10' r='4' fill='%23f0a0bc'/%3E%3Ccircle cx='12' cy='12' r='2.4' fill='%23d06088'/%3E%3C/svg%3E");
 }
@@ -1098,10 +1098,10 @@ body.theme-midnight .cal-day { background: #3a3a66; color: #f0eef8; }
 body.theme-midnight .cal-wkhead.sun { color: #ff8088; }
 body.theme-midnight .cal-wkhead.sat { color: #a0d8ff; }
 body.theme-midnight .cal-day.stamp-a,
-body.theme-midnight .cal-day.stamp-b { background: #2a2a58; }
+body.theme-midnight .cal-day.stamp-b { background: #2a2a58; color: transparent; }
 body.theme-midnight .cal-day.stamp-a::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpolygon points='12,3 14.5,9.5 21.5,10 16,15 17.5,22 12,18 6.5,22 8,15 2.5,10 9.5,9.5' fill='%23fff5c0'/%3E%3C/svg%3E");
 }
 body.theme-midnight .cal-day.stamp-b::after {
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='%23f4ecc8'/%3E%3Ccircle cx='15' cy='10' r='8' fill='%231a1a40'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='%23f4ecc8'/%3E%3Ccircle cx='15' cy='10' r='8' fill='%232a2a58'/%3E%3C/svg%3E");
 }
