@@ -1,9 +1,9 @@
 // 2단계+: 지뢰 배치 + 난이도 선택 + 새 게임 버튼
 
 const DIFFICULTIES = {
-  beginner:     { rows: 8,  cols: 8,  mines: 10 },
-  intermediate: { rows: 16, cols: 16, mines: 40 },
-  expert:       { rows: 30, cols: 16, mines: 99 },
+  beginner:     { rows: 8,  cols: 8,  mines: 17 },
+  intermediate: { rows: 16, cols: 16, mines: 54 },
+  expert:       { rows: 30, cols: 16, mines: 103 },
 };
 
 let ROWS, COLS, MINES;
