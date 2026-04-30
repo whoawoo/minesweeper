@@ -1046,7 +1046,7 @@ body.theme-midnight {
   --led-fg: #fff0a0;
   --led-fg-trophy: #a8ff90;
   --resume-bg: #6a6aa8;
-  --wk-bg: #1a1a3a;
+  --wk-bg: #28284e;
   --wk-fg: #f5e9c0;
   --wk-divider: rgba(245, 233, 192, 0.28);
   --trophy-bg: linear-gradient(135deg, #2a2a5a, #18183a);
@@ -1067,15 +1067,15 @@ body.theme-midnight .dialog-title {
 }
 body.theme-midnight .title-bomb circle { fill: #2a2440; }
 body.theme-midnight .title-bomb g { stroke: #2a2440; }
-body.theme-midnight .cal-frame { background: #1a1a3a; }
+body.theme-midnight .cal-frame { background: #28284e; }
 body.theme-midnight .cal-header { background: #b0a888; color: #2a2440; }
-body.theme-midnight .cal-nav { background: #2a2a4e; color: #f5e9c0; }
-body.theme-midnight .cal-grid { background: #050510; }
-body.theme-midnight .cal-day { background: #2a2a4e; color: #f0eef8; }
+body.theme-midnight .cal-nav { background: #3a3a64; color: #f5e9c0; }
+body.theme-midnight .cal-grid { background: #1a1a3e; }
+body.theme-midnight .cal-day { background: #3a3a66; color: #f0eef8; }
 body.theme-midnight .cal-wkhead.sun { color: #ff8088; }
 body.theme-midnight .cal-wkhead.sat { color: #a0d8ff; }
 body.theme-midnight .cal-day.stamp-a,
-body.theme-midnight .cal-day.stamp-b { background: #1a1a44; }
+body.theme-midnight .cal-day.stamp-b { background: #2a2a58; }
 body.theme-midnight .cal-day.stamped::after { display: none; }
 body.theme-midnight .cal-day.stamp-a::after,
 body.theme-midnight .cal-day.stamp-b::after {

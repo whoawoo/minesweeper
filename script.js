@@ -26,7 +26,6 @@ const calPrevBtn = document.getElementById("calPrev");
 const calNextBtn = document.getElementById("calNext");
 const calGridEl = document.getElementById("calGrid");
 const calTrophyRow = document.getElementById("calTrophyRow");
-const calHintEl = document.getElementById("calHint");
 const resumeBtn = document.getElementById("resumeBtn");
 const resumeInfoEl = document.getElementById("resumeInfo");
 const stampBannerEl = document.getElementById("stampBanner");
@@ -874,16 +873,6 @@ function renderCalendar() {
     calGridEl.appendChild(cell);
   }
 
-  // 힌트 갱신
-  if (selectedDate) {
-    const [y, m, dd] = selectedDate.split("-");
-    const stamped = stamps[selectedDate];
-    calHintEl.textContent = stamped
-      ? `${parseInt(m)}월 ${parseInt(dd)}일 — 이미 도장 ✓`
-      : `${parseInt(m)}월 ${parseInt(dd)}일 선택됨`;
-  } else {
-    calHintEl.textContent = "날짜를 선택하세요 (없으면 오늘)";
-  }
 }
 
 // 메인 다이얼로그 윗변 Y를 측정해서 출석체크 cal-frame 윗변이 같은 위치에 오도록 padding 보정.
