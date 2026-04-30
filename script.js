@@ -867,7 +867,7 @@ function renderCalendar() {
 
     cell.addEventListener("click", () => {
       if (cell.disabled) return;
-      selectedDate = ds;
+      selectedDate = (selectedDate === ds) ? null : ds;
       renderCalendar();
     });
     calGridEl.appendChild(cell);

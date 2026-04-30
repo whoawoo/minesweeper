@@ -650,8 +650,8 @@ body.theme-cherry .cal-trophy-row.earned {
 }
 
 .cal-day.selected {
-  background: #ffe080;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45);
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.25);
+  filter: brightness(0.88);
 }
 
 /* 클래식 빨간 동그라미 (테마 미설정 기본값, stamp-a/b가 덮어씌움) */
