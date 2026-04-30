@@ -204,6 +204,13 @@ body {
 }
 
 /* ---- 게임 화면 ---- */
+/* 출석체크 back-btn 줄 — cal-frame과 같은 max-width 360px로 가운데 정렬해서 왼쪽 끝 맞춤 */
+.att-row {
+  width: 100%;
+  max-width: 360px;
+  align-self: center;
+}
+
 .back-btn {
   align-self: flex-start;
   background: var(--gray);
