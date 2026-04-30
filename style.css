@@ -425,6 +425,7 @@ body {
   border-radius: 6px;
   width: 100%;
   max-width: 360px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
 }
 
 .cal-header {
