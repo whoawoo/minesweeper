@@ -708,9 +708,9 @@ function refreshAttendanceInfo() {
   const stamps = loadStamps();
   const total = Object.keys(stamps).length;
   const trophies = countTrophies();
-  attendanceInfoEl.textContent = trophies > 0
-    ? `도장 ${total}개 · 🏆 ${trophies}`
-    : `도장 ${total}개`;
+  // LED 표시: 도장 개수(3자리). 트로피 1개 이상이면 초록 LED, 없으면 빨강
+  attendanceInfoEl.textContent = formatLed(total);
+  attendanceInfoEl.classList.toggle("has-trophy", trophies > 0);
 }
 
 // ---- 달력 렌더링 ----
@@ -945,6 +945,39 @@ window.addEventListener("pagehide", () => {
 // 초기 표시: 메인 화면, 이어하기/도장 카운트 갱신
 refreshResumeButton();
 refreshAttendanceInfo();
+
+// ---- 설정 모달 + 테마 선택 ----
+const THEME_KEY = "mw:theme";
+const THEME_CLASSES = ["theme-classic", "theme-dark", "theme-sunset", "theme-mint", "theme-forest"];
+function applyTheme(theme) {
+  document.body.classList.remove(...THEME_CLASSES);
+  if (theme && theme !== "classic") {
+    document.body.classList.add(`theme-${theme}`);
+  }
+  document.querySelectorAll(".theme-item").forEach((x) => {
+    x.classList.toggle("active", x.dataset.theme === theme);
+  });
+  try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+}
+function loadTheme() {
+  try { return localStorage.getItem(THEME_KEY) || "classic"; }
+  catch (e) { return "classic"; }
+}
+applyTheme(loadTheme());
+
+const settingsModal = document.getElementById("settingsModal");
+document.getElementById("openSettings").addEventListener("click", () => {
+  settingsModal.classList.remove("hidden");
+});
+document.getElementById("closeSettings").addEventListener("click", () => {
+  settingsModal.classList.add("hidden");
+});
+settingsModal.addEventListener("click", (e) => {
+  if (e.target === settingsModal) settingsModal.classList.add("hidden");
+});
+document.querySelectorAll(".theme-item").forEach((btn) => {
+  btn.addEventListener("click", () => applyTheme(btn.dataset.theme));
+});
 
 // ---- PWA 등록: 오프라인/홈 화면 설치 ----
 if ("serviceWorker" in navigator) {

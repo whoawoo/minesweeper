@@ -1,11 +1,14 @@
 /* 클래식 Windows 95 지뢰찾기 룩 (메인 화면 + 게임 화면) */
 
 :root {
-  --gray:    #c0c0c0;
-  --light:   #ffffff;
-  --shadow:  #808080;
-  --dark:    #404040;
-  --bg:      #6d6d6d; /* 메인 배경: 데스크탑 느낌의 중간 회색 */
+  --gray:       #c0c0c0;
+  --gray-light: #d4d4d4;  /* 출석체크/설정 같이 살짝 도드라지는 버튼용 */
+  --light:      #ffffff;
+  --shadow:     #808080;
+  --dark:       #404040;
+  --bg:         #5d5d5d;  /* 메인 배경: 디더 패턴 베이스 */
+  --title-bg:   #000080;  /* 다이얼로그 타이틀바 */
+  --title-fg:   #ffffff;
 }
 
 * {
@@ -25,7 +28,10 @@ body {
   position: fixed;
   inset: 0;
   font-family: "MS Sans Serif", Tahoma, Verdana, -apple-system, sans-serif;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: url("./bg-pattern.svg");
+  background-size: 480px 480px;
+  background-repeat: repeat;
   color: #000;
 }
 
@@ -58,28 +64,86 @@ body {
   display: none !important;
 }
 
-/* ---- 메인 화면 ---- */
-.main-title {
-  color: #fff;
-  font-size: 2rem;
-  letter-spacing: 0.05em;
-  text-shadow: 2px 2px 0 #000;
-  margin-top: 8vh;
+/* ---- 메인 화면: 다이얼로그 창 구조 ---- */
+#mainView {
+  justify-content: center;
+  padding: 30px 12px 90px;
 }
 
-.main-sub {
-  color: #f0f0f0;
-  font-size: 1rem;
-  margin-bottom: 8px;
+.dialog-window {
+  width: 100%;
+  max-width: 360px;
+  background: var(--gray);
+  border-top: 3px solid var(--light);
+  border-left: 3px solid var(--light);
+  border-right: 3px solid var(--shadow);
+  border-bottom: 3px solid var(--shadow);
+  padding: 3px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.dialog-titlebar {
+  background: var(--title-bg);
+  color: var(--title-fg);
+  padding: 18px 8px 11px;
+  text-align: center;
+  letter-spacing: 0.12em;
+}
+
+.dialog-title {
+  font-size: 1.6rem;
+  font-family: inherit;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 0 #000050;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-bomb {
+  width: 1.3em;
+  height: 1.3em;
+  flex-shrink: 0;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 80, 0.6));
+}
+
+/* 본문 영역 (inset, 안이 파인 느낌) */
+.dialog-body {
+  margin-top: 4px;
+  padding: 14px 12px;
+  background: var(--gray);
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--light);
+  border-bottom: 2px solid var(--light);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
-  max-width: 320px;
 }
+
+/* 메인 화면용 메뉴 버튼 (다이얼로그 안) */
+.dialog-body .menu-btn {
+  padding: 12px 14px;
+}
+.dialog-body .menu-name {
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+.dialog-body .menu-info {
+  font-size: 0.82rem;
+  color: #555;
+}
+
+/* 옛 .main-title / .main-sub / .main-hint 호환 — 새 구조에선 안 보임 */
+.main-title, .main-sub, .main-hint { display: none !important; }
 
 .menu-btn {
   background: var(--gray);
@@ -280,139 +344,59 @@ body {
 /* ---- 메인의 특수 메뉴 버튼 (이어하기) ---- */
 .resume-btn { background: #d8e8ff; }
 
-/* ---- 출석체크 카드: 모던 그라데이션 (메뉴 위 별도 배치, 일부러 Win95와 다른 결) ---- */
-.main-title + .attendance-card { margin-top: 14px; }
-
+/* ---- 출석체크 버튼 (D 스타일: 좌 아이콘 + 가운데 이름 + 우 LED 카운터) ---- */
 .attendance-card {
-  position: relative;
   width: 100%;
-  max-width: 360px;
-  min-height: 120px;
-  margin: 0 auto;
-  background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 50%, #c44569 100%);
-  border: none;
-  border-radius: 22px;
-  padding: 18px 22px;
+  background: var(--gray-light);
+  color: #000;
+  border-top: 3px solid var(--light);
+  border-left: 3px solid var(--light);
+  border-right: 3px solid var(--shadow);
+  border-bottom: 3px solid var(--shadow);
+  padding: 12px 14px;
+  font-family: inherit;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  font-family: inherit;
-  color: #fff;
+  gap: 12px;
   text-align: left;
-  overflow: hidden;
-  box-shadow:
-    0 5px 0 #8b2c4d,
-    0 12px 24px rgba(180, 50, 90, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
-
-/* 윗부분 광택 */
-.attendance-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent);
-  pointer-events: none;
-  border-radius: 22px 22px 0 0;
-}
-
-/* 살짝 뒤쪽 별 패턴 */
-.attendance-card::after {
-  content: "✦";
-  position: absolute;
-  right: 50px;
-  top: 14px;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.35);
-  pointer-events: none;
-}
-
 .attendance-card:active {
-  transform: translateY(3px);
-  box-shadow:
-    0 2px 0 #8b2c4d,
-    0 5px 12px rgba(180, 50, 90, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border-top: 3px solid var(--shadow);
+  border-left: 3px solid var(--shadow);
+  border-right: 3px solid var(--light);
+  border-bottom: 3px solid var(--light);
 }
-
 .att-icon-wrap {
   flex-shrink: 0;
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
-  border: 2px solid rgba(255, 255, 255, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    inset 0 2px 6px rgba(0, 0, 0, 0.12),
-    0 2px 4px rgba(0, 0, 0, 0.15);
-  position: relative;
-  z-index: 1;
-}
-
-.att-icon {
-  font-size: 2.4rem;
+  font-size: 1.5rem;
   line-height: 1;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
 }
-
-.att-body {
+.att-icon { display: inline-block; }
+.att-title-line {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-  align-items: flex-start;
-  position: relative;
-  z-index: 1;
-}
-
-.att-title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  line-height: 1.05;
-}
-
-.att-desc {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
-.att-stamps {
-  display: inline-block;
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   font-weight: bold;
-  background: #fff;
-  color: #c0286c;
-  padding: 4px 12px;
-  border-radius: 999px;
-  margin-top: 5px;
+  letter-spacing: 0.02em;
+  color: #000;
+}
+.att-led {
+  flex-shrink: 0;
+  background: #000;
+  color: #ff0000;
   font-family: "Courier New", "Consolas", monospace;
-  letter-spacing: 0.04em;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+  font-weight: bold;
+  font-size: 1.05rem;
+  padding: 7px 9px 3px;
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--light);
+  border-bottom: 2px solid var(--light);
+  letter-spacing: 0.12em;
+  line-height: 1;
 }
-
-.att-arrow {
-  font-size: 2.2rem;
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 300;
-  margin-left: 2px;
-  position: relative;
-  z-index: 1;
-}
+.att-led.has-trophy { color: #00ff00; }
 
 /* ---- 출석체크 화면 ---- */
 .cal-frame {
@@ -756,4 +740,172 @@ body {
   max-width: 360px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* ---- 설정 버튼 (메인 다이얼로그 본문 맨 아래) ---- */
+.settings-btn {
+  width: 100%;
+  background: var(--gray-light);
+  border-top: 3px solid var(--light);
+  border-left: 3px solid var(--light);
+  border-right: 3px solid var(--shadow);
+  border-bottom: 3px solid var(--shadow);
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+  margin-top: 6px;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.settings-btn:active {
+  border-top: 3px solid var(--shadow);
+  border-left: 3px solid var(--shadow);
+  border-right: 3px solid var(--light);
+  border-bottom: 3px solid var(--light);
+}
+.settings-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ---- 설정 모달 ---- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+.modal-backdrop.hidden { display: none; }
+.modal-window {
+  width: 100%;
+  max-width: 300px;
+  background: var(--gray);
+  border-top: 3px solid var(--light);
+  border-left: 3px solid var(--light);
+  border-right: 3px solid var(--shadow);
+  border-bottom: 3px solid var(--shadow);
+  padding: 3px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+}
+.modal-window .dialog-titlebar { padding: 8px; letter-spacing: 0.06em; }
+.modal-window .dialog-title { font-size: 1.1rem; }
+.modal-window .dialog-body { padding: 12px; gap: 8px; }
+.setting-label {
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin: 0 0 4px;
+  color: #000;
+}
+.theme-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.theme-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px dashed transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  color: #000;
+}
+.theme-item:hover { background: rgba(0, 0, 0, 0.05); }
+.theme-item.active {
+  background: rgba(0, 0, 64, 0.18);
+  border-color: rgba(0, 0, 64, 0.5);
+}
+.theme-swatch {
+  width: 36px;
+  height: 24px;
+  display: block;
+  border: 1px solid #000;
+  flex-shrink: 0;
+}
+.swatch-classic { background: linear-gradient(90deg, #c0c0c0 60%, #000080 60%); }
+.swatch-dark    { background: linear-gradient(90deg, #3a3a3a 60%, #1a1a4a 60%); }
+.swatch-sunset  { background: linear-gradient(90deg, #f0d2b8 60%, #80302a 60%); }
+.swatch-mint    { background: linear-gradient(90deg, #d0e8d8 60%, #2a7a5a 60%); }
+.swatch-forest  { background: linear-gradient(90deg, #b0a888 60%, #4a5a3a 60%); }
+.btn-close {
+  align-self: center;
+  background: var(--gray);
+  border-top: 2px solid var(--light);
+  border-left: 2px solid var(--light);
+  border-right: 2px solid var(--shadow);
+  border-bottom: 2px solid var(--shadow);
+  padding: 5px 18px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: #000;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.btn-close:active {
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--light);
+  border-bottom: 2px solid var(--light);
+}
+
+/* ---- 테마 정의 (CSS 변수 오버라이드 — 모든 회색·라이트·새도우·타이틀바 따라감) ---- */
+body.theme-dark {
+  --gray: #3a3a3a;
+  --gray-light: #4a4a4a;
+  --light: #6a6a6a;
+  --shadow: #1a1a1a;
+  --bg: #1a1a1a;
+  --title-bg: #1a1a4a;
+  color: #e8e8e8;
+}
+body.theme-dark .menu-info { color: #b0b0b0; }
+body.theme-dark .att-title-line,
+body.theme-dark .menu-name,
+body.theme-dark .settings-btn,
+body.theme-dark .setting-label,
+body.theme-dark .theme-item,
+body.theme-dark .btn-close { color: #e8e8e8; }
+
+body.theme-sunset {
+  --gray: #f0d2b8;
+  --gray-light: #f7e0c8;
+  --light: #fff0e0;
+  --shadow: #a06a4a;
+  --bg: #b87060;
+  --title-bg: #80302a;
+}
+
+body.theme-mint {
+  --gray: #d0e8d8;
+  --gray-light: #ddf0e3;
+  --light: #f0fff0;
+  --shadow: #5a8870;
+  --bg: #6ab09a;
+  --title-bg: #2a7a5a;
+}
+
+body.theme-forest {
+  --gray: #b0a888;
+  --gray-light: #c0b894;
+  --light: #d8d0a8;
+  --shadow: #6a6850;
+  --bg: #6a7050;
+  --title-bg: #4a5a3a;
 }

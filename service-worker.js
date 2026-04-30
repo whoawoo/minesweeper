@@ -1,6 +1,6 @@
 // 오프라인 캐시 + 자동 갱신
 // 새 버전 배포할 땐 CACHE 이름의 숫자만 올리면 자동으로 헌 캐시 청소됨
-const CACHE = "minesweeper-v15";
+const CACHE = "minesweeper-v16";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const ASSETS = [
   "./icon.svg",
   "./icon-192.png",
   "./icon-512.png",
+  "./bg-pattern.svg",
   // 트로피 사운드 (월별 동물 12 + 랜덤 웃음 4)
   "./sounds/cow.mp3",
   "./sounds/tiger.mp3",

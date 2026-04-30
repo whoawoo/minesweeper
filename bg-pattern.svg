@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+  <defs>
+    <g id="bomb" stroke-linecap="round">
+      <line x1="-26" y1="0" x2="26" y2="0" stroke-width="4"/>
+      <line x1="0" y1="-26" x2="0" y2="26" stroke-width="4"/>
+      <line x1="-19" y1="-19" x2="19" y2="19" stroke-width="4"/>
+      <line x1="-19" y1="19" x2="19" y2="-19" stroke-width="4"/>
+      <circle cx="0" cy="0" r="15"/>
+      <circle cx="-5" cy="-5" r="3.5" fill="#ffffff"/>
+    </g>
+    <g id="flag">
+      <line x1="0" y1="-2" x2="0" y2="22" stroke="#000000" stroke-width="2.5"/>
+      <polygon points="0,-2 16,4 0,10" fill="#c00000"/>
+    </g>
+  </defs>
+
+  <!-- 폭탄들 (검정, 옅게) -->
+  <g fill="#000000" stroke="#000000" opacity="0.13">
+    <use href="#bomb" transform="translate(70 100) scale(0.85) rotate(18)"/>
+    <use href="#bomb" transform="translate(360 80) scale(0.55) rotate(-25)"/>
+    <use href="#bomb" transform="translate(190 240) scale(1.05) rotate(8)"/>
+    <use href="#bomb" transform="translate(60 360) scale(0.65) rotate(-12)"/>
+    <use href="#bomb" transform="translate(380 380) scale(0.8) rotate(35)"/>
+    <use href="#bomb" transform="translate(420 230) scale(0.5) rotate(-50)"/>
+    <use href="#bomb" transform="translate(260 60) scale(0.45) rotate(-30)"/>
+  </g>
+
+  <!-- 깃발들 (빨간 삼각, 검은 막대, 옅게) -->
+  <g opacity="0.18">
+    <use href="#flag" transform="translate(280 160) scale(1.1) rotate(8)"/>
+    <use href="#flag" transform="translate(40 220) scale(0.9) rotate(-15)"/>
+    <use href="#flag" transform="translate(150 410) scale(0.95) rotate(12)"/>
+    <use href="#flag" transform="translate(330 290) scale(0.75) rotate(-8)"/>
+  </g>
+</svg>
