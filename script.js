@@ -463,9 +463,7 @@ function handleLose() {
   revealAllMines();
   newGameBtn.textContent = SMILEY_LOSE;
   playBoom();
-  // 도장 미적립 (게임 다시 시작 시 사라짐)
-  pendingStampDate = null;
-  hideStampBanner();
+  // 도장 미적립이지만 pendingStampDate는 유지 — 스마일로 재시도해서 클리어하면 도장 적립
   clearSave();
 }
 
@@ -861,10 +859,10 @@ function resetCurrentGame() {
   if (smileyResetting) return; // pointerdown + click 중복 방지
   smileyResetting = true;
   setTimeout(() => { smileyResetting = false; }, 200);
-  pendingStampDate = null;
-  hideStampBanner();
+  // pendingStampDate는 유지 — 출석체크 미션 중 스마일 누르면 같은 날짜로 재도전
   clearSave();
   init();
+  showStampBannerIfPending();
 }
 newGameBtn.addEventListener("pointerdown", (e) => {
   if (e.button !== 0) return;
