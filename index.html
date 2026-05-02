@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=51" />
+  <link rel="stylesheet" href="style.css?v=52" />
 </head>
 <body>
   <!-- 모든 콘텐츠를 감싸는 스크롤 루트 (body 대신 여기서 스크롤 → pull-to-refresh 차단) -->
@@ -122,6 +122,16 @@
           </button>
         </div>
 
+        <p class="setting-label">게임 모드</p>
+        <div class="theme-list">
+          <button class="theme-item" data-deduction-mode="off">
+            <span class="theme-swatch swatch-deduction-off">🍬</span><span>L 모드</span>
+          </button>
+          <button class="theme-item" data-deduction-mode="on">
+            <span class="theme-swatch swatch-deduction-on">📓</span><span>라이토(추리) 모드</span>
+          </button>
+        </div>
+
         <button class="btn-close" type="button" id="closeSettings">닫기</button>
       </div>
     </div>
@@ -173,6 +183,6 @@
   <div id="celebrationHalo"></div>
   <div id="celebrationLevelUp">+EXP</div>
 
-  <script src="script.js?v=51"></script>
+  <script src="script.js?v=52"></script>
 </body>
 </html>

@@ -1156,22 +1156,9 @@ body.theme-midnight .cal-day.stamp-b::after {
   }
 }
 
-/* ---- 폰 가로모드 강제 세로 형태 유지 (1024px 미만 + landscape) ----
-   manifest의 portrait-primary로 PWA에서 OS 잠금되지만, 만약 잠금이 안 먹는 환경
-   (구버전 iOS, 캐시된 옛 manifest 등)에서도 화면이 가로 레이아웃으로 흘러가지
-   않도록 CSS로 강제 90deg 회전. 결과: 폰을 가로로 들어도 화면은 세로 모양 유지. */
-@media (max-width: 1023px) and (orientation: landscape) {
-  #scrollRoot {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vh;
-    height: 100vw;
-    transform-origin: 0 0;
-    transform: translateX(100vw) rotate(90deg);
-    padding: 0;
-  }
-}
+/* 폰 회전 잠금은 manifest "orientation":"portrait-primary"와 script.js의
+   screen.orientation.lock()이 담당. PWA로 홈에 추가해서 실행하면 iOS/Android가
+   OS 레벨에서 잠가줌. 브라우저 탭에서는 OS가 강제로 회전시키므로 막을 방법이 없음. */
 
 /* ---- 클리어 연출 (승리 시 발생) ---- */
 #celebrationCanvas {
@@ -1259,9 +1246,11 @@ body.theme-midnight .cal-day.stamp-b::after {
   100% { transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.4); opacity: 0.7; }
 }
 
-/* 설정 모달 클리어 화면 스왓치 */
+/* 설정 모달 클리어 화면 / 게임 모드 스왓치 */
 .swatch-clear-confetti,
-.swatch-clear-minecraft {
+.swatch-clear-minecraft,
+.swatch-deduction-off,
+.swatch-deduction-on {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1269,3 +1258,5 @@ body.theme-midnight .cal-day.stamp-b::after {
   background: #f5e9c0 !important;
 }
 .swatch-clear-minecraft { background: #aaff00 !important; }
+.swatch-deduction-off { background: #ffcccc !important; }
+.swatch-deduction-on { background: #cce5ff !important; }

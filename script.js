@@ -303,7 +303,15 @@ function init() {
 }
 
 // 첫 클릭이 일어난 뒤에 호출 — 클릭한 칸과 그 이웃 8칸은 지뢰에서 제외
-function placeMines(safeR, safeC) {
+// 무작위 지뢰 배치 (3x3 안전구역 제외). 재시도 가능하도록 isMine/adjacent 초기화 포함.
+function placeMinesRandom(safeR, safeC) {
+  // 초기화
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      cells[r][c].isMine = false;
+      cells[r][c].adjacent = 0;
+    }
+  }
   const safeSet = new Set();
   for (let dr = -1; dr <= 1; dr++) {
     for (let dc = -1; dc <= 1; dc++) {
@@ -314,18 +322,13 @@ function placeMines(safeR, safeC) {
       }
     }
   }
-
-  // 후보 위치 모으기
   const candidates = [];
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      if (!safeSet.has(r * COLS + c)) {
-        candidates.push([r, c]);
-      }
+      if (!safeSet.has(r * COLS + c)) candidates.push([r, c]);
     }
   }
-
-  // 셔플(Fisher-Yates) 후 앞에서부터 MINES개 선택
+  // Fisher-Yates 셔플
   for (let i = candidates.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
@@ -335,15 +338,142 @@ function placeMines(safeR, safeC) {
     const [r, c] = candidates[i];
     cells[r][c].isMine = true;
   }
-
-  // 각 칸의 "주변 지뢰 수" 계산
+  // 인접 지뢰 수
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       if (cells[r][c].isMine) continue;
       cells[r][c].adjacent = countAdjacentMines(r, c);
     }
   }
+}
 
+// 라이토(추리) 모드 솔버: 도박수 없이 순수 논리만으로 풀리는지 시뮬레이션.
+// 기본 추론 + subset 추론 (1-2-1 같은 패턴).
+function isSolvableNoGuess(firstR, firstC) {
+  const revealed = Array(ROWS).fill(null).map(() => Array(COLS).fill(false));
+  const flagged  = Array(ROWS).fill(null).map(() => Array(COLS).fill(false));
+
+  function getNbrs(r, c) {
+    const out = [];
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue;
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) out.push([nr, nc]);
+      }
+    }
+    return out;
+  }
+  function flood(startR, startC) {
+    const queue = [[startR, startC]];
+    while (queue.length) {
+      const [r, c] = queue.shift();
+      if (revealed[r][c]) continue;
+      revealed[r][c] = true;
+      if (cells[r][c].adjacent === 0) {
+        for (const [nr, nc] of getNbrs(r, c)) {
+          if (!cells[nr][nc].isMine && !revealed[nr][nc]) queue.push([nr, nc]);
+        }
+      }
+    }
+  }
+  flood(firstR, firstC);
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    // 1) 기본 추론: n - flagged == unrevealed → 모두 지뢰 / minesLeft == 0 → 모두 안전
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (!revealed[r][c] || cells[r][c].isMine) continue;
+        const n = cells[r][c].adjacent;
+        if (n === 0) continue;
+        const unknowns = [];
+        let flaggedCount = 0;
+        for (const [nr, nc] of getNbrs(r, c)) {
+          if (!revealed[nr][nc]) {
+            if (flagged[nr][nc]) flaggedCount++;
+            else unknowns.push([nr, nc]);
+          }
+        }
+        if (unknowns.length === 0) continue;
+        const minesLeft = n - flaggedCount;
+        if (minesLeft === 0) {
+          for (const [nr, nc] of unknowns) flood(nr, nc);
+          changed = true;
+        } else if (minesLeft === unknowns.length) {
+          for (const [nr, nc] of unknowns) flagged[nr][nc] = true;
+          changed = true;
+        }
+      }
+    }
+    if (changed) continue;
+
+    // 2) Subset 추론: A.unknowns ⊂ B.unknowns 일 때, 차이 셀들의 지뢰 개수 결정 가능하면 사용
+    const constraints = [];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (!revealed[r][c] || cells[r][c].isMine) continue;
+        const n = cells[r][c].adjacent;
+        if (n === 0) continue;
+        const unknowns = [];
+        let flaggedCount = 0;
+        for (const [nr, nc] of getNbrs(r, c)) {
+          if (!revealed[nr][nc]) {
+            if (flagged[nr][nc]) flaggedCount++;
+            else unknowns.push(nr * COLS + nc);
+          }
+        }
+        if (unknowns.length === 0) continue;
+        constraints.push({ minesLeft: n - flaggedCount, unknowns: new Set(unknowns) });
+      }
+    }
+    outer: for (const A of constraints) {
+      for (const B of constraints) {
+        if (A === B) continue;
+        if (A.unknowns.size >= B.unknowns.size) continue;
+        let isSubset = true;
+        for (const u of A.unknowns) if (!B.unknowns.has(u)) { isSubset = false; break; }
+        if (!isSubset) continue;
+        const diff = [];
+        for (const u of B.unknowns) if (!A.unknowns.has(u)) diff.push(u);
+        if (diff.length === 0) continue;
+        const diffMines = B.minesLeft - A.minesLeft;
+        if (diffMines === 0) {
+          for (const idx of diff) flood(Math.floor(idx / COLS), idx % COLS);
+          changed = true;
+          break outer;
+        } else if (diffMines === diff.length) {
+          for (const idx of diff) flagged[Math.floor(idx / COLS)][idx % COLS] = true;
+          changed = true;
+          break outer;
+        }
+      }
+    }
+  }
+
+  // 모든 비-지뢰 칸이 공개됐는가?
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (!cells[r][c].isMine && !revealed[r][c]) return false;
+    }
+  }
+  return true;
+}
+
+function placeMines(safeR, safeC) {
+  if (deductionMode === "on") {
+    const MAX_ATTEMPTS = 300;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      placeMinesRandom(safeR, safeC);
+      if (isSolvableNoGuess(safeR, safeC)) {
+        minesPlaced = true;
+        return;
+      }
+    }
+    // 300회 안에 못 만들면 일반 보드로 폴백 (지뢰 밀도가 너무 높을 때)
+  }
+  placeMinesRandom(safeR, safeC);
   minesPlaced = true;
 }
 
@@ -1099,6 +1229,30 @@ document.querySelectorAll("[data-clear-effect]").forEach((btn) => {
   btn.addEventListener("click", () => applyClearEffect(btn.dataset.clearEffect));
 });
 
+// ---- 설정: 게임 모드 (L 모드 = 도박수 가능 / 라이토 모드 = 추리만) ----
+const DEDUCTION_KEY = "mw:deductionMode";
+const DEDUCTION_MODES = ["off", "on"];
+const DEDUCTION_DEFAULT = "off";
+function loadDeductionMode() {
+  try {
+    const v = localStorage.getItem(DEDUCTION_KEY);
+    return DEDUCTION_MODES.includes(v) ? v : DEDUCTION_DEFAULT;
+  } catch (e) { return DEDUCTION_DEFAULT; }
+}
+function applyDeductionMode(mode) {
+  if (!DEDUCTION_MODES.includes(mode)) mode = DEDUCTION_DEFAULT;
+  deductionMode = mode;
+  document.querySelectorAll("[data-deduction-mode]").forEach((x) => {
+    x.classList.toggle("active", x.dataset.deductionMode === mode);
+  });
+  try { localStorage.setItem(DEDUCTION_KEY, mode); } catch (e) {}
+}
+let deductionMode = loadDeductionMode();
+applyDeductionMode(deductionMode);
+document.querySelectorAll("[data-deduction-mode]").forEach((btn) => {
+  btn.addEventListener("click", () => applyDeductionMode(btn.dataset.deductionMode));
+});
+
 // ---- 클리어 연출 (승리 시) ----
 const celebCanvas = document.getElementById("celebrationCanvas");
 const celebCtx = celebCanvas ? celebCanvas.getContext("2d") : null;
@@ -1224,13 +1378,34 @@ function playConfettiClear() {
   }
 }
 
-// 마크 XP 픽업 핑 (피치 1.25배 상향)
+// 마크 XP 픽업 핑 (피치 1.25배 상향, attack envelope으로 더 청량하게)
 function playMcPling() {
-  const baseFreqs = [1960, 2200, 2470, 2616, 2936, 3296];
+  const ctx = getAudio();
+  if (!ctx) return;
+  const baseFreqs = [1960, 2200, 2470, 2616, 2936, 3296]; // B6 ~ G7
   const freq = baseFreqs[Math.floor(Math.random() * baseFreqs.length)];
   const detune = 1 + (Math.random() - 0.5) * 0.06;
-  celebTone({ freq: freq * detune, duration: 0.25, type: "sine", volume: 0.18 });
-  celebTone({ freq: freq * detune * 2, duration: 0.18, type: "sine", volume: 0.06 });
+  const t0 = ctx.currentTime;
+  // 메인 사인파 (빠른 어택 + 빠른 감쇠)
+  const osc1 = ctx.createOscillator();
+  const g1 = ctx.createGain();
+  osc1.type = "sine";
+  osc1.frequency.value = freq * detune;
+  g1.gain.setValueAtTime(0, t0);
+  g1.gain.linearRampToValueAtTime(0.18, t0 + 0.005);
+  g1.gain.exponentialRampToValueAtTime(0.001, t0 + 0.25);
+  osc1.connect(g1); g1.connect(ctx.destination);
+  osc1.start(t0); osc1.stop(t0 + 0.3);
+  // 옥타브 위 배음
+  const osc2 = ctx.createOscillator();
+  const g2 = ctx.createGain();
+  osc2.type = "sine";
+  osc2.frequency.value = freq * detune * 2;
+  g2.gain.setValueAtTime(0, t0);
+  g2.gain.linearRampToValueAtTime(0.06, t0 + 0.005);
+  g2.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
+  osc2.connect(g2); g2.connect(ctx.destination);
+  osc2.start(t0); osc2.stop(t0 + 0.2);
 }
 
 // 마크 경험치 클리어: 깃발 셀에서 XP 오브가 솟아 스마일리로 빨려들어감
@@ -1282,7 +1457,20 @@ function playMinecraftClear() {
       void celebLevelUpEl.offsetWidth;
       celebLevelUpEl.classList.add("go");
     }
-    celebTone({ freq: 2936, duration: 0.7, type: "sine", volume: 0.22 });
+    // 마지막 강한 "딩" — 레벨업 사운드 (attack envelope)
+    const ctx = getAudio();
+    if (ctx) {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      const t0 = ctx.currentTime;
+      osc.type = "sine";
+      osc.frequency.value = 2936;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(0.22, t0 + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.7);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(t0); osc.stop(t0 + 0.75);
+    }
   }, lastArrival + 50);
 }
 
