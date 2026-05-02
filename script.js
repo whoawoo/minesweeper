@@ -1512,9 +1512,3 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// PWA 세로 방향 잠금. 지원 안 되는 환경은 silent fail.
-try {
-  if (screen.orientation && typeof screen.orientation.lock === "function") {
-    screen.orientation.lock("portrait").catch(() => {});
-  }
-} catch (e) {}
