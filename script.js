@@ -438,8 +438,20 @@ function attachInputHandlers(el, r, c) {
     }
   };
   el.addEventListener("touchend", cancel, { passive: true });
-  el.addEventListener("touchmove", cancel, { passive: true });
   el.addEventListener("touchcancel", cancel, { passive: true });
+  // 손가락이 누른 칸 밖으로 벗어나면 클릭/롱프레스 모두 취소 (잘못 눌렀을 때 빠져나갈 수 있게)
+  el.addEventListener("touchmove", (e) => {
+    cancel();
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const rect = el.getBoundingClientRect();
+    const inside = t.clientX >= rect.left && t.clientX <= rect.right &&
+                   t.clientY >= rect.top && t.clientY <= rect.bottom;
+    if (!inside) {
+      suppressNextClick = true;
+      smileyRelease();
+    }
+  }, { passive: true });
 
   // 일반 탭/클릭 = 공개 (단, 직전에 롱프레스 일어났거나 두 손가락 제스처면 무시)
   el.addEventListener("click", () => {

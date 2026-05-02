@@ -1149,3 +1149,27 @@ body.theme-midnight .cal-day.stamp-b::after {
     );
   }
 }
+
+/* ---- 폰 가로모드 차단 (1024px 미만 + landscape) ----
+   세로 전용 게임이라 폰을 가로로 돌리면 안내문만 표시.
+   PWA는 manifest의 orientation:portrait로, 브라우저는 이 CSS로 처리. */
+@media (max-width: 1023px) and (orientation: landscape) {
+  #scrollRoot { visibility: hidden; }
+  body::before {
+    content: "📱 세로 모드로 사용해주세요";
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    color: #fff;
+    font-family: inherit;
+    font-size: 1.2rem;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    text-align: center;
+    padding: 20px;
+    z-index: 9999;
+  }
+}
