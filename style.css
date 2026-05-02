@@ -1166,3 +1166,100 @@ body.theme-midnight .cal-day.stamp-b::after {
     padding: 0;
   }
 }
+
+/* ---- 클리어 연출 (승리 시 발생) ---- */
+#celebrationCanvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+#celebrationHalo {
+  position: fixed;
+  width: 50px; height: 50px;
+  border: 3px solid #ffd700;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  z-index: 99;
+  box-sizing: border-box;
+}
+#celebrationHalo.go { animation: celebration-halo-pulse 1.2s ease-out forwards; }
+@keyframes celebration-halo-pulse {
+  0%   { width: 50px; height: 50px; opacity: 1; border-color: #ffd700; }
+  50%  { border-color: #ff8800; }
+  100% { width: 350px; height: 350px; opacity: 0; border-color: #ff2020; }
+}
+
+#celebrationLevelUp {
+  position: fixed;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  font-size: 1.5rem;
+  color: #c0ff00;
+  text-shadow: 2px 2px 0 #000, 0 0 12px rgba(192, 255, 0, 0.8);
+  letter-spacing: 0.1em;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 100;
+  white-space: nowrap;
+  transform: translate(-50%, 0) scale(0.5);
+}
+#celebrationLevelUp.go { animation: celebration-levelup 1.5s ease-out forwards; }
+@keyframes celebration-levelup {
+  0%   { transform: translate(-50%, 30px) scale(0.5); opacity: 0; }
+  25%  { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
+  40%  { transform: translate(-50%, -10px) scale(1); }
+  100% { transform: translate(-50%, -50px) scale(1); opacity: 0; }
+}
+
+.smiley.celebrating-pop { animation: celebration-smiley-pop 0.7s ease-out; }
+@keyframes celebration-smiley-pop {
+  0%   { transform: scale(1) rotate(0); }
+  25%  { transform: scale(1.45) rotate(-12deg); }
+  50%  { transform: scale(0.9) rotate(8deg); }
+  75%  { transform: scale(1.18) rotate(-4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.smiley.celebrating-glow {
+  filter: drop-shadow(0 0 12px #c0ff00) brightness(1.2);
+}
+.smiley.celebrating-bounce { animation: celebration-smiley-bounce 0.6s ease-out; }
+@keyframes celebration-smiley-bounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.35); }
+  60%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+.xp-orb {
+  position: fixed;
+  width: 14px; height: 14px;
+  background: radial-gradient(circle at 35% 35%, #f0ff80 0%, #aaff00 40%, #4a7800 80%, transparent 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 10px #c0ff00, 0 0 20px rgba(192, 255, 0, 0.5);
+  pointer-events: none;
+  z-index: 50;
+  --tx: 0px;
+  --ty: 0px;
+  animation: xp-fly 0.7s cubic-bezier(0.4, 0, 0.7, 1) forwards;
+}
+@keyframes xp-fly {
+  0%   { transform: translate(0, -10px) scale(0.5); opacity: 0; }
+  15%  { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.4); opacity: 0.7; }
+}
+
+/* 설정 모달 클리어 화면 스왓치 */
+.swatch-clear-confetti,
+.swatch-clear-minecraft {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  background: #f5e9c0 !important;
+}
+.swatch-clear-minecraft { background: #aaff00 !important; }

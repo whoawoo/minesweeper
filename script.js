@@ -606,6 +606,7 @@ function handleWin() {
   flagAllMines();
   updateMineCount();
   newGameBtn.textContent = SMILEY_WIN;
+  playClearEffect();
   if (pendingStampDate) {
     addStamp(pendingStampDate);
     showStampToast(pendingStampDate);
@@ -1070,9 +1071,225 @@ document.getElementById("closeSettings").addEventListener("click", () => {
 settingsModal.addEventListener("click", (e) => {
   if (e.target === settingsModal) settingsModal.classList.add("hidden");
 });
-document.querySelectorAll(".theme-item").forEach((btn) => {
+document.querySelectorAll(".theme-item[data-theme]").forEach((btn) => {
   btn.addEventListener("click", () => applyTheme(btn.dataset.theme));
 });
+
+// ---- 설정: 클리어 화면 선택 ----
+const CLEAR_EFFECT_KEY = "mw:clearEffect";
+const CLEAR_EFFECTS = ["confetti", "minecraft"];
+const CLEAR_EFFECT_DEFAULT = "confetti";
+function loadClearEffect() {
+  try {
+    const v = localStorage.getItem(CLEAR_EFFECT_KEY);
+    return CLEAR_EFFECTS.includes(v) ? v : CLEAR_EFFECT_DEFAULT;
+  } catch (e) { return CLEAR_EFFECT_DEFAULT; }
+}
+function applyClearEffect(name) {
+  if (!CLEAR_EFFECTS.includes(name)) name = CLEAR_EFFECT_DEFAULT;
+  clearEffect = name;
+  document.querySelectorAll("[data-clear-effect]").forEach((x) => {
+    x.classList.toggle("active", x.dataset.clearEffect === name);
+  });
+  try { localStorage.setItem(CLEAR_EFFECT_KEY, name); } catch (e) {}
+}
+let clearEffect = loadClearEffect();
+applyClearEffect(clearEffect);
+document.querySelectorAll("[data-clear-effect]").forEach((btn) => {
+  btn.addEventListener("click", () => applyClearEffect(btn.dataset.clearEffect));
+});
+
+// ---- 클리어 연출 (승리 시) ----
+const celebCanvas = document.getElementById("celebrationCanvas");
+const celebCtx = celebCanvas ? celebCanvas.getContext("2d") : null;
+const celebHaloEl = document.getElementById("celebrationHalo");
+const celebLevelUpEl = document.getElementById("celebrationLevelUp");
+let celebConfettiAnim = null;
+function celebResize() {
+  if (!celebCanvas) return;
+  celebCanvas.width = window.innerWidth;
+  celebCanvas.height = window.innerHeight;
+}
+celebResize();
+window.addEventListener("resize", celebResize);
+
+function celebTone({ freq, duration = 0.2, type = "sine", volume = 0.18, start = 0 }) {
+  const ctx = getAudio();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  const t0 = ctx.currentTime + start;
+  g.gain.setValueAtTime(volume, t0);
+  g.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+  osc.connect(g); g.connect(ctx.destination);
+  osc.start(t0); osc.stop(t0 + duration);
+}
+function celebNoiseBurst({ volume = 0.15, duration = 0.025, start = 0, freq = 6000, type = "highpass" } = {}) {
+  const ctx = getAudio();
+  if (!ctx) return;
+  const buf = ctx.createBuffer(1, Math.max(1, Math.floor(ctx.sampleRate * duration)), ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const filter = ctx.createBiquadFilter();
+  filter.type = type;
+  filter.frequency.value = freq;
+  const g = ctx.createGain();
+  const t0 = ctx.currentTime + start;
+  g.gain.setValueAtTime(volume, t0);
+  g.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+  src.connect(filter); filter.connect(g); g.connect(ctx.destination);
+  src.start(t0);
+}
+function celebCrackle(duration = 1.0, count = 20, start = 0) {
+  for (let i = 0; i < count; i++) {
+    celebNoiseBurst({
+      volume: 0.08 + Math.random() * 0.1,
+      duration: 0.025,
+      start: start + Math.random() * duration,
+      freq: 4000 + Math.random() * 4000,
+    });
+  }
+}
+
+// 컨페티 (스마일리에서 색종이 폭발)
+function fxConfetti() {
+  if (!celebCtx) return;
+  if (celebConfettiAnim) cancelAnimationFrame(celebConfettiAnim);
+  const sm = newGameBtn.getBoundingClientRect();
+  const cx = sm.left + sm.width / 2;
+  const cy = sm.top + sm.height / 2;
+  const colors = ["#ff2020", "#ff8800", "#ffd700", "#00c000", "#00aaff", "#aa00ff", "#ff60a0"];
+  const ps = [];
+  for (let i = 0; i < 100; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 4 + Math.random() * 7;
+    ps.push({
+      x: cx, y: cy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 5,
+      rot: Math.random() * Math.PI * 2,
+      vrot: (Math.random() - 0.5) * 0.4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: 6 + Math.random() * 7,
+      life: 1,
+    });
+  }
+  function frame() {
+    celebCtx.clearRect(0, 0, celebCanvas.width, celebCanvas.height);
+    let alive = false;
+    for (const p of ps) {
+      p.vy += 0.28; p.x += p.vx; p.y += p.vy; p.rot += p.vrot; p.life -= 0.011;
+      if (p.life > 0) {
+        alive = true;
+        celebCtx.save();
+        celebCtx.translate(p.x, p.y);
+        celebCtx.rotate(p.rot);
+        celebCtx.fillStyle = p.color;
+        celebCtx.globalAlpha = Math.max(0, p.life);
+        celebCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.45);
+        celebCtx.restore();
+      }
+    }
+    if (alive) celebConfettiAnim = requestAnimationFrame(frame);
+    else { celebCtx.clearRect(0, 0, celebCanvas.width, celebCanvas.height); celebConfettiAnim = null; }
+  }
+  frame();
+}
+
+function fxHalo() {
+  if (!celebHaloEl) return;
+  const sm = newGameBtn.getBoundingClientRect();
+  celebHaloEl.style.left = (sm.left + sm.width / 2) + "px";
+  celebHaloEl.style.top = (sm.top + sm.height / 2) + "px";
+  celebHaloEl.classList.remove("go");
+  newGameBtn.classList.remove("celebrating-pop");
+  void celebHaloEl.offsetWidth; void newGameBtn.offsetWidth;
+  celebHaloEl.classList.add("go");
+  newGameBtn.classList.add("celebrating-pop");
+}
+
+// 컨페티 클리어: 컨페티 + 헤일로 + 스마일리 점프 + 별빛 크랙 + 종소리 (사운드 9번)
+function playConfettiClear() {
+  fxConfetti();
+  fxHalo();
+  celebCrackle(1.0, 20, 0);
+  const scale = [2093, 2349, 2637, 2960, 3322];
+  for (let i = 0; i < 10; i++) {
+    const f = scale[Math.floor(Math.random() * scale.length)];
+    celebTone({ freq: f, duration: 0.3, type: "sine", volume: 0.1, start: 0.05 + Math.random() * 0.7 });
+  }
+}
+
+// 마크 XP 픽업 핑 (피치 1.25배 상향)
+function playMcPling() {
+  const baseFreqs = [1960, 2200, 2470, 2616, 2936, 3296];
+  const freq = baseFreqs[Math.floor(Math.random() * baseFreqs.length)];
+  const detune = 1 + (Math.random() - 0.5) * 0.06;
+  celebTone({ freq: freq * detune, duration: 0.25, type: "sine", volume: 0.18 });
+  celebTone({ freq: freq * detune * 2, duration: 0.18, type: "sine", volume: 0.06 });
+}
+
+// 마크 경험치 클리어: 깃발 셀에서 XP 오브가 솟아 스마일리로 빨려들어감
+function playMinecraftClear() {
+  const sm = newGameBtn.getBoundingClientRect();
+  const targetX = sm.left + sm.width / 2;
+  const targetY = sm.top + sm.height / 2;
+  const flagCells = boardEl.querySelectorAll(".cell.flag");
+  const starts = [];
+  flagCells.forEach((cell) => {
+    const cr = cell.getBoundingClientRect();
+    const cx = cr.left + cr.width / 2;
+    const cy = cr.top + cr.height / 2;
+    for (let k = 0; k < 2; k++) {
+      starts.push({
+        x: cx + (Math.random() - 0.5) * 8,
+        y: cy + (Math.random() - 0.5) * 8,
+      });
+    }
+  });
+  let lastArrival = 0;
+  starts.forEach((s, i) => {
+    const orb = document.createElement("div");
+    orb.className = "xp-orb";
+    orb.style.left = (s.x - 7) + "px";
+    orb.style.top = (s.y - 7) + "px";
+    orb.style.setProperty("--tx", (targetX - s.x) + "px");
+    orb.style.setProperty("--ty", (targetY - s.y) + "px");
+    const delay = i * 0.06 + Math.random() * 0.05;
+    orb.style.animationDelay = delay + "s";
+    document.body.appendChild(orb);
+    const arrivalMs = (delay + 0.7) * 1000;
+    lastArrival = Math.max(lastArrival, arrivalMs);
+    setTimeout(() => {
+      playMcPling();
+      newGameBtn.classList.add("celebrating-glow");
+      setTimeout(() => newGameBtn.classList.remove("celebrating-glow"), 90);
+    }, arrivalMs);
+    setTimeout(() => orb.remove(), arrivalMs + 200);
+  });
+  setTimeout(() => {
+    newGameBtn.classList.remove("celebrating-bounce");
+    void newGameBtn.offsetWidth;
+    newGameBtn.classList.add("celebrating-bounce");
+    if (celebLevelUpEl) {
+      celebLevelUpEl.style.left = targetX + "px";
+      celebLevelUpEl.style.top = (targetY - 60) + "px";
+      celebLevelUpEl.classList.remove("go");
+      void celebLevelUpEl.offsetWidth;
+      celebLevelUpEl.classList.add("go");
+    }
+    celebTone({ freq: 2936, duration: 0.7, type: "sine", volume: 0.22 });
+  }, lastArrival + 50);
+}
+
+function playClearEffect() {
+  if (clearEffect === "minecraft") playMinecraftClear();
+  else playConfettiClear();
+}
 
 // ---- PWA 등록: 오프라인/홈 화면 설치 ----
 if ("serviceWorker" in navigator) {

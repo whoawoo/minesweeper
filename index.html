@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=49" />
+  <link rel="stylesheet" href="style.css?v=50" />
 </head>
 <body>
   <!-- 모든 콘텐츠를 감싸는 스크롤 루트 (body 대신 여기서 스크롤 → pull-to-refresh 차단) -->
@@ -111,6 +111,17 @@
             <span class="theme-swatch swatch-midnight"></span><span>미드나잇</span>
           </button>
         </div>
+
+        <p class="setting-label">클리어 화면</p>
+        <div class="theme-list">
+          <button class="theme-item" data-clear-effect="confetti">
+            <span class="theme-swatch swatch-clear-confetti">🎆</span><span>컨페티</span>
+          </button>
+          <button class="theme-item" data-clear-effect="minecraft">
+            <span class="theme-swatch swatch-clear-minecraft">⛏️</span><span>마크 경험치</span>
+          </button>
+        </div>
+
         <button class="btn-close" type="button" id="closeSettings">닫기</button>
       </div>
     </div>
@@ -157,6 +168,11 @@
 
   </div><!-- /scrollRoot -->
 
-  <script src="script.js?v=49"></script>
+  <!-- 클리어 연출 오버레이 (전역) -->
+  <canvas id="celebrationCanvas"></canvas>
+  <div id="celebrationHalo"></div>
+  <div id="celebrationLevelUp">+EXP</div>
+
+  <script src="script.js?v=50"></script>
 </body>
 </html>
