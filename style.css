@@ -336,9 +336,12 @@ body {
   display: grid;
   gap: 0;
   margin: 0 auto; /* 보드 프레임이 더 넓을 때 (e.g. 초보) 가운데 정렬 */
+  /* 폰 회전 시 보드 크기 안 변하도록 — 방향과 무관하게 항상 "세로 기준"으로 계산.
+     min(100vw, 100dvh) = 세로 기준의 가로 폭 (폰 짧은 변)
+     max(100vw, 100dvh) = 세로 기준의 세로 폭 (폰 긴 변) */
   --cell-size: min(
-    calc((100vw - 48px) / var(--cols, 9)),
-    calc((100dvh - 200px - var(--banner-offset, 0px)) / var(--rows, 9)),
+    calc((min(100vw, 100dvh) - 48px) / var(--cols, 9)),
+    calc((max(100vw, 100dvh) - 200px - var(--banner-offset, 0px)) / var(--rows, 9)),
     56px
   );
   grid-template-columns: repeat(var(--cols, 9), var(--cell-size));
