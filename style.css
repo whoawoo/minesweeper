@@ -51,7 +51,7 @@ body {
 #scrollRoot {
   height: 100dvh;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior: none;
   /* iPhone 노치 영역 침범 방지 (갤럭시 영향 X, 안전망) */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
