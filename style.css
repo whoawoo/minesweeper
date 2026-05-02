@@ -1150,20 +1150,6 @@ body.theme-midnight .cal-day.stamp-b::after {
   }
 }
 
-/* ---- 폰 가로모드 → 세로 강제 회전 (1024px 미만 + landscape) ----
-   세로 전용 게임이라 폰을 가로로 돌려도 화면을 90deg 회전시켜서
-   사용자가 보기엔 항상 세로로 보이도록.
-   - scrollRoot를 fixed로 위치시키고 width=100vh, height=100vw로 크기 스왑
-   - transform-origin: 0 0 + translate(0, -100vh) 후 rotate(-90deg)로 시계반대 회전 */
-@media (max-width: 1023px) and (orientation: landscape) {
-  #scrollRoot {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vh;
-    height: 100vw;
-    transform-origin: 0 0;
-    transform: translateX(100vw) rotate(90deg);
-    padding: 0;
-  }
-}
+/* 폰 가로모드 잠금은 manifest "orientation":"portrait"와 script.js의
+   screen.orientation.lock() 호출이 담당. 브라우저 탭에서는 OS가 회전을
+   강제하므로 막을 방법이 없음 (PWA로 설치하면 잠김). */

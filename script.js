@@ -1106,3 +1106,10 @@ if ("serviceWorker" in navigator) {
     window.location.reload();
   });
 }
+
+// 가능한 환경(PWA 풀스크린, fullscreen API 사용 등)에서 세로 잠금 시도.
+// 일반 사파리 탭에서는 거부됨 — manifest "orientation":"portrait"와 짝을 이뤄
+// 홈에 추가한 PWA에선 OS 레벨에서 잠김.
+if (screen.orientation && typeof screen.orientation.lock === "function") {
+  screen.orientation.lock("portrait").catch(() => {});
+}
