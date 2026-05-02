@@ -1150,26 +1150,20 @@ body.theme-midnight .cal-day.stamp-b::after {
   }
 }
 
-/* ---- 폰 가로모드 차단 (1024px 미만 + landscape) ----
-   세로 전용 게임이라 폰을 가로로 돌리면 안내문만 표시.
-   PWA는 manifest의 orientation:portrait로, 브라우저는 이 CSS로 처리. */
+/* ---- 폰 가로모드 → 세로 강제 회전 (1024px 미만 + landscape) ----
+   세로 전용 게임이라 폰을 가로로 돌려도 화면을 90deg 회전시켜서
+   사용자가 보기엔 항상 세로로 보이도록.
+   - scrollRoot를 fixed로 위치시키고 width=100vh, height=100vw로 크기 스왑
+   - transform-origin: 0 0 + translate(0, -100vh) 후 rotate(-90deg)로 시계반대 회전 */
 @media (max-width: 1023px) and (orientation: landscape) {
-  #scrollRoot { visibility: hidden; }
-  body::before {
-    content: "📱 세로 모드로 사용해주세요";
+  #scrollRoot {
     position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg);
-    color: #fff;
-    font-family: inherit;
-    font-size: 1.2rem;
-    font-weight: bold;
-    letter-spacing: 0.05em;
-    text-align: center;
-    padding: 20px;
-    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100vh;
+    height: 100vw;
+    transform-origin: 0 0;
+    transform: translateX(100vw) rotate(90deg);
+    padding: 0;
   }
 }
