@@ -331,7 +331,7 @@ body {
   gap: 0;
   margin: 0 auto; /* 보드 프레임이 더 넓을 때 (e.g. 초보) 가운데 정렬 */
   --cell-size: min(
-    calc((100vw - 32px) / var(--cols, 9)),
+    calc((100vw - 48px) / var(--cols, 9)),
     calc((100dvh - 200px - var(--banner-offset, 0px)) / var(--rows, 9)),
     56px
   );
@@ -1118,7 +1118,7 @@ body.theme-midnight .cal-day.stamp-b::after {
 @media (min-width: 700px) and (orientation: portrait) {
   #gameView #board {
     --cell-size: min(
-      calc((100vw - 32px) / var(--cols, 9)),
+      calc((100vw - 48px) / var(--cols, 9)),
       calc((100dvh - 200px - var(--banner-offset, 0px)) / var(--rows, 9)),
       72px
     );
