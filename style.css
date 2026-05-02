@@ -45,6 +45,12 @@ body {
   background-size: 480px 480px;
   background-repeat: repeat;
   color: #000;
+  /* iOS 롱프레스 시 텍스트 선택 UI(파란박스/돋보기/카피 메뉴) 일체 차단.
+     게임에 텍스트 입력이 없으므로 전역 차단해도 안전. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* 화면 고정 컨테이너: 스크롤/바운스 일체 차단. 모든 화면이 viewport에 맞춰 들어가야 함 */
