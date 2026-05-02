@@ -18,7 +18,7 @@
 | `style.css` | Win95 클래식 베이스 + 6테마(`body.theme-*`) CSS 변수 + 출석체크 플랫 디자인(트로피/스탬프/inset 솔리드) |
 | `script.js` | 게임 로직 + 입력 + 사운드 + 화면 전환 + 저장/이어하기 + 도장/달력/트로피 SVG + 테마 + PWA 등록 |
 | `manifest.json` | PWA 메타데이터 (아이콘 `purpose: "any maskable"`) |
-| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v42) |
+| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v58, 동시에 index.html의 `?v=N` 쿼리도 같이 올림) |
 | `icon.svg` | 폭탄 벡터 (정중앙, 안전구역 반경 ≤150 — Galaxy 마스크 안 잘리게) |
 | `icon-192.png`, `icon-512.png` | PWA용 PNG (rsvg-convert로 SVG에서 변환) |
 | `bg-pattern*.svg` | 테마별 배경 패턴 (classic/forest/lavender/ocean/cherry/black) |
@@ -34,6 +34,19 @@
 - 타이머, 남은 지뢰 카운터 (3자리 LED)
 - 스마일 상태: 🙂 기본 / 😯 누르는 중 / 😎 클리어 / 😵 패배
 - 스마일 버튼 = 게임 도중에도 즉시 새 게임 리셋 (`pointerdown`으로 처리해 모바일 click 지연 회피)
+- 셀 드래그아웃 시 click 취소 — 누른 칸 박스 밖으로 손가락 벗어나면 `suppressNextClick=true` + 스마일리 복귀. 잘못 누른 칸에서 빠져나갈 수 있음
+
+### 게임 모드 (localStorage `mw:deductionMode`) — L 모드 / 라이토(추리) 모드
+- **L 모드** (기본): 일반 무작위 배치. 도박수 가끔 발생
+- **라이토 모드**: 보드 생성 후 솔버로 시뮬레이션해 추리만으로 풀리는지 검증. 안 되면 재생성 (최대 300회), 그래도 못 만들면 일반 보드 폴백
+- 솔버: 기본 추론(`n - flagged == unrevealed → 모두 지뢰` / `minesLeft == 0 → 모두 안전`) + subset 추론(A.unknowns ⊂ B.unknowns일 때 차이 셀 결정 — 1-2-1, 1-1 패턴 처리)
+- placeMines를 `placeMinesRandom` + `isSolvableNoGuess` 두 함수로 분리
+
+### 클리어 연출 (localStorage `mw:clearEffect`)
+- **컨페티** (기본): 스마일리에서 색종이 100개 폭발 + 헤일로 펄스(노→주→빨) + 스마일리 점프 + 별빛 크랙(고음 노이즈 20개 + 종소리 5음 무작위)
+- **마크 경험치**: 깃발(지뢰) 셀에서 XP 오브가 솟아 스마일리로 빨려들어감. 도착마다 마크 XP 픽업 핑(B6~G7 사인+옥타브 배음, 디튠 ±3%, attack envelope) + 글로우 + 마지막 강한 딩 + "+EXP" 텍스트
+- `#celebrationCanvas`, `#celebrationHalo`, `#celebrationLevelUp` 전역 오버레이. `handleWin()`에서 `playClearEffect()` 호출
+- 사운드는 모두 Web Audio API로 합성 (외부 mp3 X)
 
 ### 저장 / 이어하기 (localStorage `mw:save`)
 - 게임 첫 클릭 이후 매 액션(셀 공개/깃발/메뉴 복귀)마다 자동 저장
@@ -68,7 +81,20 @@
 - 6 테마: classic / forest / lavender / ocean / cherry / midnight
 - `body.theme-X` 클래스로 전환. 베이스(클래식)는 클래스 없음
 - 각 테마는 CSS 변수(`--gray`, `--shadow`, `--bg`, `--title-bg`, `--led-bg/fg`, `--trophy-bg`, `--caption-fg/clear`, `--wk-bg/fg/divider` 등) + 배경 패턴 SVG로 정의
-- 메인 다이얼로그(설정 ⚙️ 버튼) → 모달에서 6개 테마 스와치로 선택. localStorage 영속
+
+### 설정 모달 (그리드 디자인)
+- 메인 다이얼로그 ⚙️ → 모달
+- **테마**: 3열 컴팩트 타일 (스왓치 + 이름 세로) — 6개가 2행
+- **클리어 화면 / 게임 모드**: 2열 페어 핀 (큰 이모지 + 라벨)
+- `.theme-grid` / `.option-pair` 그리드, 공통 옵션 버튼은 `.theme-item` 클래스 (active 토글 공유)
+- 모달 max-width 340px, padding 14px, section 간격 14px
+
+### 반응형 레이아웃 (3-tier 미디어쿼리)
+- **폰** (default): 셀 캡 56px
+- **태블릿 세로** (`min-width: 700px and orientation: portrait`): 셀 캡 72px
+- **태블릿 가로** (`min-width: 1024px and orientation: landscape`): 셀 캡 80px + back-btn 좌상단 fixed + 보드 세로 가운데
+- 셀 크기 계산은 `min(100vw, 100dvh)` / `max(100vw, 100dvh)` 사용 — 폰 회전해도 보드 사이즈 안 변함 (방향 무관 portrait 기준)
+- 출석체크 배너 보이면 `:has(.stamp-banner:not(.hidden))`로 `--banner-offset: 50px` 적용해 보드 높이 보정
 
 ### 트로피 사운드
 - 트로피 클릭 시 그 달의 동물 사운드 재생 (12지 매핑: 1=cow, 2=tiger, ..., 12=mouse)
@@ -78,9 +104,9 @@
 ### 입력
 - **데스크탑**: 좌클릭=공개, 우클릭=깃발 (mousedown button===2로 처리, contextmenu와 분리)
 - **모바일**: 탭=공개, 0.4초 롱프레스=깃발 (+진동)
-- 핀치 줌 가능
-- 두 손가락 팬: 줌 1배일 땐 `#scrollRoot`를 직접 스크롤, 줌 ≥ 1배일 땐 브라우저 visual viewport 팬에 위임
-- 당겨서 새로고침 비활성화 (자세한 설명은 아래 함정 섹션)
+- 핀치 줌 가능 (`touch-action: pinch-zoom`)
+- 한 손가락 드래그 차단 → iOS 러버밴드 바운스 일체 X
+- body 전역 `user-select:none + webkit-touch-callout:none` → 롱프레스 시 텍스트 선택 파란박스/돋보기/카피 메뉴 차단
 
 ### 사운드 (Web Audio API로 합성, 외부 파일 없음)
 - 칸 공개: 짧은 사인파 비프
@@ -140,8 +166,10 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 - 해결: `contextmenu` 는 `preventDefault`만 하고, 데스크탑 우클릭은 `mousedown e.button === 2` 로 분리해서 처리
 
 ### 4. 셀 size + 반응형
-- `#board` 의 `--cell-size` 를 `min(가로비, 세로비, 32px)` 로 계산
-- `100dvh` 사용 (모바일 주소창 들락날락 대응). `vh`만 쓰면 잘림
+- `#board` 의 `--cell-size` 를 `min(가로비, 세로비, 캡)` 로 계산. 캡은 폰 56 / 태블릿 세로 72 / 태블릿 가로 80
+- `100dvh` 사용 (모바일 주소창 들락락 대응). `vh`만 쓰면 잘림
+- 가로 여유분 48px = view 패딩(24) + game-frame 테두리·패딩(18) + board-frame 테두리(6). 32px 같이 줄이면 우측 오버플로 → game-stack `width:fit-content + max-width:100%` 조합과 만나 보드가 우측 쏠림
+- `min(100vw, 100dvh)` / `max(100vw, 100dvh)` 사용 → 방향 무관 portrait 기준 사이즈 (폰 회전해도 보드 안 변함)
 
 ### 5. PWA 아이콘 잘림 (Android maskable)
 - `manifest.json`에서 아이콘 `purpose: "any maskable"`로 선언
@@ -182,7 +210,28 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 - 그런데 첫 칸(일요일)의 왼쪽 그림자, 마지막 칸(토요일)의 오른쪽 그림자는 그리드 가장자리 밖으로 튀어나가 폭이 안 맞음
 - **해결**: `.cal-wkhead.sun`은 오른쪽 그림자만, `.cal-wkhead.sat`은 왼쪽 그림자만 남김
 
-### 12. 출석체크 미션 중 `pendingStampDate` 보존
+### 12. iOS 러버밴드 바운스 / 스크롤
+- `overscroll-behavior: contain`은 "바운스는 허용하고 바깥 전파만 막음" → 한 손 드래그하면 화면이 따라옴
+- **해결**: `#scrollRoot { overflow: hidden; touch-action: pinch-zoom }` — 스크롤 컨텍스트 자체 제거 + 한 손가락 드래그 차단. 핀치 줌은 별도라 영향 X
+- 모든 화면(메인/출석체크/게임)이 viewport 안에 들어가야 함 — 작은 폰 가로 모드는 비지원
+
+### 13. 폰 회전 잠금 시도 (포기)
+- manifest `"orientation": "portrait"` — iOS 16.4+ PWA에서만 동작, 사파리 탭에서 무시
+- `screen.orientation.lock("portrait")` — 풀스크린/PWA에서만 동작, 일반 탭에서 거부
+- CSS `transform: rotate(90deg)` — 콘텐츠가 옆으로 누워 보임 ("뒤집어진다"고 사용자 거부)
+- 결국 회전 막는 코드 다 제거. 자연스럽게 reflow되도록 둠. 보드 셀 크기만 `min/max`로 방향 무관 portrait 사이즈 유지
+
+### 14. 모바일 롱프레스 텍스트 선택 파란박스
+- `.cell`에만 `user-select:none` 걸어도 iOS는 부모 컨텍스트 따라 무시할 수 있음
+- **해결**: `body`에 전역 적용 — `-webkit-user-select: none + user-select: none + -webkit-touch-callout: none + -webkit-tap-highlight-color: transparent`
+- 게임에 텍스트 입력이 없으므로 전역 차단해도 안전
+
+### 15. PWA 캐시 즉시 무효화 (?v= 쿼리 트릭)
+- SW 캐시 버전 올려도 사용자 브라우저는 옛 CSS/JS를 cache-first로 바로 안 갱신
+- **해결**: SW v 올릴 때마다 `index.html`의 `<link href="style.css?v=N">` / `<script src="script.js?v=N">`도 같이 올림
+- 새 URL은 SW 캐시에 없으므로 강제 네트워크 fetch → 즉시 새 코드 적용
+
+### 16. 출석체크 미션 중 `pendingStampDate` 보존
 - 초기 구현: `handleLose()`와 `resetCurrentGame()`(스마일)에서 `pendingStampDate = null` → 지거나 재시작하면 미션 사라짐
 - **버그**: 동생이 중수(16×16/40지뢰)를 한 번에 클리어 못 하고 재시도하니 도장이 영영 안 찍힘
 - 해결 (커밋 `71b0b6e`): 두 함수 모두 `pendingStampDate` 유지. 같은 날짜로 클리어할 때까지 계속 도전 가능. `resetCurrentGame()`은 init 후 `showStampBannerIfPending()` 다시 호출해서 배너 복원
@@ -248,4 +297,16 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 31. ~~메뉴/계속하기 버튼 살짝 둥글게 (border-radius 4)~~ ✅
 32. ~~메뉴 버튼을 cal-frame/game-frame 왼쪽 끝과 정렬 (.att-row / .game-stack wrapper)~~ ✅
 33. ~~출석체크 cal-frame 윗변을 메인 다이얼로그 윗변과 맞춤 (JS 측정)~~ ✅
+34. ~~지뢰 개수 상향 (초보 10→17, 중수 40→54, 고수 99→103)~~ ✅
+35. ~~반응형 3-tier (폰 56 / 태블릿 세로 72 / 태블릿 가로 80) + back-btn fixed top-left in 태블릿 가로~~ ✅
+36. ~~출석체크 배너 표시 시 보드 높이 50px 보정 (`:has()` 선택자 + `--banner-offset`)~~ ✅
+37. ~~iOS 러버밴드 바운스 차단 (overflow:hidden + touch-action:pinch-zoom)~~ ✅
+38. ~~보드 우측 정렬 버그 수정 (가로 여유분 32→48px)~~ ✅
+39. ~~승리 클리어 연출 통합 (컨페티+헤일로+종소리 / 마크 경험치 + 설정에서 선택)~~ ✅
+40. ~~셀 드래그아웃 시 click 취소 (잘못 누른 칸에서 빠져나가기)~~ ✅
+41. ~~게임 모드 (L 모드 / 라이토 추리 모드) — no-guess 솔버 (기본 추론 + subset 추론)~~ ✅
+42. ~~body 전역 user-select:none — 롱프레스 텍스트 선택 파란박스 차단~~ ✅
+43. ~~보드 셀 크기 방향 무관 portrait 기준 (`min/max(100vw, 100dvh)`)~~ ✅
+44. ~~설정 모달 그리드 디자인 (테마 3열 / 페어 2열, 모달 너비 340)~~ ✅
+45. ~~폰 회전 잠금 시도 후 포기 — manifest/JS lock/CSS rotate 다 한계, 자연 reflow로 둠~~ ✅
 34. ~~지뢰 개수 상향: 10/40/99 → 17/54/103~~ ✅
