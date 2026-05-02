@@ -817,7 +817,7 @@ body.theme-cherry .cal-trophy-row.earned {
 .modal-backdrop.hidden { display: none; }
 .modal-window {
   width: 100%;
-  max-width: 300px;
+  max-width: 340px;
   background: var(--gray);
   border-top: 3px solid var(--light);
   border-left: 3px solid var(--light);
@@ -826,43 +826,74 @@ body.theme-cherry .cal-trophy-row.earned {
   padding: 3px;
   box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
-.modal-window .dialog-titlebar { padding: 8px; letter-spacing: 0.06em; }
-.modal-window .dialog-title { font-size: 1.1rem; }
-.modal-window .dialog-body { padding: 12px; gap: 8px; }
-.setting-label {
-  font-size: 0.85rem;
-  font-weight: bold;
-  margin: 0 0 4px;
-  color: #000;
-}
-.theme-list {
+.modal-window .dialog-titlebar { padding: 10px; letter-spacing: 0.06em; }
+.modal-window .dialog-title { font-size: 1.15rem; }
+.modal-window .dialog-body {
+  padding: 14px 14px 12px;
+  gap: 14px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
+
+.setting-section { display: flex; flex-direction: column; }
+.setting-label {
+  font-size: 0.78rem;
+  font-weight: bold;
+  margin: 0 0 7px;
+  color: #000;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+/* 테마: 3열 컴팩트 타일 */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+/* 페어 옵션 (클리어 화면, 게임 모드): 2열 */
+.option-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
 .theme-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 6px 8px;
-  background: transparent;
-  border: 1px dashed transparent;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 4px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 2px solid transparent;
+  border-radius: 4px;
   cursor: pointer;
   font-family: inherit;
-  font-size: 0.9rem;
-  text-align: left;
+  font-size: 0.78rem;
+  font-weight: bold;
+  text-align: center;
   color: #000;
+  line-height: 1.2;
+  min-height: 60px;
+  transition: background 0.1s;
 }
-.theme-item:hover { background: rgba(0, 0, 0, 0.05); }
+.theme-item:hover { background: rgba(0, 0, 0, 0.1); }
 .theme-item.active {
-  background: rgba(0, 0, 64, 0.18);
-  border-color: rgba(0, 0, 64, 0.5);
+  background: rgba(0, 0, 64, 0.2);
+  border-color: rgba(0, 0, 64, 0.7);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.1);
 }
+.theme-item.active:hover { background: rgba(0, 0, 64, 0.25); }
+
 .theme-swatch {
-  width: 36px;
-  height: 24px;
-  display: block;
-  border: 1px solid #000;
+  width: 44px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 2px;
   flex-shrink: 0;
 }
 .swatch-classic  { background: linear-gradient(90deg, #c0c0c0 60%, #3e5278 60%); }
@@ -871,19 +902,30 @@ body.theme-cherry .cal-trophy-row.earned {
 .swatch-ocean    { background: linear-gradient(90deg, #c0d4e4 60%, #5e90b0 60%); }
 .swatch-cherry   { background: linear-gradient(90deg, #ecccd6 60%, #b07590 60%); }
 .swatch-midnight { background: linear-gradient(90deg, #2a2a3c 60%, #b8ac80 60%); }
+
+/* 페어 옵션의 스왓치: 큰 이모지 단독 */
+.option-pair .theme-swatch {
+  width: 36px;
+  height: 36px;
+  border: none;
+  font-size: 1.6rem;
+  background: transparent !important;
+}
+
 .btn-close {
-  align-self: center;
+  align-self: stretch;
+  margin-top: 4px;
   background: var(--gray);
   border-top: 2px solid var(--light);
   border-left: 2px solid var(--light);
   border-right: 2px solid var(--shadow);
   border-bottom: 2px solid var(--shadow);
-  padding: 5px 18px;
+  padding: 9px 18px;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+  font-weight: bold;
   color: #000;
   cursor: pointer;
-  margin-top: 6px;
 }
 .btn-close:active {
   border-top: 2px solid var(--shadow);
@@ -1246,17 +1288,3 @@ body.theme-midnight .cal-day.stamp-b::after {
   100% { transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.4); opacity: 0.7; }
 }
 
-/* 설정 모달 클리어 화면 / 게임 모드 스왓치 */
-.swatch-clear-confetti,
-.swatch-clear-minecraft,
-.swatch-deduction-off,
-.swatch-deduction-on {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  background: #f5e9c0 !important;
-}
-.swatch-clear-minecraft { background: #aaff00 !important; }
-.swatch-deduction-off { background: #ffcccc !important; }
-.swatch-deduction-on { background: #cce5ff !important; }
