@@ -47,11 +47,12 @@ body {
   color: #000;
 }
 
-/* 실제 스크롤 컨테이너: 콘텐츠가 화면보다 길면 여기서 내부 스크롤 (document 스크롤 X) */
+/* 화면 고정 컨테이너: 스크롤/바운스 일체 차단. 모든 화면이 viewport에 맞춰 들어가야 함 */
 #scrollRoot {
   height: 100dvh;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: none;
+  touch-action: pinch-zoom; /* 핀치 줌은 허용, 한 손가락 드래그(스크롤/바운스)는 차단 */
   /* iPhone 노치 영역 침범 방지 (갤럭시 영향 X, 안전망) */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
