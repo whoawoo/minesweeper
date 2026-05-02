@@ -1159,9 +1159,22 @@ body.theme-midnight .cal-day.stamp-b::after {
   }
 }
 
-/* 폰 회전 잠금은 manifest "orientation":"portrait-primary"와 script.js의
-   screen.orientation.lock()이 담당. PWA로 홈에 추가해서 실행하면 iOS/Android가
-   OS 레벨에서 잠가줌. 브라우저 탭에서는 OS가 강제로 회전시키므로 막을 방법이 없음. */
+/* ---- 폰 가로모드: 콘텐츠 회전해서 세로 형태 유지 ----
+   PWA로 설치하면 manifest "portrait-primary"가 OS 레벨로 잠가서 이 미디어쿼리는
+   안 먹지만, 브라우저 탭이나 잠금이 안 통하는 환경에선 화면 전체를 90도 회전해서
+   가로 viewport에서도 콘텐츠를 세로 비율로 유지. (콘텐츠가 옆으로 누워 보임 = 세로 잠금의 본질) */
+@media (max-width: 1023px) and (orientation: landscape) {
+  #scrollRoot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vh;
+    height: 100vw;
+    transform-origin: 0 0;
+    transform: translateX(100vw) rotate(90deg);
+    padding: 0;
+  }
+}
 
 /* ---- 클리어 연출 (승리 시 발생) ---- */
 #celebrationCanvas {
