@@ -1512,9 +1512,24 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// 가능한 환경(PWA 풀스크린, fullscreen API 사용 등)에서 세로 잠금 시도.
-// 일반 사파리 탭에서는 거부됨 — manifest "orientation":"portrait"와 짝을 이뤄
-// 홈에 추가한 PWA에선 OS 레벨에서 잠김.
-if (screen.orientation && typeof screen.orientation.lock === "function") {
-  screen.orientation.lock("portrait").catch(() => {});
+// 모든 가능한 잠금 API를 다 시도. iOS PWA는 가끔 첫 호출은 실패하고 사용자 터치
+// 후에 성공하므로, 페이지 로드 + 첫 터치/클릭 양쪽에서 시도.
+function tryLockPortrait() {
+  try {
+    if (screen.orientation && typeof screen.orientation.lock === "function") {
+      screen.orientation.lock("portrait").catch(() => {});
+      screen.orientation.lock("portrait-primary").catch(() => {});
+    }
+  } catch (e) {}
+  // 레거시 prefix (구버전 iOS / 안드로이드)
+  try { if (typeof screen.lockOrientation === "function") screen.lockOrientation("portrait"); } catch (e) {}
+  try { if (typeof screen.mozLockOrientation === "function") screen.mozLockOrientation("portrait"); } catch (e) {}
+  try { if (typeof screen.msLockOrientation === "function") screen.msLockOrientation("portrait"); } catch (e) {}
+  try { if (typeof screen.webkitLockOrientation === "function") screen.webkitLockOrientation("portrait"); } catch (e) {}
 }
+tryLockPortrait();
+// 첫 사용자 인터랙션에서도 한 번 더 시도 (사용자 제스처 컨텍스트 필요한 환경 대응)
+document.addEventListener("touchstart", tryLockPortrait, { once: true, capture: true });
+document.addEventListener("click", tryLockPortrait, { once: true, capture: true });
+// orientationchange 발생 시에도 다시 잠금 시도
+window.addEventListener("orientationchange", tryLockPortrait);
