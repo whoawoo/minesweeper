@@ -1,6 +1,6 @@
 // 오프라인 캐시 + 자동 갱신
 // 새 버전 배포할 땐 CACHE 이름의 숫자만 올리면 자동으로 헌 캐시 청소됨
-const CACHE = "minesweeper-v48";
+const CACHE = "minesweeper-v49";
 const ASSETS = [
   "./",
   "./index.html",
