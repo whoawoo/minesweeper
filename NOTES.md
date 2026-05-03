@@ -26,7 +26,7 @@
 | `style.css` | Win95 클래식 베이스 + 6테마(`body.theme-*`) CSS 변수 + 출석체크 플랫 디자인(트로피/스탬프/inset 솔리드) |
 | `script.js` | 게임 로직 + 입력 + 사운드 + 화면 전환 + 저장/이어하기 + 도장/달력/트로피 SVG + 테마 + PWA 등록 |
 | `manifest.json` | PWA 메타데이터 (아이콘 `purpose: "any maskable"`) |
-| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v61, 동시에 index.html의 `?v=N` 쿼리도 같이 올림) |
+| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v67, 동시에 index.html의 `?v=N` 쿼리도 같이 올림) |
 | `icon.svg` | **PWA 앱 아이콘** (홈화면용) — 지뢰 벡터(둥근 본체 + 8방향 가시 + 하이라이트), 정중앙, 안전구역 반경 ≤150 (Galaxy 마스크 안 잘리게). 게임 안 지뢰 아이콘은 별개로 `script.js`의 `renderCell()` 안에 인라인 SVG(픽셀아트) |
 | `icon-192.png`, `icon-512.png` | PWA용 PNG (rsvg-convert로 SVG에서 변환) |
 | `bg-pattern*.svg` | 테마별 배경 패턴 (classic/forest/lavender/ocean/cherry/black) |
@@ -221,7 +221,9 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 
 ### 12. iOS 러버밴드 바운스 / 스크롤
 - `overscroll-behavior: contain`은 "바운스는 허용하고 바깥 전파만 막음" → 한 손 드래그하면 화면이 따라옴
-- **해결**: `#scrollRoot { overflow: hidden; touch-action: pinch-zoom }` — 스크롤 컨텍스트 자체 제거 + 한 손가락 드래그 차단. 핀치 줌은 별도라 영향 X
+- **해결**: `body { position: fixed; inset: 0 }` + `html, body { overflow: hidden }` — 문서 자체가 스크롤 불가 → 한 손가락 드래그/pull-to-refresh가 발동할 자리 없음
+- `#scrollRoot { overflow: hidden; touch-action: pan-x pan-y pinch-zoom }` — 한 손가락 드래그는 위 body 고정으로 어차피 막히므로 pan-x/pan-y 허용. 줌 인 시 visual viewport 가로/세로 팬을 브라우저에 위임할 수 있음
+- 초기엔 `touch-action: pinch-zoom`으로 했었는데 줌 인 후 가로 두 손가락 팬이 막히는 문제(v67에서 수정)
 - 모든 화면(메인/출석체크/게임)이 viewport 안에 들어가야 함 — 작은 폰 가로 모드는 비지원
 
 ### 13. 폰 회전 잠금 시도 (포기)
@@ -321,3 +323,5 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 46. ~~마크 클리어 XP 오브 복구: 깃발 셀 선택자 `.cell.flag` → `.cell.flagged` (도입 때부터 잘못된 셀렉터로 빈 NodeList → 오브/사운드 미동작)~~ ✅
 47. ~~마크 클리어 발사 윈도우 1.2초 고정: 오브당 0.06초 stagger → 1.2초 안에 균등 분산. 난이도 무관 ~1.9초 마무리 (이전 중수 ~5.5초, 고수 ~13초)~~ ✅
 48. ~~지뢰 아이콘 이모지(💣) → 8bit 픽셀아트 SVG로 교체. `renderCell()`에서 인라인 SVG (16×16 viewBox + `shape-rendering: crispEdges`), `.cell.mine .mine-icon` 70%로 셀 크기에 자동 스케일~~ ✅
+49. ~~숫자 폰트 모던하게 + 색 톤다운: 기본 monospace → **JetBrains Mono ExtraBold (800)** (구글폰트). 외곽선 `-webkit-text-stroke: 0.7px currentColor`로 굵직하게. n1 `#0000ff` → `#1F57C3`, n3 `#ff0000` → `#c52828` (네온 → 차분한 톤)~~ ✅
+50. ~~두 손가락 팬 끊김/가로 미작동/깃발 충돌 3종 해소: ① 줌 인 시 가로/대각선 팬을 위해 `touch-action`에 `pan-x pan-y` 추가 ② window touchmove 핸들러 `passive:false → passive:true` (preventDefault 제거 — body 고정으로 기본 스크롤 어차피 안 발동) ③ 롱프레스 깃발 후 200ms 안에 두 번째 손가락 도착하면 무음 롤백 (두 손가락 의도였는데 두 번째가 늦게 도착한 케이스)~~ ✅
