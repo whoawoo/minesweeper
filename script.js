@@ -1426,6 +1426,9 @@ function playMinecraftClear() {
       });
     }
   });
+  // 발사 윈도우 1.2초 고정 — 난이도 무관하게 일정한 길이 유지
+  const launchWindow = 1.2;
+  const denom = Math.max(1, starts.length - 1);
   let lastArrival = 0;
   starts.forEach((s, i) => {
     const orb = document.createElement("div");
@@ -1434,7 +1437,7 @@ function playMinecraftClear() {
     orb.style.top = (s.y - 7) + "px";
     orb.style.setProperty("--tx", (targetX - s.x) + "px");
     orb.style.setProperty("--ty", (targetY - s.y) + "px");
-    const delay = i * 0.06 + Math.random() * 0.05;
+    const delay = (i / denom) * launchWindow + (Math.random() - 0.5) * 0.08;
     orb.style.animationDelay = delay + "s";
     document.body.appendChild(orb);
     const arrivalMs = (delay + 0.7) * 1000;
