@@ -27,7 +27,7 @@
 | `script.js` | 게임 로직 + 입력 + 사운드 + 화면 전환 + 저장/이어하기 + 도장/달력/트로피 SVG + 테마 + PWA 등록 |
 | `manifest.json` | PWA 메타데이터 (아이콘 `purpose: "any maskable"`) |
 | `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v61, 동시에 index.html의 `?v=N` 쿼리도 같이 올림) |
-| `icon.svg` | 폭탄 벡터 (정중앙, 안전구역 반경 ≤150 — Galaxy 마스크 안 잘리게) |
+| `icon.svg` | **PWA 앱 아이콘** (홈화면용) — 지뢰 벡터(둥근 본체 + 8방향 가시 + 하이라이트), 정중앙, 안전구역 반경 ≤150 (Galaxy 마스크 안 잘리게). 게임 안 지뢰 아이콘은 별개로 `script.js`의 `renderCell()` 안에 인라인 SVG(픽셀아트) |
 | `icon-192.png`, `icon-512.png` | PWA용 PNG (rsvg-convert로 SVG에서 변환) |
 | `bg-pattern*.svg` | 테마별 배경 패턴 (classic/forest/lavender/ocean/cherry/black) |
 | `sounds/*.mp3` | 트로피 사운드. 12지 동물 12개 + `sounds/laugh/` 웃음 4개 |
@@ -320,4 +320,4 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 45. ~~폰 회전 잠금 시도 후 포기 — manifest/JS lock/CSS rotate 다 한계, 자연 reflow로 둠~~ ✅
 46. ~~마크 클리어 XP 오브 복구: 깃발 셀 선택자 `.cell.flag` → `.cell.flagged` (도입 때부터 잘못된 셀렉터로 빈 NodeList → 오브/사운드 미동작)~~ ✅
 47. ~~마크 클리어 발사 윈도우 1.2초 고정: 오브당 0.06초 stagger → 1.2초 안에 균등 분산. 난이도 무관 ~1.9초 마무리 (이전 중수 ~5.5초, 고수 ~13초)~~ ✅
-48. ~~지뢰 아이콘 이모지(💣) → 8bit 픽셀아트 SVG로 교체. `script.js:803` innerHTML에 인라인 SVG (16×16 viewBox + `shape-rendering: crispEdges`), `.cell.mine .mine-icon` 70% 크기로 셀 사이즈에 자동 스케일~~ ✅
+48. ~~지뢰 아이콘 이모지(💣) → 8bit 픽셀아트 SVG로 교체. `renderCell()`에서 인라인 SVG (16×16 viewBox + `shape-rendering: crispEdges`), `.cell.mine .mine-icon` 70%로 셀 크기에 자동 스케일~~ ✅
