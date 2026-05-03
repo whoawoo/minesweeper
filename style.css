@@ -58,7 +58,7 @@ body {
   height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
-  touch-action: pinch-zoom; /* 핀치 줌은 허용, 한 손가락 드래그(스크롤/바운스)는 차단 */
+  touch-action: pan-x pan-y pinch-zoom; /* 핀치 줌 + 줌 인 시 가로/세로 visual viewport 팬 허용. 한 손가락 드래그는 body fixed라 어차피 막힘. */
   /* iPhone 노치 영역 침범 방지 (갤럭시 영향 X, 안전망) */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
