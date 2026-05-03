@@ -1413,7 +1413,7 @@ function playMinecraftClear() {
   const sm = newGameBtn.getBoundingClientRect();
   const targetX = sm.left + sm.width / 2;
   const targetY = sm.top + sm.height / 2;
-  const flagCells = boardEl.querySelectorAll(".cell.flag");
+  const flagCells = boardEl.querySelectorAll(".cell.flagged");
   const starts = [];
   flagCells.forEach((cell) => {
     const cr = cell.getBoundingClientRect();
