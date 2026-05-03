@@ -10,6 +10,14 @@
 - **타겟**: 갤럭시 S26 Ultra 크롬 (모바일), 데스크탑 브라우저
 - **배포 시작**: 2026-04-27
 
+## 운영 메모
+
+- **레포 private↔public 토글하면 GitHub Pages 설정이 사라진다** (2026-05-04 겪음). 다시 public으로 돌려도 자동 복구 안 됨. 재활성화:
+  ```
+  gh api -X POST repos/whoawoo/minesweeper/pages -f 'source[branch]=main' -f 'source[path]=/'
+  ```
+  빌드 1분 내 끝남. PWA가 옛날 404를 캐시했을 수 있어 새로고침 또는 재설치 필요.
+
 ## 파일 구조
 
 | 파일 | 역할 |
@@ -18,7 +26,7 @@
 | `style.css` | Win95 클래식 베이스 + 6테마(`body.theme-*`) CSS 변수 + 출석체크 플랫 디자인(트로피/스탬프/inset 솔리드) |
 | `script.js` | 게임 로직 + 입력 + 사운드 + 화면 전환 + 저장/이어하기 + 도장/달력/트로피 SVG + 테마 + PWA 등록 |
 | `manifest.json` | PWA 메타데이터 (아이콘 `purpose: "any maskable"`) |
-| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v60, 동시에 index.html의 `?v=N` 쿼리도 같이 올림) |
+| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v61, 동시에 index.html의 `?v=N` 쿼리도 같이 올림) |
 | `icon.svg` | 폭탄 벡터 (정중앙, 안전구역 반경 ≤150 — Galaxy 마스크 안 잘리게) |
 | `icon-192.png`, `icon-512.png` | PWA용 PNG (rsvg-convert로 SVG에서 변환) |
 | `bg-pattern*.svg` | 테마별 배경 패턴 (classic/forest/lavender/ocean/cherry/black) |
@@ -312,3 +320,4 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 45. ~~폰 회전 잠금 시도 후 포기 — manifest/JS lock/CSS rotate 다 한계, 자연 reflow로 둠~~ ✅
 46. ~~마크 클리어 XP 오브 복구: 깃발 셀 선택자 `.cell.flag` → `.cell.flagged` (도입 때부터 잘못된 셀렉터로 빈 NodeList → 오브/사운드 미동작)~~ ✅
 47. ~~마크 클리어 발사 윈도우 1.2초 고정: 오브당 0.06초 stagger → 1.2초 안에 균등 분산. 난이도 무관 ~1.9초 마무리 (이전 중수 ~5.5초, 고수 ~13초)~~ ✅
+48. ~~지뢰 아이콘 이모지(💣) → 8bit 픽셀아트 SVG로 교체. `script.js:803` innerHTML에 인라인 SVG (16×16 viewBox + `shape-rendering: crispEdges`), `.cell.mine .mine-icon` 70% 크기로 셀 사이즈에 자동 스케일~~ ✅

@@ -800,7 +800,7 @@ function renderCell(r, c) {
     el.classList.add("revealed");
     if (cell.isMine) {
       el.classList.add("mine");
-      el.textContent = "💣";
+      el.innerHTML = '<svg class="mine-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><g fill="#000"><rect x="7" y="1" width="2" height="2"/><rect x="7" y="13" width="2" height="2"/><rect x="1" y="7" width="2" height="2"/><rect x="13" y="7" width="2" height="2"/><rect x="3" y="3" width="2" height="2"/><rect x="11" y="3" width="2" height="2"/><rect x="3" y="11" width="2" height="2"/><rect x="11" y="11" width="2" height="2"/><rect x="5" y="3" width="6" height="10"/><rect x="3" y="5" width="10" height="6"/></g><rect x="5" y="5" width="2" height="2" fill="#fff"/></svg>';
     } else if (cell.adjacent > 0) {
       el.textContent = cell.adjacent;
       el.classList.add(`n${cell.adjacent}`);

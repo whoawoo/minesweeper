@@ -381,6 +381,12 @@ body {
   border: 1px solid var(--shadow);
 }
 
+.cell.mine .mine-icon {
+  width: 70%;
+  height: 70%;
+  display: block;
+}
+
 /* 클래식 9색 숫자 컬러 */
 .cell.n1 { color: #0000ff; }
 .cell.n2 { color: #008000; }
