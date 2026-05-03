@@ -529,6 +529,8 @@ const LONG_PRESS_MS = 400;
 // 두 손가락 제스처가 진행 중이면 셀 탭을 무시한다 (두 손가락 팬/핀치 줌 → 셀 공개 X)
 let multiTouchActive = false;
 let activePressTimer = null;
+// 롱프레스로 직전에 꽂힌 깃발 — 두 번째 손가락이 곧이어 도착하면 두 손가락 의도로 보고 롤백한다
+let lastLongPressFlag = null; // { r, c, time }
 
 function attachInputHandlers(el, r, c) {
   let suppressNextClick = false;
@@ -556,6 +558,7 @@ function attachInputHandlers(el, r, c) {
     activePressTimer = setTimeout(() => {
       activePressTimer = null;
       onFlagToggle(r, c);
+      lastLongPressFlag = { r, c, time: Date.now() };
       suppressNextClick = true;
       if (navigator.vibrate) navigator.vibrate(40);
     }, LONG_PRESS_MS);
@@ -606,6 +609,18 @@ window.addEventListener("touchstart", (e) => {
       clearTimeout(activePressTimer);
       activePressTimer = null;
     }
+    // 직전 200ms 안에 롱프레스로 깃발이 꽂혔다면 = 두 손가락 의도였는데 두 번째 손가락이 늦게 도착한 것 → 무음 롤백
+    if (lastLongPressFlag && Date.now() - lastLongPressFlag.time < 200) {
+      const { r: lr, c: lc } = lastLongPressFlag;
+      const cell = cells[lr] && cells[lr][lc];
+      if (cell && cell.isFlagged) {
+        cell.isFlagged = false;
+        renderCell(lr, lc);
+        updateMineCount();
+        saveGame();
+      }
+      lastLongPressFlag = null;
+    }
     smileyRelease();
     if (e.touches.length === 2) {
       const [a, b] = e.touches;
@@ -625,6 +640,10 @@ window.addEventListener("touchstart", (e) => {
 
 window.addEventListener("touchmove", (e) => {
   if (!twoFinger || e.touches.length !== 2) return;
+  // 줌 인 상태(visual viewport 스케일 > 1.01)에선 브라우저 기본 visual viewport 팬에 완전히 양보 — 핸들러도 일찍 종료
+  const scale = (window.visualViewport && window.visualViewport.scale) || 1;
+  if (scale > 1.01) return;
+
   const [a, b] = e.touches;
   const avgX = (a.clientX + b.clientX) / 2;
   const avgY = (a.clientY + b.clientY) / 2;
@@ -641,20 +660,16 @@ window.addEventListener("touchmove", (e) => {
   }
 
   if (twoFinger.mode === "pan") {
-    // 핀치 줌 중이면 visual viewport 팬을 브라우저에 맡긴다
-    const scale = (window.visualViewport && window.visualViewport.scale) || 1;
-    if (scale <= 1.01) {
-      e.preventDefault();
-      const root = document.getElementById("scrollRoot");
-      if (root) {
-        root.scrollTop -= (avgY - twoFinger.lastY);
-        root.scrollLeft -= (avgX - twoFinger.lastX);
-      }
+    // body는 fixed + scrollRoot overflow:hidden이라 기본 스크롤 안 발동 → preventDefault 불필요. passive 유지로 터치 지연 제거.
+    const root = document.getElementById("scrollRoot");
+    if (root) {
+      root.scrollTop -= (avgY - twoFinger.lastY);
+      root.scrollLeft -= (avgX - twoFinger.lastX);
     }
     twoFinger.lastX = avgX;
     twoFinger.lastY = avgY;
   }
-}, { passive: false, capture: true });
+}, { passive: true, capture: true });
 
 function endTwoFinger(e) {
   if (e.touches.length < 2) twoFinger = null;
