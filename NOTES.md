@@ -18,7 +18,7 @@
 | `style.css` | Win95 클래식 베이스 + 6테마(`body.theme-*`) CSS 변수 + 출석체크 플랫 디자인(트로피/스탬프/inset 솔리드) |
 | `script.js` | 게임 로직 + 입력 + 사운드 + 화면 전환 + 저장/이어하기 + 도장/달력/트로피 SVG + 테마 + PWA 등록 |
 | `manifest.json` | PWA 메타데이터 (아이콘 `purpose: "any maskable"`) |
-| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v58, 동시에 index.html의 `?v=N` 쿼리도 같이 올림) |
+| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v60, 동시에 index.html의 `?v=N` 쿼리도 같이 올림) |
 | `icon.svg` | 폭탄 벡터 (정중앙, 안전구역 반경 ≤150 — Galaxy 마스크 안 잘리게) |
 | `icon-192.png`, `icon-512.png` | PWA용 PNG (rsvg-convert로 SVG에서 변환) |
 | `bg-pattern*.svg` | 테마별 배경 패턴 (classic/forest/lavender/ocean/cherry/black) |
@@ -45,6 +45,7 @@
 ### 클리어 연출 (localStorage `mw:clearEffect`)
 - **컨페티** (기본): 스마일리에서 색종이 100개 폭발 + 헤일로 펄스(노→주→빨) + 스마일리 점프 + 별빛 크랙(고음 노이즈 20개 + 종소리 5음 무작위)
 - **마크 경험치**: 깃발(지뢰) 셀에서 XP 오브가 솟아 스마일리로 빨려들어감. 도착마다 마크 XP 픽업 핑(B6~G7 사인+옥타브 배음, 디튠 ±3%, attack envelope) + 글로우 + 마지막 강한 딩 + "+EXP" 텍스트
+- **발사 윈도우 1.2초 고정** (v60): 모든 오브를 1.2초 안에 균등 분산 (오브 개수에 무관). 이전엔 0.06초 stagger라 고수에서 ~13초까지 늘어났음. 셀당 오브 2개는 그대로, 깃발 셀 선택자는 `.cell.flagged`
 - `#celebrationCanvas`, `#celebrationHalo`, `#celebrationLevelUp` 전역 오버레이. `handleWin()`에서 `playClearEffect()` 호출
 - 사운드는 모두 Web Audio API로 합성 (외부 mp3 X)
 
@@ -309,4 +310,5 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 43. ~~보드 셀 크기 방향 무관 portrait 기준 (`min/max(100vw, 100dvh)`)~~ ✅
 44. ~~설정 모달 그리드 디자인 (테마 3열 / 페어 2열, 모달 너비 340)~~ ✅
 45. ~~폰 회전 잠금 시도 후 포기 — manifest/JS lock/CSS rotate 다 한계, 자연 reflow로 둠~~ ✅
-34. ~~지뢰 개수 상향: 10/40/99 → 17/54/103~~ ✅
+46. ~~마크 클리어 XP 오브 복구: 깃발 셀 선택자 `.cell.flag` → `.cell.flagged` (도입 때부터 잘못된 셀렉터로 빈 NodeList → 오브/사운드 미동작)~~ ✅
+47. ~~마크 클리어 발사 윈도우 1.2초 고정: 오브당 0.06초 stagger → 1.2초 안에 균등 분산. 난이도 무관 ~1.9초 마무리 (이전 중수 ~5.5초, 고수 ~13초)~~ ✅
