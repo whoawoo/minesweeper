@@ -529,11 +529,7 @@ function onFlagToggle(r, c) {
 // "있으면 호출하고 끝"이 아니라 switch 트릭도 항상 같이 발사해야 한다.
 // Android: vibrate가 실제 진동, switch는 no-op
 // iOS 18+: vibrate는 no-op, switch label.click()이 시스템 햅틱 트리거
-function hapticTap() {
-  _hapticDebugPing(); // 진단용 빨간 점 (확인되면 제거)
-  try {
-    if (navigator.vibrate) navigator.vibrate(40);
-  } catch (e) {}
+function _switchClickHaptic() {
   try {
     const label = document.createElement("label");
     label.ariaHidden = "true";
@@ -546,6 +542,16 @@ function hapticTap() {
     label.click();
     document.head.removeChild(label);
   } catch (e) {}
+}
+
+function hapticTap() {
+  _hapticDebugPing(); // 진단용 빨간 점 (확인되면 제거)
+  try {
+    if (navigator.vibrate) navigator.vibrate(40);
+  } catch (e) {}
+  // iOS switch 햅틱이 단발로는 미세해서 2연타 (테스트 페이지 ⑤에서 검증됨)
+  _switchClickHaptic();
+  setTimeout(_switchClickHaptic, 120);
 }
 
 function _hapticDebugPing() {
