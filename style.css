@@ -376,6 +376,12 @@ body {
   touch-action: manipulation;
   cursor: pointer;
   color: #000;
+  /* button 요소로 변경 — 기본 브라우저 스타일 리셋 */
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .cell.revealed {

@@ -291,13 +291,11 @@ function init() {
         isFlagged: false,
         adjacent: 0,
       };
-      const el = document.createElement("div");
+      const el = document.createElement("button");
+      el.type = "button";
       el.className = "cell";
       el.dataset.row = r;
       el.dataset.col = c;
-      // iOS가 div의 click context에 user activation을 안 주는 경향이 있어 button처럼 인식시킴 (햅틱 활성화 위해)
-      el.setAttribute("role", "button");
-      el.setAttribute("tabindex", "-1");
       attachInputHandlers(el, r, c);
       boardEl.appendChild(el);
       cellEls[r][c] = el;
