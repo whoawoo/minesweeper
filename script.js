@@ -521,7 +521,36 @@ function onFlagToggle(r, c) {
   renderCell(r, c);
   updateMineCount();
   playFlag();
+  hapticTap();
   saveGame();
+}
+
+// 햅틱: 안드로이드는 Vibration API, iOS는 <input type="checkbox" switch> 토글로 시스템 햅틱 트리거
+let _hapticSwitch = null;
+function _getHapticSwitch() {
+  if (_hapticSwitch) return _hapticSwitch;
+  const label = document.createElement("label");
+  label.setAttribute("aria-hidden", "true");
+  label.style.cssText = "position:absolute;left:-9999px;top:0;width:0;height:0;opacity:0;pointer-events:none;";
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.setAttribute("switch", ""); // iOS 17.4+에서 토글 시 햅틱 발생
+  input.tabIndex = -1;
+  label.appendChild(input);
+  document.body.appendChild(label);
+  _hapticSwitch = input;
+  return _hapticSwitch;
+}
+function hapticTap() {
+  if (navigator.vibrate) {
+    navigator.vibrate(40);
+    return;
+  }
+  try {
+    const sw = _getHapticSwitch();
+    sw.checked = !sw.checked;
+    sw.dispatchEvent(new Event("change", { bubbles: true }));
+  } catch (e) {}
 }
 
 const LONG_PRESS_MS = 400;
@@ -560,7 +589,6 @@ function attachInputHandlers(el, r, c) {
       onFlagToggle(r, c);
       lastLongPressFlag = { r, c, time: Date.now() };
       suppressNextClick = true;
-      if (navigator.vibrate) navigator.vibrate(40);
     }, LONG_PRESS_MS);
   }, { passive: true });
 
