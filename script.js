@@ -545,13 +545,12 @@ function _switchClickHaptic() {
 }
 
 function hapticTap() {
-  _hapticDebugPing(); // 진단용 빨간 점 (확인되면 제거)
+  // SWITCH 햅틱을 가장 먼저 — vibrate 호출이나 다른 DOM 조작이 iOS 유저 제스처/햅틱 컨텍스트를 소비하기 전에.
+  _switchClickHaptic();
   try {
     if (navigator.vibrate) navigator.vibrate(40);
   } catch (e) {}
-  // iOS switch 햅틱이 단발로는 미세해서 2연타 (테스트 페이지 ⑤에서 검증됨)
-  _switchClickHaptic();
-  setTimeout(_switchClickHaptic, 120);
+  _hapticDebugPing(); // 진단용 빨간 점
 }
 
 function _hapticDebugPing() {
