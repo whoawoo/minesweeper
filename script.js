@@ -529,8 +529,7 @@ function onFlagToggle(r, c) {
 // "있으면 호출하고 끝"이 아니라 switch 트릭도 항상 같이 발사해야 한다.
 // Android: vibrate가 실제 진동, switch는 no-op
 // iOS 18+: vibrate는 no-op, switch label.click()이 시스템 햅틱 트리거
-function hapticTap() {
-  // iOS 18+: <input switch>의 label.click()이 시스템 햅틱 트리거 (먼저 — switch가 활성 컨텍스트를 가장 잘 활용)
+function _switchHapticOnce() {
   const label = document.createElement("label");
   label.style.display = "none";
   const input = document.createElement("input");
@@ -540,7 +539,13 @@ function hapticTap() {
   document.head.appendChild(label);
   label.click();
   document.head.removeChild(label);
-  // Android: Vibration API. iOS PWA에서도 일부 작동한다는 보고가 있어 함께 호출.
+}
+
+function hapticTap() {
+  // iOS는 짧은 시간 안에 같은 햅틱이 반복되면 시스템 차원에서 강도를 줄이거나 스킵 → 80ms 간격 2연타로 적어도 한 발은 살아남게.
+  _switchHapticOnce();
+  setTimeout(_switchHapticOnce, 80);
+  // Android: Vibration API
   if (navigator.vibrate) navigator.vibrate(40);
 }
 
