@@ -11,7 +11,6 @@ let currentDifficulty = "beginner";
 
 const boardEl = document.getElementById("board");
 const newGameBtn = document.getElementById("newGame");
-const smileyFaceEl = newGameBtn.querySelector(".smiley-face");
 const mineCountEl = document.getElementById("mineCount");
 const timerEl = document.getElementById("timer");
 const mainView = document.getElementById("mainView");
@@ -245,11 +244,11 @@ function playBoom() {
 
 function smileyPress() {
   if (gameOver) return;
-  smileyFaceEl.textContent = SMILEY_PRESS;
+  newGameBtn.textContent = SMILEY_PRESS;
 }
 function smileyRelease() {
   if (gameOver) return;
-  smileyFaceEl.textContent = SMILEY_DEFAULT;
+  newGameBtn.textContent = SMILEY_DEFAULT;
 }
 
 // 게임 상태
@@ -280,7 +279,7 @@ function init() {
   elapsedSeconds = 0;
   timerEl.textContent = formatLed(0);
   mineCountEl.textContent = formatLed(MINES);
-  smileyFaceEl.textContent = SMILEY_DEFAULT;
+  newGameBtn.textContent = SMILEY_DEFAULT;
 
   for (let r = 0; r < ROWS; r++) {
     cells[r] = [];
@@ -770,7 +769,7 @@ function handleLose() {
   gameOver = true;
   stopTimer();
   revealAllMines();
-  smileyFaceEl.textContent = SMILEY_LOSE;
+  newGameBtn.textContent = SMILEY_LOSE;
   playBoom();
   // 도장 미적립이지만 pendingStampDate는 유지 — 스마일로 재시도해서 클리어하면 도장 적립
   clearSave();
@@ -781,7 +780,7 @@ function handleWin() {
   stopTimer();
   flagAllMines();
   updateMineCount();
-  smileyFaceEl.textContent = SMILEY_WIN;
+  newGameBtn.textContent = SMILEY_WIN;
   playClearEffect();
   if (pendingStampDate) {
     addStamp(pendingStampDate);
