@@ -529,28 +529,18 @@ function onFlagToggle(r, c) {
 // "있으면 호출하고 끝"이 아니라 switch 트릭도 항상 같이 발사해야 한다.
 // Android: vibrate가 실제 진동, switch는 no-op
 // iOS 18+: vibrate는 no-op, switch label.click()이 시스템 햅틱 트리거
-function _switchClickHaptic() {
-  try {
-    const label = document.createElement("label");
-    label.ariaHidden = "true";
-    label.style.display = "none";
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.setAttribute("switch", "");
-    label.appendChild(input);
-    document.head.appendChild(label);
-    label.click();
-    document.head.removeChild(label);
-  } catch (e) {}
-}
-
 function hapticTap() {
-  // SWITCH 햅틱을 가장 먼저 — vibrate 호출이나 다른 DOM 조작이 iOS 유저 제스처/햅틱 컨텍스트를 소비하기 전에.
-  _switchClickHaptic();
-  try {
-    if (navigator.vibrate) navigator.vibrate(40);
-  } catch (e) {}
-  _hapticDebugPing(); // 진단용 빨간 점
+  // iOS 18+: <input switch>의 label.click()이 시스템 햅틱 트리거 (테스트 페이지 + 게임 내 A 버튼 검증)
+  // A 버튼과 동일한 패턴 — vibrate/debug ping 등 다른 호출은 햅틱을 무효화시켜 절대 끼우지 않는다.
+  const label = document.createElement("label");
+  label.style.display = "none";
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.setAttribute("switch", "");
+  label.appendChild(input);
+  document.head.appendChild(label);
+  label.click();
+  document.head.removeChild(label);
 }
 
 function _hapticDebugPing() {
