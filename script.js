@@ -572,17 +572,19 @@ function attachInputHandlers(el, r, c) {
   });
 
   // 롱프레스 = 깃발 (모바일). 손 닿는 동안 스마일도 😯
+  let longPressFiredHere = false;
   el.addEventListener("touchstart", (e) => {
     // 두 번째 이상의 손가락은 셀 동작 트리거 X (팬/핀치 줌 제스처)
     if (e.touches.length > 1) return;
     smileyPress();
+    longPressFiredHere = false;
     if (activePressTimer) clearTimeout(activePressTimer);
     activePressTimer = setTimeout(() => {
       activePressTimer = null;
-      hapticTap(); // 깃발 꽂는 그 순간(400ms) 햅틱 — touchstart에서 파생된 setTimeout 컨텍스트
       onFlagToggle(r, c);
       lastLongPressFlag = { r, c, time: Date.now() };
       suppressNextClick = true;
+      longPressFiredHere = true;
     }, LONG_PRESS_MS);
   }, { passive: true });
 
@@ -592,7 +594,14 @@ function attachInputHandlers(el, r, c) {
       activePressTimer = null;
     }
   };
-  el.addEventListener("touchend", cancel, { passive: true });
+  // touchend에서 롱프레스 햅틱 — iOS는 click/touchend 컨텍스트에서만 switch 햅틱이 신뢰성 있게 트리거
+  el.addEventListener("touchend", () => {
+    cancel();
+    if (longPressFiredHere) {
+      longPressFiredHere = false;
+      hapticTap();
+    }
+  }, { passive: true });
   el.addEventListener("touchcancel", cancel, { passive: true });
   // 손가락이 누른 칸 밖으로 벗어나면 클릭/롱프레스 모두 취소 (잘못 눌렀을 때 빠져나갈 수 있게)
   el.addEventListener("touchmove", (e) => {
