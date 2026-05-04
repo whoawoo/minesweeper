@@ -525,14 +525,15 @@ function onFlagToggle(r, c) {
   saveGame();
 }
 
-// 햅틱: 안드로이드는 Vibration API, iOS 18+는 <input type="checkbox" switch>의 label.click()으로 시스템 햅틱 트리거
-// (tijnjh/ios-haptics 패턴: 호출할 때마다 새로 만들고 즉시 제거, document.head에 부착, display:none)
+// 햅틱: 두 경로를 모두 시도 — iOS Safari는 navigator.vibrate를 함수로 정의해두고 no-op이라
+// "있으면 호출하고 끝"이 아니라 switch 트릭도 항상 같이 발사해야 한다.
+// Android: vibrate가 실제 진동, switch는 no-op
+// iOS 18+: vibrate는 no-op, switch label.click()이 시스템 햅틱 트리거
 function hapticTap() {
   try {
-    if (navigator.vibrate) {
-      navigator.vibrate(40);
-      return;
-    }
+    if (navigator.vibrate) navigator.vibrate(40);
+  } catch (e) {}
+  try {
     const label = document.createElement("label");
     label.ariaHidden = "true";
     label.style.display = "none";
