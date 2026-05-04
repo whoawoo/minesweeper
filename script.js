@@ -580,7 +580,6 @@ function attachInputHandlers(el, r, c) {
   el.addEventListener("touchstart", (e) => {
     // 두 번째 이상의 손가락은 셀 동작 트리거 X (팬/핀치 줌 제스처)
     if (e.touches.length > 1) return;
-    hapticTap(); // 가장 먼저 — DOM 수정이 햅틱 컨텍스트를 소비하기 전에
     smileyPress();
     if (activePressTimer) clearTimeout(activePressTimer);
     activePressTimer = setTimeout(() => {
@@ -597,7 +596,11 @@ function attachInputHandlers(el, r, c) {
       activePressTimer = null;
     }
   };
-  el.addEventListener("touchend", cancel, { passive: true });
+  // touchend에서 햅틱 — HTML 스펙상 user activation 부여 이벤트 목록에 touchend는 있고 touchstart는 없음. iOS는 이걸 충실히 따라서 touchend에서만 switch 햅틱이 동작.
+  el.addEventListener("touchend", () => {
+    cancel();
+    hapticTap();
+  }, { passive: true });
   el.addEventListener("touchcancel", cancel, { passive: true });
   // 손가락이 누른 칸 밖으로 벗어나면 클릭/롱프레스 모두 취소 (잘못 눌렀을 때 빠져나갈 수 있게)
   el.addEventListener("touchmove", (e) => {
