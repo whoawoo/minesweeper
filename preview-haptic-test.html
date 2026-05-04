@@ -38,6 +38,13 @@
 <p>Android/지원 브라우저용 표준 API.</p>
 <button id="b4">vibrate(40)</button>
 
+<h2>⑤ 강한 버전: label.click() × 2 (120ms 간격)</h2>
+<p>switch 햅틱이 너무 미세할 수 있음 → 두 번 연속 트리거.</p>
+<button id="b5">2연타</button>
+
+<h2>⑥ 더 강한 버전: × 3 (120ms 간격)</h2>
+<button id="b6">3연타</button>
+
 <h2>로그</h2>
 <pre id="log"></pre>
 <small>iOS 버전, Safari/PWA 여부도 같이 알려주세요.</small>
@@ -80,6 +87,17 @@ document.getElementById('b4').addEventListener('click', () => {
   log('④ navigator.vibrate(40)');
   if (navigator.vibrate) navigator.vibrate(40);
   else log('   → 미지원');
+});
+document.getElementById('b5').addEventListener('click', () => {
+  log('⑤ 2연타');
+  hapticViaSwitch();
+  setTimeout(hapticViaSwitch, 120);
+});
+document.getElementById('b6').addEventListener('click', () => {
+  log('⑥ 3연타');
+  hapticViaSwitch();
+  setTimeout(hapticViaSwitch, 120);
+  setTimeout(hapticViaSwitch, 240);
 });
 </script>
 </body>
