@@ -525,21 +525,22 @@ function onFlagToggle(r, c) {
   saveGame();
 }
 
-// 햅틱: 안드로이드는 Vibration API, iOS는 <input type="checkbox" switch> 토글로 시스템 햅틱 트리거
-let _hapticSwitch = null;
-function _getHapticSwitch() {
-  if (_hapticSwitch) return _hapticSwitch;
+// 햅틱: 안드로이드는 Vibration API, iOS 18+는 <input type="checkbox" switch>의 label.click()으로 시스템 햅틱 트리거
+let _hapticLabel = null;
+function _getHapticLabel() {
+  if (_hapticLabel) return _hapticLabel;
   const label = document.createElement("label");
   label.setAttribute("aria-hidden", "true");
-  label.style.cssText = "position:absolute;left:-9999px;top:0;width:0;height:0;opacity:0;pointer-events:none;";
+  label.style.cssText = "position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;";
   const input = document.createElement("input");
   input.type = "checkbox";
-  input.setAttribute("switch", ""); // iOS 17.4+에서 토글 시 햅틱 발생
+  input.setAttribute("switch", ""); // iOS 18+에서 label 클릭 시 햅틱 발생
   input.tabIndex = -1;
+  input.style.cssText = "position:absolute;opacity:0;pointer-events:none;";
   label.appendChild(input);
   document.body.appendChild(label);
-  _hapticSwitch = input;
-  return _hapticSwitch;
+  _hapticLabel = label;
+  return _hapticLabel;
 }
 function hapticTap() {
   if (navigator.vibrate) {
@@ -547,9 +548,7 @@ function hapticTap() {
     return;
   }
   try {
-    const sw = _getHapticSwitch();
-    sw.checked = !sw.checked;
-    sw.dispatchEvent(new Event("change", { bubbles: true }));
+    _getHapticLabel().click();
   } catch (e) {}
 }
 
