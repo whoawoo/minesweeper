@@ -531,6 +531,7 @@ function onFlagToggle(r, c) {
 // Android: vibrate가 실제 진동, switch는 no-op
 // iOS 18+: vibrate는 no-op, switch label.click()이 시스템 햅틱 트리거
 function hapticTap() {
+  _hapticDebugPing();
   // iOS 18+: <input switch>의 label.click()이 시스템 햅틱 트리거
   const label = document.createElement("label");
   label.style.display = "none";
@@ -543,6 +544,18 @@ function hapticTap() {
   document.head.removeChild(label);
   // Android: Vibration API (iOS Safari/PWA에선 no-op)
   if (navigator.vibrate) navigator.vibrate(40);
+}
+
+function _hapticDebugPing() {
+  let dot = document.getElementById("__hapticPing");
+  if (!dot) {
+    dot = document.createElement("div");
+    dot.id = "__hapticPing";
+    dot.style.cssText = "position:fixed;top:6px;right:6px;width:14px;height:14px;border-radius:50%;background:#ff3b30;z-index:99999;pointer-events:none;opacity:0;transition:opacity 60ms;";
+    document.body.appendChild(dot);
+  }
+  dot.style.opacity = "1";
+  setTimeout(() => { dot.style.opacity = "0"; }, 200);
 }
 
 
