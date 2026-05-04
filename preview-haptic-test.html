@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>Haptic 진단</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; padding: 20px; max-width: 480px; margin: 0 auto; line-height: 1.5; }
+  h2 { margin-top: 28px; font-size: 17px; }
+  p { color: #444; font-size: 14px; }
+  .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1px solid #ddd; border-radius: 12px; margin: 8px 0; background: #fff; }
+  .row label { font-size: 16px; flex: 1; }
+  button { width: 100%; padding: 14px; font-size: 16px; border: 0; border-radius: 12px; background: #007aff; color: #fff; margin: 6px 0; }
+  pre { background: #f4f4f4; padding: 10px; border-radius: 8px; font-size: 12px; overflow-x: auto; min-height: 80px; }
+  small { color: #888; }
+</style>
+</head>
+<body>
+<h1>iOS 햅틱 진단</h1>
+<p>각 테스트를 한 번씩 눌러보고 어디서 햅틱이 오는지 알려주세요.</p>
+
+<h2>① 기기 햅틱 설정 자체가 살아있는가</h2>
+<p>아래 스위치를 <b>직접 손가락으로 토글</b>해보세요. 이때 햅틱이 오면 기기 설정은 정상입니다.</p>
+<div class="row">
+  <label for="t1">직접 토글</label>
+  <input type="checkbox" switch id="t1" />
+</div>
+
+<h2>② 프로그래밍으로 label.click() — 즉시</h2>
+<p>버튼 누른 그 순간(유저 제스처 안에서) 숨겨진 switch label을 click()합니다.</p>
+<button id="b2">즉시 트리거</button>
+
+<h2>③ 프로그래밍으로 label.click() — 400ms 후 (롱프레스 모사)</h2>
+<p>버튼 누르고 setTimeout 400ms 후에 트리거. 유저 제스처 컨텍스트 밖.</p>
+<button id="b3">400ms 후 트리거</button>
+
+<h2>④ navigator.vibrate(40)</h2>
+<p>Android/지원 브라우저용 표준 API.</p>
+<button id="b4">vibrate(40)</button>
+
+<h2>로그</h2>
+<pre id="log"></pre>
+<small>iOS 버전, Safari/PWA 여부도 같이 알려주세요.</small>
+
+<script>
+const logEl = document.getElementById('log');
+function log(msg) {
+  const t = new Date().toLocaleTimeString();
+  logEl.textContent = `[${t}] ${msg}\n` + logEl.textContent;
+}
+log(`UA: ${navigator.userAgent}`);
+log(`navigator.vibrate: ${typeof navigator.vibrate}`);
+log(`standalone (PWA): ${window.navigator.standalone === true}`);
+
+function hapticViaSwitch() {
+  const label = document.createElement('label');
+  label.ariaHidden = 'true';
+  label.style.display = 'none';
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.setAttribute('switch', '');
+  label.appendChild(input);
+  document.head.appendChild(label);
+  label.click();
+  document.head.removeChild(label);
+}
+
+document.getElementById('b2').addEventListener('click', () => {
+  log('② 즉시 label.click()');
+  hapticViaSwitch();
+});
+document.getElementById('b3').addEventListener('click', () => {
+  log('③ 400ms 후 label.click() 예약');
+  setTimeout(() => {
+    log('③ 실행');
+    hapticViaSwitch();
+  }, 400);
+});
+document.getElementById('b4').addEventListener('click', () => {
+  log('④ navigator.vibrate(40)');
+  if (navigator.vibrate) navigator.vibrate(40);
+  else log('   → 미지원');
+});
+</script>
+</body>
+</html>
