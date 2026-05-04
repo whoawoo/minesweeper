@@ -310,7 +310,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* iOS: 이모지 중앙 탭 시 텍스트 선택 등 다른 제스처로 새는 것 차단 → click 무조건 발사 */
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
+/* 이모지 자체는 hit-test 대상에서 제외 — button만 click 받게 */
+.smiley > * { pointer-events: none; }
 
 .smiley:active {
   border-top: 2px solid var(--shadow);
