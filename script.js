@@ -543,72 +543,6 @@ function hapticTap() {
   document.head.removeChild(label);
 }
 
-function _hapticDebugPing() {
-  let dot = document.getElementById("__hapticPing");
-  if (!dot) {
-    dot = document.createElement("div");
-    dot.id = "__hapticPing";
-    dot.style.cssText = "position:fixed;top:6px;right:6px;width:12px;height:12px;border-radius:50%;background:#ff3b30;z-index:99999;pointer-events:none;opacity:0;transition:opacity 80ms;";
-    document.body.appendChild(dot);
-  }
-  dot.style.opacity = "1";
-  setTimeout(() => { dot.style.opacity = "0"; }, 180);
-}
-
-// 진단용: 게임 페이지 안에 테스트 버튼 직접 띄움
-// (테스트 페이지는 OK인데 게임에선 햅틱 안 오는 원인 좁히기)
-function _installHapticDebugButtons() {
-  if (document.getElementById("__hapticTestBox")) return;
-  const box = document.createElement("div");
-  box.id = "__hapticTestBox";
-  box.style.cssText = "position:fixed;top:24px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:99999;background:rgba(255,255,255,0.95);padding:6px;border-radius:10px;border:1px solid #aaa;font-size:12px;font-family:-apple-system,sans-serif;";
-
-  // A: head에 append (테스트 페이지와 동일)
-  const a = document.createElement("button");
-  a.textContent = "A:head";
-  a.style.cssText = "padding:6px 8px;font-size:12px;";
-  a.addEventListener("click", () => {
-    const label = document.createElement("label");
-    label.style.display = "none";
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.setAttribute("switch", "");
-    label.appendChild(input);
-    document.head.appendChild(label);
-    label.click();
-    document.head.removeChild(label);
-  });
-
-  // B: body에 append, 보이게
-  const b = document.createElement("button");
-  b.textContent = "B:body";
-  b.style.cssText = "padding:6px 8px;font-size:12px;";
-  b.addEventListener("click", () => {
-    const label = document.createElement("label");
-    label.style.cssText = "position:fixed;top:0;left:0;opacity:0.001;-webkit-user-select:auto;-webkit-touch-callout:default;";
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.setAttribute("switch", "");
-    input.style.cssText = "-webkit-user-select:auto;-webkit-touch-callout:default;";
-    label.appendChild(input);
-    document.body.appendChild(label);
-    label.click();
-    setTimeout(() => document.body.removeChild(label), 500);
-  });
-
-  // C: body 직접 append, switch input만
-  const c = document.createElement("input");
-  c.type = "checkbox";
-  c.setAttribute("switch", "");
-  c.style.cssText = "vertical-align:middle;";
-  // C: 직접 토글 (버튼 아님 — 사용자가 손가락으로 직접 탭)
-
-  box.appendChild(a);
-  box.appendChild(b);
-  box.appendChild(c);
-  document.body.appendChild(box);
-}
-window.addEventListener("load", _installHapticDebugButtons);
 
 const LONG_PRESS_MS = 400;
 
@@ -1265,7 +1199,8 @@ newGameBtn.addEventListener("pointerdown", (e) => {
   resetCurrentGame();
 });
 newGameBtn.addEventListener("click", resetCurrentGame); // pointerdown 미지원 환경 폴백
-// 햅틱은 click 컨텍스트에서만 신뢰성 있게 트리거 — pointerdown은 안 됨
+// 햅틱: 모바일은 touchend, 데스크탑은 click. 둘 다 발사해도 switch 햅틱은 컨텍스트별 한 번만 트리거됨.
+newGameBtn.addEventListener("touchend", hapticTap, { passive: true });
 newGameBtn.addEventListener("click", hapticTap);
 
 // 손/마우스를 떼면 스마일 복귀 (어디서 떼든 동작하도록 document에 부착)
