@@ -572,16 +572,19 @@ function attachInputHandlers(el, r, c) {
   });
 
   // 롱프레스 = 깃발 (모바일). 손 닿는 동안 스마일도 😯
+  let longPressFiredHere = false;
   el.addEventListener("touchstart", (e) => {
     // 두 번째 이상의 손가락은 셀 동작 트리거 X (팬/핀치 줌 제스처)
     if (e.touches.length > 1) return;
     smileyPress();
+    longPressFiredHere = false;
     if (activePressTimer) clearTimeout(activePressTimer);
     activePressTimer = setTimeout(() => {
       activePressTimer = null;
       onFlagToggle(r, c);
       lastLongPressFlag = { r, c, time: Date.now() };
       suppressNextClick = true;
+      longPressFiredHere = true;
     }, LONG_PRESS_MS);
   }, { passive: true });
 
@@ -591,10 +594,13 @@ function attachInputHandlers(el, r, c) {
       activePressTimer = null;
     }
   };
-  // touchend에서 햅틱 — HTML 스펙상 user activation 부여 이벤트 목록에 touchend는 있고 touchstart는 없음. iOS는 이걸 충실히 따라서 touchend에서만 switch 햅틱이 동작.
+  // 롱프레스(깃발)는 click이 suppress되므로 touchend에서 햅틱 — 이 케이스는 v77에서 동작 확인됨.
   el.addEventListener("touchend", () => {
     cancel();
-    hapticTap();
+    if (longPressFiredHere) {
+      longPressFiredHere = false;
+      hapticTap();
+    }
   }, { passive: true });
   el.addEventListener("touchcancel", cancel, { passive: true });
   // 손가락이 누른 칸 밖으로 벗어나면 클릭/롱프레스 모두 취소 (잘못 눌렀을 때 빠져나갈 수 있게)
@@ -612,12 +618,14 @@ function attachInputHandlers(el, r, c) {
   }, { passive: true });
 
   // 일반 탭/클릭 = 공개 (단, 직전에 롱프레스 일어났거나 두 손가락 제스처면 무시)
+  // 햅틱은 click 컨텍스트(스펙상 user activation 부여 + iOS에서 검증된 컨텍스트)에서 발사 — touchend는 빠른 탭에서 누락되는 듯.
   el.addEventListener("click", () => {
     if (suppressNextClick) {
       suppressNextClick = false;
       return;
     }
     if (multiTouchActive) return;
+    hapticTap();
     onCellClick(r, c);
   });
 }
