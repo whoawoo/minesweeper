@@ -1200,6 +1200,7 @@ function resetCurrentGame() {
   if (smileyResetting) return; // pointerdown + click 중복 방지
   smileyResetting = true;
   setTimeout(() => { smileyResetting = false; }, 200);
+  hapticTap(); // 진단용: 짧은 탭 경로에서 햅틱이 오는지 비교 (확인되면 제거)
   // pendingStampDate는 유지 — 출석체크 미션 중 스마일 누르면 같은 날짜로 재도전
   clearSave();
   init();
