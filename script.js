@@ -517,11 +517,11 @@ function onFlagToggle(r, c) {
   if (gameOver) return;
   const cell = cells[r][c];
   if (cell.isRevealed) return; // 이미 열린 칸엔 깃발 못 꽂음
+  hapticTap(); // 오디오/렌더가 유저 제스처 컨텍스트를 가져가기 전에 먼저
   cell.isFlagged = !cell.isFlagged;
   renderCell(r, c);
   updateMineCount();
   playFlag();
-  hapticTap();
   saveGame();
 }
 
@@ -530,6 +530,7 @@ function onFlagToggle(r, c) {
 // Android: vibrate가 실제 진동, switch는 no-op
 // iOS 18+: vibrate는 no-op, switch label.click()이 시스템 햅틱 트리거
 function hapticTap() {
+  _hapticDebugPing(); // 진단용 빨간 점 (확인되면 제거)
   try {
     if (navigator.vibrate) navigator.vibrate(40);
   } catch (e) {}
@@ -545,6 +546,18 @@ function hapticTap() {
     label.click();
     document.head.removeChild(label);
   } catch (e) {}
+}
+
+function _hapticDebugPing() {
+  let dot = document.getElementById("__hapticPing");
+  if (!dot) {
+    dot = document.createElement("div");
+    dot.id = "__hapticPing";
+    dot.style.cssText = "position:fixed;top:6px;right:6px;width:12px;height:12px;border-radius:50%;background:#ff3b30;z-index:99999;pointer-events:none;opacity:0;transition:opacity 80ms;";
+    document.body.appendChild(dot);
+  }
+  dot.style.opacity = "1";
+  setTimeout(() => { dot.style.opacity = "0"; }, 180);
 }
 
 const LONG_PRESS_MS = 400;
