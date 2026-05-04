@@ -1194,11 +1194,10 @@ function resetCurrentGame() {
   init();
   showStampBannerIfPending();
 }
-// click 단일 핸들러 — pointerdown 핸들러가 같이 있으면 iOS에서 click의 switch 햅틱이 무효화됨
-// (테스트 페이지/게임 내 단일 click 버튼은 동작, 스마일리는 pointerdown+click 조합이라 안 됐음)
+// click 단일 핸들러 — hapticTap을 가장 먼저 (resetCurrentGame의 init() 무거운 작업이 햅틱 컨텍스트를 소비하기 전에)
 newGameBtn.addEventListener("click", () => {
-  resetCurrentGame();
   hapticTap();
+  resetCurrentGame();
 });
 
 // 손/마우스를 떼면 스마일 복귀 (어디서 떼든 동작하도록 document에 부착)
