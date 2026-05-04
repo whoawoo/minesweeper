@@ -530,8 +530,7 @@ function onFlagToggle(r, c) {
 // Android: vibrate가 실제 진동, switch는 no-op
 // iOS 18+: vibrate는 no-op, switch label.click()이 시스템 햅틱 트리거
 function hapticTap() {
-  // iOS 18+: <input switch>의 label.click()이 시스템 햅틱 트리거 (테스트 페이지 + 게임 내 A 버튼 검증)
-  // A 버튼과 동일한 패턴 — vibrate/debug ping 등 다른 호출은 햅틱을 무효화시켜 절대 끼우지 않는다.
+  // iOS 18+: <input switch>의 label.click()이 시스템 햅틱 트리거 (먼저 — switch가 활성 컨텍스트를 가장 잘 활용)
   const label = document.createElement("label");
   label.style.display = "none";
   const input = document.createElement("input");
@@ -541,6 +540,8 @@ function hapticTap() {
   document.head.appendChild(label);
   label.click();
   document.head.removeChild(label);
+  // Android: Vibration API. iOS PWA에서도 일부 작동한다는 보고가 있어 함께 호출.
+  if (navigator.vibrate) navigator.vibrate(40);
 }
 
 
@@ -571,19 +572,17 @@ function attachInputHandlers(el, r, c) {
   });
 
   // 롱프레스 = 깃발 (모바일). 손 닿는 동안 스마일도 😯
-  let longPressFiredHere = false; // touchend에서 햅틱 발사할지 결정
   el.addEventListener("touchstart", (e) => {
     // 두 번째 이상의 손가락은 셀 동작 트리거 X (팬/핀치 줌 제스처)
     if (e.touches.length > 1) return;
     smileyPress();
-    longPressFiredHere = false;
     if (activePressTimer) clearTimeout(activePressTimer);
     activePressTimer = setTimeout(() => {
       activePressTimer = null;
+      hapticTap(); // 깃발 꽂는 그 순간(400ms) 햅틱 — touchstart에서 파생된 setTimeout 컨텍스트
       onFlagToggle(r, c);
       lastLongPressFlag = { r, c, time: Date.now() };
       suppressNextClick = true;
-      longPressFiredHere = true; // touchend에서 햅틱 발사
     }, LONG_PRESS_MS);
   }, { passive: true });
 
@@ -593,14 +592,7 @@ function attachInputHandlers(el, r, c) {
       activePressTimer = null;
     }
   };
-  // touchend에서 롱프레스 햅틱 발사 — iOS는 click/touchend 컨텍스트에서만 switch 햅틱이 신뢰성 있게 트리거되므로 setTimeout 안에서는 동작 안 함
-  el.addEventListener("touchend", () => {
-    cancel();
-    if (longPressFiredHere) {
-      longPressFiredHere = false;
-      hapticTap();
-    }
-  }, { passive: true });
+  el.addEventListener("touchend", cancel, { passive: true });
   el.addEventListener("touchcancel", cancel, { passive: true });
   // 손가락이 누른 칸 밖으로 벗어나면 클릭/롱프레스 모두 취소 (잘못 눌렀을 때 빠져나갈 수 있게)
   el.addEventListener("touchmove", (e) => {
