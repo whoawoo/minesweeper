@@ -531,7 +531,6 @@ function onFlagToggle(r, c) {
 // Android: vibrate가 실제 진동, switch는 no-op
 // iOS 18+: vibrate는 no-op, switch label.click()이 시스템 햅틱 트리거
 function hapticTap() {
-  _hapticDebugPing();
   // iOS 18+: <input switch>의 label.click()이 시스템 햅틱 트리거
   const label = document.createElement("label");
   label.style.display = "none";
@@ -545,21 +544,6 @@ function hapticTap() {
   // Android: Vibration API (iOS Safari/PWA에선 no-op)
   if (navigator.vibrate) navigator.vibrate(40);
 }
-
-function _flashDebug(id, color, anchor) {
-  let dot = document.getElementById(id);
-  if (!dot) {
-    dot = document.createElement("div");
-    dot.id = id;
-    dot.style.cssText = `position:fixed;${anchor};width:60px;height:60px;border-radius:50%;background:${color};z-index:999999;pointer-events:none;opacity:0;transition:opacity 60ms;border:3px solid #fff;box-shadow:0 0 8px rgba(0,0,0,0.5);`;
-    document.body.appendChild(dot);
-  }
-  dot.style.opacity = "0.85";
-  setTimeout(() => { dot.style.opacity = "0"; }, 280);
-}
-function _hapticDebugPing() { _flashDebug("__pingHaptic", "#ff3b30", "top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px"); }
-function _cellClickPing() { _flashDebug("__pingCell", "#0a84ff", "top:80px;left:20px"); }
-function _smileyClickPing() { _flashDebug("__pingSmiley", "#34c759", "top:80px;right:20px"); }
 
 
 const LONG_PRESS_MS = 400;
@@ -636,7 +620,6 @@ function attachInputHandlers(el, r, c) {
 
   // 일반 탭/클릭 = 공개 (단, 직전에 롱프레스 일어났거나 두 손가락 제스처면 무시)
   el.addEventListener("click", () => {
-    _cellClickPing(); // 진단: click 이벤트 자체는 발사됐는지
     if (suppressNextClick) {
       suppressNextClick = false;
       return;
@@ -872,7 +855,8 @@ function renderCell(r, c) {
     }
   } else if (cell.isFlagged) {
     el.classList.add("flagged");
-    el.textContent = "🚩";
+    // 🚩 이모지 자체에 손이 닿으면 iOS가 click을 합성 안 하는 케이스가 있음 → span으로 감싸 pointer-events 제외
+    el.innerHTML = '<span style="pointer-events:none">🚩</span>';
   }
 }
 
@@ -1216,7 +1200,6 @@ function resetCurrentGame() {
 }
 // click 단일 핸들러 — hapticTap을 가장 먼저 (resetCurrentGame의 init() 무거운 작업이 햅틱 컨텍스트를 소비하기 전에)
 newGameBtn.addEventListener("click", () => {
-  _smileyClickPing(); // 진단: 스마일리 click 발사 확인
   hapticTap();
   resetCurrentGame();
 });
