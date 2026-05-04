@@ -580,8 +580,8 @@ function attachInputHandlers(el, r, c) {
   el.addEventListener("touchstart", (e) => {
     // 두 번째 이상의 손가락은 셀 동작 트리거 X (팬/핀치 줌 제스처)
     if (e.touches.length > 1) return;
+    hapticTap(); // 가장 먼저 — DOM 수정이 햅틱 컨텍스트를 소비하기 전에
     smileyPress();
-    hapticTap(); // 셀에 손 닿는 순간 햅틱 (모든 셀 탭에 발사 — 공개/깃발 구분 없이)
     if (activePressTimer) clearTimeout(activePressTimer);
     activePressTimer = setTimeout(() => {
       activePressTimer = null;
