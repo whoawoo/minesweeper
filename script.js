@@ -526,29 +526,23 @@ function onFlagToggle(r, c) {
 }
 
 // 햅틱: 안드로이드는 Vibration API, iOS 18+는 <input type="checkbox" switch>의 label.click()으로 시스템 햅틱 트리거
-let _hapticLabel = null;
-function _getHapticLabel() {
-  if (_hapticLabel) return _hapticLabel;
-  const label = document.createElement("label");
-  label.setAttribute("aria-hidden", "true");
-  label.style.cssText = "position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;";
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.setAttribute("switch", ""); // iOS 18+에서 label 클릭 시 햅틱 발생
-  input.tabIndex = -1;
-  input.style.cssText = "position:absolute;opacity:0;pointer-events:none;";
-  label.appendChild(input);
-  document.body.appendChild(label);
-  _hapticLabel = label;
-  return _hapticLabel;
-}
+// (tijnjh/ios-haptics 패턴: 호출할 때마다 새로 만들고 즉시 제거, document.head에 부착, display:none)
 function hapticTap() {
-  if (navigator.vibrate) {
-    navigator.vibrate(40);
-    return;
-  }
   try {
-    _getHapticLabel().click();
+    if (navigator.vibrate) {
+      navigator.vibrate(40);
+      return;
+    }
+    const label = document.createElement("label");
+    label.ariaHidden = "true";
+    label.style.display = "none";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.setAttribute("switch", "");
+    label.appendChild(input);
+    document.head.appendChild(label);
+    label.click();
+    document.head.removeChild(label);
   } catch (e) {}
 }
 
