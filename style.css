@@ -313,6 +313,11 @@ body {
   /* iOS: 이모지 중앙 탭이 다른 제스처로 빠지는 것 차단 */
   touch-action: manipulation;
 }
+/* 이모지를 ::before로 렌더 → pointer-events: none으로 hit-test에서 완전히 제외, button만 click 받게 */
+.smiley::before {
+  content: attr(data-face);
+  pointer-events: none;
+}
 
 .smiley:active {
   border-top: 2px solid var(--shadow);
