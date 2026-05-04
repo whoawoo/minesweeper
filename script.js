@@ -1194,14 +1194,12 @@ function resetCurrentGame() {
   init();
   showStampBannerIfPending();
 }
-newGameBtn.addEventListener("pointerdown", (e) => {
-  if (e.button !== 0) return;
+// click 단일 핸들러 — pointerdown 핸들러가 같이 있으면 iOS에서 click의 switch 햅틱이 무효화됨
+// (테스트 페이지/게임 내 단일 click 버튼은 동작, 스마일리는 pointerdown+click 조합이라 안 됐음)
+newGameBtn.addEventListener("click", () => {
   resetCurrentGame();
+  hapticTap();
 });
-newGameBtn.addEventListener("click", resetCurrentGame); // pointerdown 미지원 환경 폴백
-// 햅틱: 모바일은 touchend, 데스크탑은 click. 둘 다 발사해도 switch 햅틱은 컨텍스트별 한 번만 트리거됨.
-newGameBtn.addEventListener("touchend", hapticTap, { passive: true });
-newGameBtn.addEventListener("click", hapticTap);
 
 // 손/마우스를 떼면 스마일 복귀 (어디서 떼든 동작하도록 document에 부착)
 document.addEventListener("mouseup", smileyRelease);
