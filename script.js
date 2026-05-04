@@ -546,17 +546,20 @@ function hapticTap() {
   if (navigator.vibrate) navigator.vibrate(40);
 }
 
-function _hapticDebugPing() {
-  let dot = document.getElementById("__hapticPing");
+function _flashDebug(id, color, anchor) {
+  let dot = document.getElementById(id);
   if (!dot) {
     dot = document.createElement("div");
-    dot.id = "__hapticPing";
-    dot.style.cssText = "position:fixed;top:6px;right:6px;width:14px;height:14px;border-radius:50%;background:#ff3b30;z-index:99999;pointer-events:none;opacity:0;transition:opacity 60ms;";
+    dot.id = id;
+    dot.style.cssText = `position:fixed;${anchor};width:60px;height:60px;border-radius:50%;background:${color};z-index:999999;pointer-events:none;opacity:0;transition:opacity 60ms;border:3px solid #fff;box-shadow:0 0 8px rgba(0,0,0,0.5);`;
     document.body.appendChild(dot);
   }
-  dot.style.opacity = "1";
-  setTimeout(() => { dot.style.opacity = "0"; }, 200);
+  dot.style.opacity = "0.85";
+  setTimeout(() => { dot.style.opacity = "0"; }, 280);
 }
+function _hapticDebugPing() { _flashDebug("__pingHaptic", "#ff3b30", "top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px"); }
+function _cellClickPing() { _flashDebug("__pingCell", "#0a84ff", "top:80px;left:20px"); }
+function _smileyClickPing() { _flashDebug("__pingSmiley", "#34c759", "top:80px;right:20px"); }
 
 
 const LONG_PRESS_MS = 400;
@@ -632,8 +635,8 @@ function attachInputHandlers(el, r, c) {
   }, { passive: true });
 
   // 일반 탭/클릭 = 공개 (단, 직전에 롱프레스 일어났거나 두 손가락 제스처면 무시)
-  // 햅틱은 click 컨텍스트(스펙상 user activation 부여 + iOS에서 검증된 컨텍스트)에서 발사 — touchend는 빠른 탭에서 누락되는 듯.
   el.addEventListener("click", () => {
+    _cellClickPing(); // 진단: click 이벤트 자체는 발사됐는지
     if (suppressNextClick) {
       suppressNextClick = false;
       return;
@@ -1213,6 +1216,7 @@ function resetCurrentGame() {
 }
 // click 단일 핸들러 — hapticTap을 가장 먼저 (resetCurrentGame의 init() 무거운 작업이 햅틱 컨텍스트를 소비하기 전에)
 newGameBtn.addEventListener("click", () => {
+  _smileyClickPing(); // 진단: 스마일리 click 발사 확인
   hapticTap();
   resetCurrentGame();
 });
