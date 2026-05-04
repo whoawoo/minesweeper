@@ -26,7 +26,7 @@
 | `style.css` | Win95 클래식 베이스 + 6테마(`body.theme-*`) CSS 변수 + 출석체크 플랫 디자인(트로피/스탬프/inset 솔리드) |
 | `script.js` | 게임 로직 + 입력 + 사운드 + 화면 전환 + 저장/이어하기 + 도장/달력/트로피 SVG + 테마 + PWA 등록 |
 | `manifest.json` | PWA 메타데이터 (아이콘 `purpose: "any maskable"`) |
-| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v67, 동시에 index.html의 `?v=N` 쿼리도 같이 올림) |
+| `service-worker.js` | 오프라인 캐시 + 자동 갱신. **새 배포 때 `CACHE` 버전 숫자 올림** (현재 v99, 동시에 index.html의 `?v=N` 쿼리도 같이 올림) |
 | `icon.svg` | **PWA 앱 아이콘** (홈화면용) — 지뢰 벡터(둥근 본체 + 8방향 가시 + 하이라이트), 정중앙, 안전구역 반경 ≤150 (Galaxy 마스크 안 잘리게). 게임 안 지뢰 아이콘은 별개로 `script.js`의 `renderCell()` 안에 인라인 SVG(픽셀아트) |
 | `icon-192.png`, `icon-512.png` | PWA용 PNG (rsvg-convert로 SVG에서 변환) |
 | `bg-pattern*.svg` | 테마별 배경 패턴 (classic/forest/lavender/ocean/cherry/black) |
@@ -112,7 +112,9 @@
 
 ### 입력
 - **데스크탑**: 좌클릭=공개, 우클릭=깃발 (mousedown button===2로 처리, contextmenu와 분리)
-- **모바일**: 탭=공개, 0.4초 롱프레스=깃발 (+진동)
+- **모바일**: 탭=공개, 0.4초 롱프레스=깃발 (+햅틱)
+  - 햅틱: Android는 `navigator.vibrate(40)`, iOS 18+는 `<input type="checkbox" switch>` label.click() 트릭 (시스템 햅틱 트리거)
+  - 셀(공개/깃발), 스마일리 click 모두 `touchend`/`click` 컨텍스트에서 발사 — iOS는 `setTimeout`/`pointerdown`/`touchstart`에선 햅틱 무효화
 - 핀치 줌 가능 (`touch-action: pinch-zoom`)
 - 한 손가락 드래그 차단 → iOS 러버밴드 바운스 일체 X
 - body 전역 `user-select:none + webkit-touch-callout:none` → 롱프레스 시 텍스트 선택 파란박스/돋보기/카피 메뉴 차단
@@ -248,6 +250,26 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 - 해결 (커밋 `71b0b6e`): 두 함수 모두 `pendingStampDate` 유지. 같은 날짜로 클리어할 때까지 계속 도전 가능. `resetCurrentGame()`은 init 후 `showStampBannerIfPending()` 다시 호출해서 배너 복원
 - 미션을 명시적으로 끝내는 곳만 클리어: `handleWin()`(addStamp 후), `startGame()`(메인에서 다른 난이도 선택), `startAttendanceGame()`(다른 날짜로 재진입)
 
+### 17. iOS WebKit 햅틱 — 진짜 까다로움 (반나절 디버깅)
+- **iOS Safari/PWA는 `navigator.vibrate`를 함수로 정의해두고 no-op** — `if (navigator.vibrate)` 체크는 통과하지만 실제 진동은 발생 X
+- **유일한 워크어라운드: `<input type="checkbox" switch>` 트릭** (iOS 18+, [tijnjh/ios-haptics](https://github.com/tijnjh/ios-haptics))
+  - 패턴: 호출마다 새 label/input을 만들어 `document.head`에 append → `label.click()` → 즉시 제거
+  - `display: none` 사용 (off-screen + opacity:0 같은 가림은 도리어 hit-test 망가뜨림)
+  - **input.click() 직접 호출은 X — 반드시 연결된 label.click()** (iOS는 label 경유 클릭에서만 햅틱 발사)
+- **스펙상 user activation 부여 이벤트만 햅틱 트리거 가능** — HTML 스펙은 명시적 목록 정의: click, contextmenu, dblclick, mouseup, pointerup, reset, submit, touchend
+  - **동작O**: `click`, `touchend`
+  - **동작X**: `touchstart`, `pointerdown`, `setTimeout`/`requestAnimationFrame` 콜백
+  - 그래서 깃발 long-press 햅틱은 400ms 시점(setTimeout 안)이 아닌 손 떼는 순간(touchend)에 발사 — iOS 한계라 우회 불가
+- **`<div>` click은 user activation 부여가 안정적이지 않음** — 동일 코드인데 `<button>`은 햅틱 OK, `<div>`는 안 됨 (`role="button"`만 추가하는 걸로는 부족). 셀 요소를 div → button으로 변경 + CSS 리셋(`padding:0; margin:0; appearance:none`)
+- **이모지는 hit-test 흡수** — 버튼 안에 이모지 텍스트가 있으면 정중앙 탭 시 click이 합성 안 되는 케이스 발생
+  - 해결 1: `::before` pseudo-element + `attr(data-face)` (스마일리)
+  - 해결 2: `<span style="pointer-events:none">🚩</span>` 래핑 (셀 깃발)
+- **DOM 조작이 햅틱 컨텍스트 소비** — `hapticTap()`을 click 핸들러 안에서 호출할 때 *맨 처음에* 호출해야 함. 무거운 동기 작업(`init()`, `clearSave()`) 뒤에 호출하면 무효화될 수 있음
+- **iOS 시스템 차원 rate-limit** — 80ms 간격 2연타 burst가 단발보다 누락이 적었지만, 빠른 반복 탭(셀 여러 개 연속 탭)에선 도리어 burst가 둘 다 죽이는 케이스가 있어 단발로 회귀
+- **PWA standalone vs Safari 차이 없음** — 같은 WebKit 엔진. 한 쪽 동작 = 다른 쪽 동작
+- **하이브리드 앱(Capacitor) 가야 setTimeout/touchstart 시점 햅틱 가능** — 네이티브 `UIImpactFeedbackGenerator` 직접 호출. 단 App Store 배포(연 $99) 또는 사이드로드 필요
+- **진단 팁**: 햅틱 함수에 빨간 점 인디케이터를 잠깐 박아서 (a) 함수가 호출되는지 (b) 호출되는데 햅틱만 안 오는지 구분. iOS는 후자가 의외로 많음
+
 ## 안 한 것 / 추후 옵션
 
 - 승리 효과음 (지금은 폭발음만 있음)
@@ -325,3 +347,6 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 48. ~~지뢰 아이콘 이모지(💣) → 8bit 픽셀아트 SVG로 교체. `renderCell()`에서 인라인 SVG (16×16 viewBox + `shape-rendering: crispEdges`), `.cell.mine .mine-icon` 70%로 셀 크기에 자동 스케일~~ ✅
 49. ~~숫자 폰트 모던하게 + 색 톤다운: 기본 monospace → **JetBrains Mono ExtraBold (800)** (구글폰트). 외곽선 `-webkit-text-stroke: 0.7px currentColor`로 굵직하게. n1 `#0000ff` → `#1F57C3`, n3 `#ff0000` → `#c52828` (네온 → 차분한 톤)~~ ✅
 50. ~~두 손가락 팬 끊김/가로 미작동/깃발 충돌 3종 해소: ① 줌 인 시 가로/대각선 팬을 위해 `touch-action`에 `pan-x pan-y` 추가 ② window touchmove 핸들러 `passive:false → passive:true` (preventDefault 제거 — body 고정으로 기본 스크롤 어차피 안 발동) ③ 롱프레스 깃발 후 200ms 안에 두 번째 손가락 도착하면 무음 롤백 (두 손가락 의도였는데 두 번째가 늦게 도착한 케이스)~~ ✅
+51. ~~햅틱 피드백 추가 (v68~v99, iOS 18+ 작동 확보까지 반나절 디버깅): Android는 `navigator.vibrate(40)`, iOS는 `<input type="checkbox" switch>` label.click() 트릭. 깃발 토글, 셀 공개, 스마일리 모두 적용. iOS는 click/touchend 컨텍스트에서만 동작 — setTimeout 콜백/touchstart/pointerdown은 user activation 부여 X라 무효화. 자세한 함정은 `## 알면 좋은 함정 #17` 참고~~ ✅
+52. ~~스마일리 이모지 hit-test 가림: 버튼 정중앙 탭 시 click이 합성 안 되는 iOS 동작 회피. `<button data-face="🙂">` + CSS `.smiley::before { content: attr(data-face); pointer-events: none }` 패턴. 자식 텍스트 노드 대신 pseudo-element로 렌더하면 hit-test 분리됨. 깃발 셀 🚩도 같은 이유로 `<span pointer-events:none>` 래핑~~ ✅
+53. ~~셀 요소 div → button 변환: iOS가 `<div>` click context에 user activation을 안정적으로 부여하지 않음 (`role="button"`만 추가하는 걸로 부족). 진짜 button 요소로 변경 + 기본 스타일 리셋(`padding/margin: 0; appearance: none`). 레이아웃 영향 없음~~ ✅
