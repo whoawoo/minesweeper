@@ -517,12 +517,12 @@ function onFlagToggle(r, c) {
   if (gameOver) return;
   const cell = cells[r][c];
   if (cell.isRevealed) return; // 이미 열린 칸엔 깃발 못 꽂음
-  hapticTap(); // 오디오/렌더가 유저 제스처 컨텍스트를 가져가기 전에 먼저
   cell.isFlagged = !cell.isFlagged;
   renderCell(r, c);
   updateMineCount();
   playFlag();
   saveGame();
+  // 햅틱은 호출 컨텍스트(데스크탑 우클릭 / 모바일 롱프레스 touchend)에서 별도로 발사 — iOS는 click 이벤트 컨텍스트에서만 신뢰성 있게 트리거됨
 }
 
 // 햅틱: 두 경로를 모두 시도 — iOS Safari는 navigator.vibrate를 함수로 정의해두고 no-op이라
@@ -642,20 +642,24 @@ function attachInputHandlers(el, r, c) {
     } else if (e.button === 2) {
       e.preventDefault();
       onFlagToggle(r, c);
+      hapticTap();
     }
   });
 
   // 롱프레스 = 깃발 (모바일). 손 닿는 동안 스마일도 😯
+  let longPressFiredHere = false; // touchend에서 햅틱 발사할지 결정
   el.addEventListener("touchstart", (e) => {
     // 두 번째 이상의 손가락은 셀 동작 트리거 X (팬/핀치 줌 제스처)
     if (e.touches.length > 1) return;
     smileyPress();
+    longPressFiredHere = false;
     if (activePressTimer) clearTimeout(activePressTimer);
     activePressTimer = setTimeout(() => {
       activePressTimer = null;
       onFlagToggle(r, c);
       lastLongPressFlag = { r, c, time: Date.now() };
       suppressNextClick = true;
+      longPressFiredHere = true; // touchend에서 햅틱 발사
     }, LONG_PRESS_MS);
   }, { passive: true });
 
@@ -665,7 +669,14 @@ function attachInputHandlers(el, r, c) {
       activePressTimer = null;
     }
   };
-  el.addEventListener("touchend", cancel, { passive: true });
+  // touchend에서 롱프레스 햅틱 발사 — iOS는 click/touchend 컨텍스트에서만 switch 햅틱이 신뢰성 있게 트리거되므로 setTimeout 안에서는 동작 안 함
+  el.addEventListener("touchend", () => {
+    cancel();
+    if (longPressFiredHere) {
+      longPressFiredHere = false;
+      hapticTap();
+    }
+  }, { passive: true });
   el.addEventListener("touchcancel", cancel, { passive: true });
   // 손가락이 누른 칸 밖으로 벗어나면 클릭/롱프레스 모두 취소 (잘못 눌렀을 때 빠져나갈 수 있게)
   el.addEventListener("touchmove", (e) => {
@@ -1254,7 +1265,6 @@ function resetCurrentGame() {
   if (smileyResetting) return; // pointerdown + click 중복 방지
   smileyResetting = true;
   setTimeout(() => { smileyResetting = false; }, 200);
-  hapticTap(); // 진단용: 짧은 탭 경로에서 햅틱이 오는지 비교 (확인되면 제거)
   // pendingStampDate는 유지 — 출석체크 미션 중 스마일 누르면 같은 날짜로 재도전
   clearSave();
   init();
@@ -1265,6 +1275,8 @@ newGameBtn.addEventListener("pointerdown", (e) => {
   resetCurrentGame();
 });
 newGameBtn.addEventListener("click", resetCurrentGame); // pointerdown 미지원 환경 폴백
+// 햅틱은 click 컨텍스트에서만 신뢰성 있게 트리거 — pointerdown은 안 됨
+newGameBtn.addEventListener("click", hapticTap);
 
 // 손/마우스를 떼면 스마일 복귀 (어디서 떼든 동작하도록 document에 부착)
 document.addEventListener("mouseup", smileyRelease);
