@@ -537,6 +537,8 @@ struct CellView: View {
     let onLongPress: () -> Void
     let onPressingChanged: (Bool) -> Void
 
+    @State private var pressed = false
+
     var body: some View {
         ZStack {
             Color.win95Gray
@@ -546,12 +548,23 @@ struct CellView: View {
         .overlay(borderOverlay)
         .contentShape(Rectangle())
         // 0.4s — PWA의 LONG_PRESS_MS=400과 동일
-        .onLongPressGesture(
-            minimumDuration: 0.4,
-            perform: onLongPress,
-            onPressingChanged: { onPressingChanged($0) }
-        )
+        .onLongPressGesture(minimumDuration: 0.4, perform: onLongPress)
         .onTapGesture(perform: onTap)
+        // 누름 감지는 별도 DragGesture(minDistance:0)로 — onLongPress의 onPressingChanged는
+        // tap/longpress와 conflict로 안정적이지 않음
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !pressed {
+                        pressed = true
+                        onPressingChanged(true)
+                    }
+                }
+                .onEnded { _ in
+                    pressed = false
+                    onPressingChanged(false)
+                }
+        )
     }
 
     @ViewBuilder
