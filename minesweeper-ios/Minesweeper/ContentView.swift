@@ -56,6 +56,7 @@ final class GameModel {
     var status: GameStatus = .idle
     var elapsed: Int = 0
     var flagCount: Int = 0  // 매 render마다 board 전체 순회 안 하도록 캐시
+    var isPressing: Bool = false  // 셀 누름 중 — 스마일 😯 표시용
 
     private var minesPlaced = false
     private var timer: Timer?
@@ -501,7 +502,7 @@ struct GameView: View {
         switch model.status {
         case .won: "😎"
         case .lost: "😵"
-        case .idle, .playing: "🙂"
+        case .idle, .playing: model.isPressing ? "😯" : "🙂"
         }
     }
 
@@ -514,7 +515,8 @@ struct GameView: View {
                             cell: model.board[r][c],
                             size: cellSize,
                             onTap: { model.reveal(r, c) },
-                            onLongPress: { model.toggleFlag(r, c) }
+                            onLongPress: { model.toggleFlag(r, c) },
+                            onPressingChanged: { pressing in model.isPressing = pressing }
                         )
                     }
                 }
@@ -533,6 +535,7 @@ struct CellView: View {
     let size: CGFloat
     let onTap: () -> Void
     let onLongPress: () -> Void
+    let onPressingChanged: (Bool) -> Void
 
     var body: some View {
         ZStack {
@@ -542,8 +545,13 @@ struct CellView: View {
         .frame(width: size, height: size)
         .overlay(borderOverlay)
         .contentShape(Rectangle())
+        // 0.35s — PWA의 0.4s보다 살짝 빠르게 (체감 snappier)
+        .onLongPressGesture(
+            minimumDuration: 0.35,
+            perform: onLongPress,
+            onPressingChanged: { onPressingChanged($0) }
+        )
         .onTapGesture(perform: onTap)
-        .onLongPressGesture(minimumDuration: 0.4, perform: onLongPress)
     }
 
     @ViewBuilder
