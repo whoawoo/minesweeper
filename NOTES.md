@@ -350,3 +350,164 @@ rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
 51. ~~햅틱 피드백 추가 (v68~v99, iOS 18+ 작동 확보까지 반나절 디버깅): Android는 `navigator.vibrate(40)`, iOS는 `<input type="checkbox" switch>` label.click() 트릭. 깃발 토글, 셀 공개, 스마일리 모두 적용. iOS는 click/touchend 컨텍스트에서만 동작 — setTimeout 콜백/touchstart/pointerdown은 user activation 부여 X라 무효화. 자세한 함정은 `## 알면 좋은 함정 #17` 참고~~ ✅
 52. ~~스마일리 이모지 hit-test 가림: 버튼 정중앙 탭 시 click이 합성 안 되는 iOS 동작 회피. `<button data-face="🙂">` + CSS `.smiley::before { content: attr(data-face); pointer-events: none }` 패턴. 자식 텍스트 노드 대신 pseudo-element로 렌더하면 hit-test 분리됨. 깃발 셀 🚩도 같은 이유로 `<span pointer-events:none>` 래핑~~ ✅
 53. ~~셀 요소 div → button 변환: iOS가 `<div>` click context에 user activation을 안정적으로 부여하지 않음 (`role="button"`만 추가하는 걸로 부족). 진짜 button 요소로 변경 + 기본 스타일 리셋(`padding/margin: 0; appearance: none`). 레이아웃 영향 없음~~ ✅
+
+
+---
+
+# iOS 앱 (Swift / SwiftUI)
+
+> 같은 게임을 iOS 네이티브로 포팅. PWA가 작동 기준(rules-of-truth), 거기서 동작/룩을 가져옴.
+
+## 한눈에 보기
+
+- **타겟**: iOS 17+
+- **언어/UI**: Swift / SwiftUI (필요할 때 UIKit 섞어쓰는 방향이지만 아직 SwiftUI만)
+- **위치**: `~/Documents/github/minesweeper/minesweeper-ios/`
+- **bundle id**: `com.whoawoo.Minesweeper`
+- **Xcode**: 26.4.1
+- **시작**: 2026-05-05
+- **PWA와의 관계**: 같은 레포 모노레포 (`minesweeper-pwa/` + `minesweeper-ios/`). PWA는 GitHub Actions 워크플로(`/.github/workflows/pages.yml`)로 배포
+
+## 파일 구조
+
+```
+minesweeper-ios/
+├── Minesweeper.xcodeproj/
+└── Minesweeper/
+    ├── MinesweeperApp.swift   # @main, GameSounds 워밍업만
+    ├── ContentView.swift       # 모든 게임 코드 (1100+ lines, 단일 파일)
+    └── Assets.xcassets/        # 기본 아이콘만
+```
+
+ContentView.swift 안 구조 (MARK 섹션):
+- **Model**: `Cell`, `CellState`, `GameStatus`, `Difficulty`, `GameModel(@Observable)`
+- **Settings**: `AppSettings.deductionMode` (UserDefaults)
+- **Persistence**: `GameSnapshot` (Codable), `GamePersistence` (Documents/savegame.json)
+- **Theme**: Win95 색상 + 숫자 9색
+- **BombIcon**: PWA 타이틀바 폭탄 SVG를 Canvas로 재현
+- **Bevel**: Win95 3D 베벨 (Canvas 기반)
+- **Sound**: `GameSounds` 싱글톤 — AVAudioEngine + PCM 합성, click/flag/boom/clear
+- **Confetti**: PWA `fxConfetti` 1:1 — Canvas + TimelineView 100파티클
+- **App root**: `ContentView` (route home ↔ game)
+- **Home**: `HomeView` (다이얼로그 + 이어하기 + 난이도 3 + 설정)
+- **Settings sheet**: `SettingsView` (추리모드 토글)
+- **Game**: `GameView` (topBar + status + board)
+- **Board**: `BoardCanvasView` — **단일 Canvas로 480셀 한 번에 그림** (성능)
+
+## 구현된 기능
+
+- 게임 코어: 보드/깃발/플러드필/타이머/카운터/스마일/승패
+- 룩: PWA Win95 1:1 (베벨/LED/숫자색/폭탄아이콘/다이얼로그/네이비 타이틀바)
+- 메인 홈 → 게임 라우팅 (슬라이드 transition 없이 즉시 전환)
+- 추리모드 솔버 (`isSolvableNoGuess` PWA에서 1:1 포팅 — 기본 추론 + subset 추론)
+- 사운드 4종 (PWA Web Audio → AVAudioEngine PCM 합성)
+- 컨페티 클리어 효과 (PWA `fxConfetti` 그대로 — 100파티클, 7색, 1.515초 lifetime)
+- 영구 저장 / 이어하기 (Documents/savegame.json, 액션마다 저장, 백그라운드 진입 시 한 번 더)
+- 설정: 추리모드 on/off (기본 on, PWA와 동일)
+
+## 미완 (내일 이후)
+
+- 출석체크 (PWA의 `mw:stamps` 시스템 — 달력 + 도장 + 트로피)
+- 클리어 시 스마일 pop 애니메이션 (PWA `celebration-smiley-pop`, 0.7s scale/rotate keyframe)
+- 클리어 효과 추가 디테일: halo glow, 마인크래프트 XP 모드
+- 트로피 / XP / 레벨업 시스템
+- 테마 시스템 (PWA 6테마 — classic/forest/lavender/ocean/cherry/midnight)
+- bg-pattern.svg 배경
+- JetBrains Mono 폰트 번들
+- 실기기 + Release 빌드에서 성능 재확인 (시뮬레이터/Debug에서 여전히 살짝 느림)
+
+## 알면 좋은 함정 (iOS 특화)
+
+### i1. @Observable + 큰 보드 mutation 폭주
+
+`@Observable` 클래스의 `var board: [[Cell]]` 같은 속성을 루프 안에서 N번 mutate하면, 매번 옵저버에 통보 → SwiftUI가 모든 의존 view를 invalidate. 480셀×100회=48,000번이면 사실상 freeze.
+
+**해결**: 로컬 변수로 작업하고 끝에 한 번만 대입.
+```swift
+var local = board
+for _ in 0..<100 {
+    placeMinesRandom(on: &local)
+    if isSolvable(on: local) { board = local; return }
+}
+board = local  // 여기서 한 번
+```
+
+`placeMines`, `flood fill`, `flagAllMines`, `revealAllMines` 모두 같은 패턴.
+
+### i2. SwiftUI 480 view 폭주 → Canvas 단일 그리기
+
+PWA는 `<button>` DOM 480개를 영구 유지하면서 `classList.add` 한 번에 해당 element만 repaint. SwiftUI에서 480개 `CellView` struct를 매 board mutation마다 만들고 비교하고 일부 re-render하는 비용은 PWA 대비 너무 큼. `.equatable()` 적용해도 struct 생성 + `==` 비교는 매번 발생.
+
+**해결**: `BoardCanvasView` — 단일 `Canvas { ctx, _ in ... }`로 보드 전체 한 번에 그림. 입력은 단일 `DragGesture(minimumDistance: 0)`로 좌표 기반 hit-test.
+```swift
+Canvas { ctx, _ in
+    // 1패스: 베벨/border 색별로 Path에 모아서 fill 4번
+    // 2패스: 텍스트 — pre-resolved digit/mine/flag 10개를 cell마다 ctx.draw
+}
+.gesture(DragGesture(minimumDistance: 0)
+    .onChanged { ... cellAt(value.startLocation) ... }
+    .onEnded { ... if same cell, onTap ... })
+```
+
+추가로 `BoardCanvasView`에 `Equatable` 채택 + `.equatable()` 사용해서 board 안 바뀌면 아예 redraw skip (timer tick에 Canvas 안 흔들림).
+
+### i3. Canvas 텍스트 alignment
+
+`ctx.draw(text, in: rect)`는 텍스트가 rect보다 크면 좌상단 기준으로 잘림. 가운데 정렬은:
+```swift
+ctx.draw(text, at: CGPoint(x: rect.midX, y: rect.midY), anchor: .center)
+```
+
+### i4. Canvas 텍스트 N번 그릴 때 pre-resolve
+
+같은 텍스트(예: 1~8 숫자)를 100셀에 그릴 때 Text struct를 매번 만들고 ctx.draw 안에서 매번 resolve하는 비용이 큼.
+```swift
+let mineResolved = ctx.resolve(Text("💣").font(...))
+let digitResolved = (1...8).map { ctx.resolve(...) }
+// 이후 ctx.draw(digitResolved[n], at:, anchor:) 로 N번 재사용
+```
+
+### i5. 시뮬레이터 + Debug 빌드는 항상 느림
+
+Swift 컴파일러 최적화 OFF + SwiftUI debug overhead + 맥 GPU 우회 → 실기기 Release 대비 2~5배 느림. 진짜 성능 보려면 ① 실기기 ② Edit Scheme → Run → Build Configuration: Release.
+
+### i6. AVAudioSession SourceKit false-positive
+
+`AVAudioSession.sharedInstance().setCategory(.ambient, ...)` 가 SourceKit 진단에서 "unavailable in macOS" 에러 뜨지만 **iOS 빌드 통과**. macOS 타겟이 아니라 무시해도 됨.
+
+### i7. SwiftUI 동시 제스처 시 `onPressingChanged`
+
+`.onLongPressGesture(minimumDuration:, perform:, onPressingChanged:)` + `.onTapGesture` 같이 쓰면 `onPressingChanged`가 일관되게 안 트리거됨. 누름 상태 추적은 별도 `simultaneousGesture(DragGesture(minimumDistance: 0))`로 분리하는 게 안정적.
+
+### i8. Xcode 프로젝트를 폴더 rename할 때
+
+Xcode 열려있는 상태에서 `mv` 하면 옛 위치에 stale `.xcodeproj` 다시 만듦 (Xcode가 파일 watcher로 살아남게 함). rename 전 Xcode 종료 후 정리.
+
+## 작업 흐름 (시간순)
+
+1. ~~repo 재구조화: `minesweeper-pwa/` 분리 + GitHub Actions Pages 워크플로~~ ✅
+2. ~~Xcode SwiftUI 프로젝트 초기화 (`minesweeper-ios/Minesweeper.xcodeproj`)~~ ✅
+3. ~~핵심 게임플레이 1차 MVP (난이도 피커 + 보드 + 타이머)~~ ✅
+4. ~~Win95 룩 적용 (베벨, LED, 스마일, 숫자 9색)~~ ✅
+5. ~~보드 layout: 셀에 hug + gameFrame 중앙정렬~~ ✅
+6. ~~홈 화면 추가 (다이얼로그 + 폭탄 아이콘 + 난이도 3개)~~ ✅
+7. ~~고급 dimensions 16×30 → 30×16 (세로 폰)~~ ✅
+8. ~~스마일 누름 피드백 (😯) + 롱프레스 0.4s (PWA와 동일)~~ ✅
+9. ~~누름 감지: `simultaneousGesture(DragGesture)` 분리 (i7 함정)~~ ✅
+10. ~~첫 클릭 안전구역 1칸 → 3×3 (PWA와 동일)~~ ✅
+11. ~~이어하기: Codable + Documents/savegame.json + scenePhase 백그라운드 저장~~ ✅
+12. ~~설정 화면 + 추리모드 토글 (UserDefaults)~~ ✅
+13. ~~게임 룰 PWA 1:1: stack 기반 reveal, win 시 자동 깃발, isSolvableNoGuess 솔버 포팅~~ ✅
+14. ~~컨페티 클리어 효과 (`fxConfetti` 1:1, 100파티클, 7색, 1.515s lifetime)~~ ✅
+15. ~~사운드 4종 (Web Audio → AVAudioEngine PCM 합성, 8 player 풀)~~ ✅
+16. ~~슬라이드 transition 제거~~ ✅
+17. ~~메인 박스 max-width 360 cap 제거 (자연스럽게)~~ ✅
+18. ~~성능 1차: Cell/CellView Equatable, 솔버 100→30회, GameSounds 워밍업~~ ✅
+19. ~~성능 2차: 솔버를 self.board 직접 mutate → 로컬 배열로 (i1 함정)~~ ✅
+20. ~~성능 3차: flood fill / revealAllMines / flagAllMines 모두 로컬 패턴~~ ✅
+21. ~~성능 4차: 보드 단일 Canvas로 rewrite (i2 함정)~~ ✅
+22. ~~성능 5차: BoardCanvasView Equatable + Canvas combined-path drawing~~ ✅
+23. ~~topBar 폭을 게임판에 맞춤 (cols*cellSize + 24)~~ ✅
+24. ~~Canvas 텍스트 가운데 정렬 (i3) + 솔버 30→10회~~ ✅
+25. ~~Canvas 텍스트 pre-resolve (i4) — 10개 resolve로 N번 재사용~~ ✅
+
