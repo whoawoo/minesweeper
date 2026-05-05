@@ -526,24 +526,8 @@ function onFlagToggle(r, c) {
   // 햅틱은 호출 컨텍스트(데스크탑 우클릭 / 모바일 롱프레스 touchend)에서 별도로 발사 — iOS는 click 이벤트 컨텍스트에서만 신뢰성 있게 트리거됨
 }
 
-// 햅틱: 두 경로를 모두 시도 — iOS Safari는 navigator.vibrate를 함수로 정의해두고 no-op이라
-// "있으면 호출하고 끝"이 아니라 switch 트릭도 항상 같이 발사해야 한다.
-// Android: vibrate가 실제 진동, switch는 no-op
-// iOS 18+: vibrate는 no-op, switch label.click()이 시스템 햅틱 트리거
-function hapticTap() {
-  // iOS 18+: <input switch>의 label.click()이 시스템 햅틱 트리거
-  const label = document.createElement("label");
-  label.style.display = "none";
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.setAttribute("switch", "");
-  label.appendChild(input);
-  document.head.appendChild(label);
-  label.click();
-  document.head.removeChild(label);
-  // Android: Vibration API (iOS Safari/PWA에선 no-op)
-  if (navigator.vibrate) navigator.vibrate(40);
-}
+// 햅틱 비활성화 — 호출부는 그대로 두고 본체만 비워둠
+function hapticTap() {}
 
 
 const LONG_PRESS_MS = 400;
