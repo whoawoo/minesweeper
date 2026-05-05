@@ -1108,9 +1108,11 @@ struct GameView: View {
     var body: some View {
         GeometryReader { geo in
             let cellSize = computeCellSize(in: geo.size)
+            // gameFrame width = 셀 가로폭 + inset 베벨 패딩(3*2) + 외곽 패딩(6*2) + 외곽 베벨(3*2) = cols*cellSize + 24
+            let frameWidth = CGFloat(model.cols) * cellSize + 24
 
             VStack(spacing: 12) {
-                topBar
+                topBar.frame(width: frameWidth)
                 gameFrame(cellSize: cellSize)
                 Spacer(minLength: 0)
             }
@@ -1228,6 +1230,7 @@ struct GameView: View {
             onLongPress: { r, c in model.toggleFlag(r, c) },
             onPressingChanged: { pressing in model.isPressing = pressing }
         )
+        .equatable()  // board / cellSize 안 바뀌면 Canvas redraw skip (timer tick에 안 흔들림)
         .padding(3)
         .background(Color.win95Gray)
         .beveled(.inset, width: 3)
@@ -1236,7 +1239,7 @@ struct GameView: View {
 
 // MARK: - Board Canvas (단일 Canvas로 전체 보드 렌더 — 480개 View 폭주 회피)
 
-struct BoardCanvasView: View {
+struct BoardCanvasView: View, Equatable {
     let board: [[Cell]]
     let cellSize: CGFloat
     let onTap: (Int, Int) -> Void
@@ -1247,14 +1250,70 @@ struct BoardCanvasView: View {
     @State private var longPressTimer: Timer? = nil
     @State private var didLongPress = false
 
+    static func == (lhs: BoardCanvasView, rhs: BoardCanvasView) -> Bool {
+        // 클로저는 비교 불가 → board + cellSize 동일하면 동일하다 본다
+        lhs.cellSize == rhs.cellSize && lhs.board == rhs.board
+    }
+
     var rows: Int { board.count }
     var cols: Int { board.first?.count ?? 0 }
 
     var body: some View {
         Canvas { ctx, _ in
+            // 1패스: 베벨 가장자리를 색별 단일 Path에 모아서 fill 4번으로 압축
+            // (cell당 fill 5번 → 전체 fill 4번 + revealed 1번)
+            let bw: CGFloat = 2
+            var lightPath = Path()
+            var shadowPath = Path()
+            var revealedRectPath = Path()
+            // 배경 한 번
+            ctx.fill(
+                Path(CGRect(x: 0, y: 0, width: CGFloat(cols) * cellSize, height: CGFloat(rows) * cellSize)),
+                with: .color(.win95Gray)
+            )
             for r in 0..<rows {
                 for c in 0..<cols {
-                    drawCell(ctx: ctx, cell: board[r][c], r: r, c: c)
+                    let x = CGFloat(c) * cellSize
+                    let y = CGFloat(r) * cellSize
+                    let cell = board[r][c]
+                    if cell.state == .revealed {
+                        revealedRectPath.addRect(CGRect(x: x + 0.25, y: y + 0.25, width: cellSize - 0.5, height: cellSize - 0.5))
+                    } else {
+                        lightPath.addRect(CGRect(x: x, y: y, width: cellSize, height: bw))
+                        lightPath.addRect(CGRect(x: x, y: y, width: bw, height: cellSize))
+                        shadowPath.addRect(CGRect(x: x, y: y + cellSize - bw, width: cellSize, height: bw))
+                        shadowPath.addRect(CGRect(x: x + cellSize - bw, y: y, width: bw, height: cellSize))
+                    }
+                }
+            }
+            ctx.fill(lightPath, with: .color(.win95Light))
+            ctx.fill(shadowPath, with: .color(.win95Shadow))
+            ctx.stroke(revealedRectPath, with: .color(.win95Shadow.opacity(0.5)), lineWidth: 0.5)
+
+            // 2패스: 텍스트는 셀 단위로 (combine 불가)
+            for r in 0..<rows {
+                for c in 0..<cols {
+                    let cell = board[r][c]
+                    if cell.state == .hidden { continue }
+                    let x = CGFloat(c) * cellSize
+                    let y = CGFloat(r) * cellSize
+                    let rect = CGRect(x: x, y: y, width: cellSize, height: cellSize)
+                    switch cell.state {
+                    case .hidden: break
+                    case .flagged:
+                        ctx.draw(Text("🚩").font(.system(size: cellSize * 0.55)), in: rect)
+                    case .revealed:
+                        if cell.isMine {
+                            ctx.draw(Text("💣").font(.system(size: cellSize * 0.6)), in: rect)
+                        } else if cell.neighbors > 0 {
+                            ctx.draw(
+                                Text("\(cell.neighbors)")
+                                    .font(.system(size: cellSize * 0.65, weight: .black, design: .monospaced))
+                                    .foregroundColor(BoardCanvasView.numberColor(cell.neighbors)),
+                                in: rect
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -1298,50 +1357,6 @@ struct BoardCanvasView: View {
         guard let released = cellAt(value.location) else { return }
         if released.0 == pressed.0 && released.1 == pressed.1 {
             onTap(pressed.0, pressed.1)
-        }
-    }
-
-    private func drawCell(ctx: GraphicsContext, cell: Cell, r: Int, c: Int) {
-        let x = CGFloat(c) * cellSize
-        let y = CGFloat(r) * cellSize
-        let rect = CGRect(x: x, y: y, width: cellSize, height: cellSize)
-
-        ctx.fill(Path(rect), with: .color(.win95Gray))
-
-        if cell.state == .revealed {
-            // 1pt shadow border
-            ctx.stroke(Path(rect.insetBy(dx: 0.25, dy: 0.25)),
-                       with: .color(.win95Shadow.opacity(0.5)), lineWidth: 0.5)
-        } else {
-            // Outset bevel: 2pt
-            let bw: CGFloat = 2
-            ctx.fill(Path(CGRect(x: x, y: y, width: cellSize, height: bw)),
-                     with: .color(.win95Light))
-            ctx.fill(Path(CGRect(x: x, y: y, width: bw, height: cellSize)),
-                     with: .color(.win95Light))
-            ctx.fill(Path(CGRect(x: x, y: y + cellSize - bw, width: cellSize, height: bw)),
-                     with: .color(.win95Shadow))
-            ctx.fill(Path(CGRect(x: x + cellSize - bw, y: y, width: bw, height: cellSize)),
-                     with: .color(.win95Shadow))
-        }
-
-        // Content
-        switch cell.state {
-        case .hidden:
-            break
-        case .flagged:
-            let t = Text("🚩").font(.system(size: cellSize * 0.55))
-            ctx.draw(t, in: rect)
-        case .revealed:
-            if cell.isMine {
-                let t = Text("💣").font(.system(size: cellSize * 0.6))
-                ctx.draw(t, in: rect)
-            } else if cell.neighbors > 0 {
-                let t = Text("\(cell.neighbors)")
-                    .font(.system(size: cellSize * 0.65, weight: .black, design: .monospaced))
-                    .foregroundColor(BoardCanvasView.numberColor(cell.neighbors))
-                ctx.draw(t, in: rect)
-            }
         }
     }
 
