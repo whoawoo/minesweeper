@@ -191,19 +191,92 @@ final class GameModel {
     }
 }
 
+// MARK: - Theme (Win95 minesweeper palette)
+
+extension Color {
+    static let win95Gray   = Color(red: 0xC0/255, green: 0xC0/255, blue: 0xC0/255)
+    static let win95Light  = Color.white
+    static let win95Shadow = Color(red: 0x80/255, green: 0x80/255, blue: 0x80/255)
+    static let win95Dark   = Color(red: 0x40/255, green: 0x40/255, blue: 0x40/255)
+    static let win95BG     = Color(red: 0x5D/255, green: 0x5D/255, blue: 0x5D/255)
+    static let ledBG       = Color.black
+    static let ledRed      = Color(red: 0xFF/255, green: 0x20/255, blue: 0x20/255)
+
+    static let mineN1 = Color(red: 0x1F/255, green: 0x57/255, blue: 0xC3/255)
+    static let mineN2 = Color(red: 0x00/255, green: 0x80/255, blue: 0x00/255)
+    static let mineN3 = Color(red: 0xC5/255, green: 0x28/255, blue: 0x28/255)
+    static let mineN4 = Color(red: 0x00/255, green: 0x00/255, blue: 0x80/255)
+    static let mineN5 = Color(red: 0x80/255, green: 0x00/255, blue: 0x00/255)
+    static let mineN6 = Color(red: 0x00/255, green: 0x80/255, blue: 0x80/255)
+    static let mineN7 = Color.black
+    static let mineN8 = Color(red: 0x80/255, green: 0x80/255, blue: 0x80/255)
+}
+
+// MARK: - Bevel (Win95 3D border)
+
+enum BevelStyle { case outset, inset }
+
+struct Bevel: View {
+    let style: BevelStyle
+    let width: CGFloat
+
+    var body: some View {
+        let tl: Color = style == .outset ? .win95Light : .win95Shadow
+        let br: Color = style == .outset ? .win95Shadow : .win95Light
+        ZStack {
+            VStack(spacing: 0) {
+                Rectangle().fill(tl).frame(height: width)
+                Spacer(minLength: 0)
+                Rectangle().fill(br).frame(height: width)
+            }
+            HStack(spacing: 0) {
+                Rectangle().fill(tl).frame(width: width)
+                Spacer(minLength: 0)
+                Rectangle().fill(br).frame(width: width)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+extension View {
+    func beveled(_ style: BevelStyle, width: CGFloat = 2) -> some View {
+        self.overlay(Bevel(style: style, width: width))
+    }
+}
+
 // MARK: - Views
 
 struct ContentView: View {
     @State private var model = GameModel()
 
     var body: some View {
-        VStack(spacing: 16) {
-            difficultyPicker
-            statusBar
-            boardView
-            Spacer()
+        GeometryReader { geo in
+            let cellSize = computeCellSize(in: geo.size)
+
+            ZStack {
+                Color.win95BG.ignoresSafeArea()
+
+                VStack(spacing: 12) {
+                    difficultyPicker
+                    gameFrame(cellSize: cellSize)
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 12)
+            }
         }
-        .padding()
+    }
+
+    private func computeCellSize(in size: CGSize) -> CGFloat {
+        // 가로/세로 각각의 가용 픽셀에서 chrome(베벨/패딩/상태바/난이도 피커) 빼고 cell 한 변 산출
+        let horizontalChrome: CGFloat = 24 + 6 + 12 + 6   // 페이지패딩 + outset bevel*2 + frame padding*2 + inset bevel*2
+        let verticalChrome: CGFloat = 12 + 50 + 50 + 6 + 12 + 6  // top + difficulty picker + status bar + inset bevel*2 + frame padding*2 + outset bevel*2
+        let availW = max(40, size.width - horizontalChrome)
+        let availH = max(40, size.height - verticalChrome)
+        let byW = availW / CGFloat(model.cols)
+        let byH = availH / CGFloat(model.rows)
+        return floor(max(12, min(byW, byH, 40)))
     }
 
     private var difficultyPicker: some View {
@@ -218,31 +291,52 @@ struct ContentView: View {
         .pickerStyle(.segmented)
     }
 
-    private var statusBar: some View {
-        HStack {
-            digitDisplay(value: max(0, model.minesRemaining))
-            Spacer()
-            Button(action: { model.newGame() }) {
-                Text(smiley).font(.system(size: 40))
-            }
-            .buttonStyle(.plain)
-            Spacer()
-            digitDisplay(value: min(999, model.elapsed))
+    private func gameFrame(cellSize: CGFloat) -> some View {
+        VStack(spacing: 6) {
+            statusBar
+            boardView(cellSize: cellSize)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .background(Color(white: 0.85))
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .padding(6)
+        .background(Color.win95Gray)
+        .beveled(.outset, width: 3)
+        .frame(maxWidth: .infinity)
     }
 
-    private func digitDisplay(value: Int) -> some View {
+    private var statusBar: some View {
+        HStack(spacing: 8) {
+            ledDigits(value: max(0, model.minesRemaining))
+            Spacer()
+            smileyButton
+            Spacer()
+            ledDigits(value: min(999, model.elapsed))
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
+        .background(Color.win95Gray)
+        .beveled(.inset, width: 2)
+    }
+
+    private func ledDigits(value: Int) -> some View {
         Text(String(format: "%03d", value))
-            .font(.system(.title2, design: .monospaced).weight(.bold))
-            .foregroundStyle(.red)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color.black)
-            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .font(.system(size: 26, weight: .bold, design: .monospaced))
+            .foregroundStyle(Color.ledRed)
+            .monospacedDigit()
+            .tracking(1.5)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(Color.ledBG)
+            .beveled(.inset, width: 1)
+    }
+
+    private var smileyButton: some View {
+        Button(action: { model.newGame() }) {
+            Text(smiley)
+                .font(.system(size: 26))
+                .frame(width: 40, height: 40)
+                .background(Color.win95Gray)
+                .beveled(.outset, width: 2)
+        }
+        .buttonStyle(.plain)
     }
 
     private var smiley: String {
@@ -253,60 +347,51 @@ struct ContentView: View {
         }
     }
 
-    private var boardView: some View {
-        GeometryReader { geo in
-            let cellW = geo.size.width / CGFloat(model.cols)
-            let cellH = geo.size.height / CGFloat(model.rows)
-            let size = min(cellW, cellH)
-            VStack(spacing: 1) {
-                ForEach(0..<model.rows, id: \.self) { r in
-                    HStack(spacing: 1) {
-                        ForEach(0..<model.cols, id: \.self) { c in
-                            CellView(
-                                cell: model.board[r][c],
-                                size: size,
-                                gameOver: model.status == .lost,
-                                onTap: { model.reveal(r, c) },
-                                onLongPress: { model.toggleFlag(r, c) }
-                            )
-                        }
+    private func boardView(cellSize: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            ForEach(0..<model.rows, id: \.self) { r in
+                HStack(spacing: 0) {
+                    ForEach(0..<model.cols, id: \.self) { c in
+                        CellView(
+                            cell: model.board[r][c],
+                            size: cellSize,
+                            onTap: { model.reveal(r, c) },
+                            onLongPress: { model.toggleFlag(r, c) }
+                        )
                     }
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .aspectRatio(CGFloat(model.cols) / CGFloat(model.rows), contentMode: .fit)
+        .beveled(.inset, width: 3)
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 
 struct CellView: View {
     let cell: Cell
     let size: CGFloat
-    let gameOver: Bool
     let onTap: () -> Void
     let onLongPress: () -> Void
 
     var body: some View {
         ZStack {
-            background
+            Color.win95Gray
             content
         }
         .frame(width: size, height: size)
+        .overlay(borderOverlay)
         .contentShape(Rectangle())
-        .onTapGesture { onTap() }
-        .onLongPressGesture(minimumDuration: 0.4) { onLongPress() }
+        .onTapGesture(perform: onTap)
+        .onLongPressGesture(minimumDuration: 0.4, perform: onLongPress)
     }
 
-    private var background: some View {
-        Rectangle()
-            .fill(bgColor)
-    }
-
-    private var bgColor: Color {
+    @ViewBuilder
+    private var borderOverlay: some View {
         if cell.state == .revealed {
-            return cell.isMine ? Color.red.opacity(0.8) : Color(white: 0.88)
+            Rectangle().strokeBorder(Color.win95Shadow.opacity(0.5), lineWidth: 0.5)
+        } else {
+            Bevel(style: .outset, width: 2)
         }
-        return Color(white: 0.72)
     }
 
     @ViewBuilder
@@ -321,7 +406,7 @@ struct CellView: View {
                 Text("💣").font(.system(size: size * 0.6))
             } else if cell.neighbors > 0 {
                 Text("\(cell.neighbors)")
-                    .font(.system(size: size * 0.7, weight: .bold, design: .monospaced))
+                    .font(.system(size: size * 0.65, weight: .black, design: .monospaced))
                     .foregroundStyle(numberColor(cell.neighbors))
             }
         }
@@ -329,14 +414,14 @@ struct CellView: View {
 
     private func numberColor(_ n: Int) -> Color {
         switch n {
-        case 1: .blue
-        case 2: .green
-        case 3: .red
-        case 4: .purple
-        case 5: .brown
-        case 6: .teal
-        case 7: .black
-        case 8: .gray
+        case 1: .mineN1
+        case 2: .mineN2
+        case 3: .mineN3
+        case 4: .mineN4
+        case 5: .mineN5
+        case 6: .mineN6
+        case 7: .mineN7
+        case 8: .mineN8
         default: .black
         }
     }
