@@ -139,10 +139,16 @@ final class GameModel {
     }
 
     func saveIfPlaying() {
+        // 비동기 — 매 셀 탭마다 동기 JSON 인코딩 + 디스크 쓰기가 UI 차단 안 하도록
         if minesPlaced && status == .playing {
-            GamePersistence.save(snapshot())
+            let snap = snapshot()
+            DispatchQueue.global(qos: .utility).async {
+                GamePersistence.save(snap)
+            }
         } else {
-            GamePersistence.clear()
+            DispatchQueue.global(qos: .utility).async {
+                GamePersistence.clear()
+            }
         }
     }
 
@@ -259,15 +265,15 @@ final class GameModel {
 
     // MARK: private
 
-    // 추리모드 시도 횟수 — PWA 300 → 모바일 응답성 위해 단축
+    // 추리모드 시도 횟수 — PWA는 desktop 기준 300, 모바일에선 30 정도가 응답성/품질 절충점
     private func placeMines(safe: (Int, Int)) {
         // 로컬 배열에서만 mutate → @Observable 관찰자에 N번 통보되는 폭주 방지
         var local = board
         if AppSettings.deductionMode {
-            for _ in 0..<100 {
+            for _ in 0..<30 {
                 placeMinesRandom(safe: safe, on: &local)
                 if isSolvableNoGuess(firstR: safe.0, firstC: safe.1, on: local) {
-                    board = local  // 끝에 한 번만 board에 대입
+                    board = local
                     return
                 }
             }
