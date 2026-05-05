@@ -246,26 +246,30 @@ final class GameModel {
 
     // MARK: private
 
-    // 추리모드 on이면 풀 수 있는 보드를 최대 100번 시도 (PWA 300 → 모바일 응답성 위해 단축)
+    // 추리모드 시도 횟수 — PWA 300 → 모바일 응답성 위해 단축
     private func placeMines(safe: (Int, Int)) {
+        // 로컬 배열에서만 mutate → @Observable 관찰자에 N번 통보되는 폭주 방지
+        var local = board
         if AppSettings.deductionMode {
             for _ in 0..<100 {
-                placeMinesRandom(safe: safe)
-                if isSolvableNoGuess(firstR: safe.0, firstC: safe.1) {
+                placeMinesRandom(safe: safe, on: &local)
+                if isSolvableNoGuess(firstR: safe.0, firstC: safe.1, on: local) {
+                    board = local  // 끝에 한 번만 board에 대입
                     return
                 }
             }
             // 못 만들면 폴백
         }
-        placeMinesRandom(safe: safe)
+        placeMinesRandom(safe: safe, on: &local)
+        board = local
     }
 
     // PWA placeMinesRandom과 동일: 보드 초기화 + 3×3 안전구역 + Fisher-Yates + 이웃 카운트
-    private func placeMinesRandom(safe: (Int, Int)) {
+    private func placeMinesRandom(safe: (Int, Int), on b: inout [[Cell]]) {
         for r in 0..<rows {
             for c in 0..<cols {
-                board[r][c].isMine = false
-                board[r][c].neighbors = 0
+                b[r][c].isMine = false
+                b[r][c].neighbors = 0
             }
         }
         var safeSet = Set<Int>()
@@ -285,29 +289,30 @@ final class GameModel {
         }
         candidates.shuffle()
         for (r, c) in candidates.prefix(mineCount) {
-            board[r][c].isMine = true
+            b[r][c].isMine = true
         }
         // 인접 지뢰 수
         for r in 0..<rows {
             for c in 0..<cols {
-                if board[r][c].isMine { continue }
+                if b[r][c].isMine { continue }
                 var count = 0
                 for dr in -1...1 {
                     for dc in -1...1 where !(dr == 0 && dc == 0) {
                         let nr = r + dr, nc = c + dc
-                        if nr >= 0, nr < rows, nc >= 0, nc < cols, board[nr][nc].isMine {
+                        if nr >= 0, nr < rows, nc >= 0, nc < cols, b[nr][nc].isMine {
                             count += 1
                         }
                     }
                 }
-                board[r][c].neighbors = count
+                b[r][c].neighbors = count
             }
         }
     }
 
     // PWA isSolvableNoGuess 1:1 포팅 — 기본 추론 + subset 추론(1-2-1 같은 패턴)
     // 추측 없이 논리만으로 풀리는 보드면 true
-    private func isSolvableNoGuess(firstR: Int, firstC: Int) -> Bool {
+    // board를 인자로 받음 (self.board 읽으면 @Observable 추적 들어가서 느려짐)
+    private func isSolvableNoGuess(firstR: Int, firstC: Int, on board: [[Cell]]) -> Bool {
         struct Constraint {
             let minesLeft: Int
             let unknowns: Set<Int>
