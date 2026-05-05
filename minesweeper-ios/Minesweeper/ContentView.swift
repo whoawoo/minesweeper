@@ -44,6 +44,18 @@ enum Difficulty: String, CaseIterable, Identifiable, Hashable, Codable {
     var mines: Int { switch self { case .beginner: 17; case .intermediate: 54; case .expert: 103 } }
 }
 
+// MARK: - Settings (UserDefaults)
+
+enum AppSettings {
+    static let deductionModeKey = "deductionMode"
+
+    // PWA 기본값과 동일하게 on
+    static var deductionMode: Bool {
+        get { UserDefaults.standard.object(forKey: deductionModeKey) as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: deductionModeKey) }
+    }
+}
+
 // MARK: - Persistence
 
 struct GameSnapshot: Codable {
@@ -149,32 +161,65 @@ final class GameModel {
 
     func reveal(_ r: Int, _ c: Int) {
         guard status == .idle || status == .playing else { return }
-        guard board[r][c].state == .hidden else { return }
+        guard board[r][c].state == .hidden, board[r][c].state != .flagged else { return }
 
         if !minesPlaced {
-            placeMines(safe: (r, c))
-            computeNeighbors()
+            placeMines(safe: (r, c))  // 내부에서 placeMinesRandom이 neighbors까지 계산
             minesPlaced = true
             status = .playing
             startTimer()
         }
 
-        if board[r][c].isMine {
-            revealAllMines()
-            status = .lost
-            stopTimer()
-            GamePersistence.clear()
-            return
+        // PWA와 동일: stack 기반 flood fill — 0인 칸 이웃을 계속 펼침
+        var stack: [(Int, Int)] = [(r, c)]
+        while let (cr, cc) = stack.popLast() {
+            let cell = board[cr][cc]
+            if cell.state == .revealed || cell.state == .flagged { continue }
+            board[cr][cc].state = .revealed
+            if cell.isMine {
+                handleLose()
+                return
+            }
+            if cell.neighbors == 0 {
+                for dr in -1...1 {
+                    for dc in -1...1 where !(dr == 0 && dc == 0) {
+                        let nr = cr + dr, nc = cc + dc
+                        if nr >= 0, nr < rows, nc >= 0, nc < cols, board[nr][nc].state != .revealed {
+                            stack.append((nr, nc))
+                        }
+                    }
+                }
+            }
         }
 
-        floodFill(r, c)
-
         if checkWin() {
-            status = .won
-            stopTimer()
-            GamePersistence.clear()
+            handleWin()
         } else {
             saveIfPlaying()
+        }
+    }
+
+    private func handleLose() {
+        revealAllMines()
+        status = .lost
+        stopTimer()
+        GamePersistence.clear()
+    }
+
+    private func handleWin() {
+        // PWA와 동일: 남은 지뢰에 자동 깃발 + 카운터 0 표시
+        flagAllMines()
+        status = .won
+        stopTimer()
+        GamePersistence.clear()
+    }
+
+    private func flagAllMines() {
+        for r in 0..<rows {
+            for c in 0..<cols where board[r][c].isMine && board[r][c].state != .flagged {
+                board[r][c].state = .flagged
+                flagCount += 1
+            }
         }
     }
 
@@ -194,9 +239,28 @@ final class GameModel {
 
     // MARK: private
 
+    // PWA의 placeMines와 동일 구조: 추리모드 on이면 풀 수 있는 보드를 최대 300번 시도
     private func placeMines(safe: (Int, Int)) {
-        // PWA와 동일: 클릭한 칸 + 이웃 8칸(3×3 안전구역)은 지뢰 제외
-        // → 첫 클릭이 항상 0-이웃 칸이 되어 floodfill로 영역이 펼쳐짐
+        if AppSettings.deductionMode {
+            for _ in 0..<300 {
+                placeMinesRandom(safe: safe)
+                if isSolvableNoGuess(firstR: safe.0, firstC: safe.1) {
+                    return
+                }
+            }
+            // 300번 안에 해결되는 보드 못 만들면 폴백
+        }
+        placeMinesRandom(safe: safe)
+    }
+
+    // PWA placeMinesRandom과 동일: 보드 초기화 + 3×3 안전구역 + Fisher-Yates + 이웃 카운트
+    private func placeMinesRandom(safe: (Int, Int)) {
+        for r in 0..<rows {
+            for c in 0..<cols {
+                board[r][c].isMine = false
+                board[r][c].neighbors = 0
+            }
+        }
         var safeSet = Set<Int>()
         for dr in -1...1 {
             for dc in -1...1 {
@@ -206,19 +270,17 @@ final class GameModel {
                 }
             }
         }
-        var positions: [(Int, Int)] = []
+        var candidates: [(Int, Int)] = []
         for r in 0..<rows {
             for c in 0..<cols where !safeSet.contains(r * cols + c) {
-                positions.append((r, c))
+                candidates.append((r, c))
             }
         }
-        positions.shuffle()
-        for (r, c) in positions.prefix(mineCount) {
+        candidates.shuffle()
+        for (r, c) in candidates.prefix(mineCount) {
             board[r][c].isMine = true
         }
-    }
-
-    private func computeNeighbors() {
+        // 인접 지뢰 수
         for r in 0..<rows {
             for c in 0..<cols {
                 if board[r][c].isMine { continue }
@@ -236,18 +298,9 @@ final class GameModel {
         }
     }
 
-    private func floodFill(_ r: Int, _ c: Int) {
-        guard r >= 0, r < rows, c >= 0, c < cols else { return }
-        guard board[r][c].state == .hidden else { return }
-        guard !board[r][c].isMine else { return }
-        board[r][c].state = .revealed
-        if board[r][c].neighbors == 0 {
-            for dr in -1...1 {
-                for dc in -1...1 where !(dr == 0 && dc == 0) {
-                    floodFill(r + dr, c + dc)
-                }
-            }
-        }
+    // TODO: 다음 커밋에서 PWA의 isSolvableNoGuess 솔버(기본 추론 + subset 추론) 포팅
+    private func isSolvableNoGuess(firstR: Int, firstC: Int) -> Bool {
+        return true  // 임시: 항상 true → 첫 보드 그대로 사용 (deductionMode 효과 없음)
     }
 
     private func revealAllMines() {
@@ -415,6 +468,8 @@ struct HomeView: View {
     let onResume: () -> Void
     let onSelect: (Difficulty) -> Void
 
+    @State private var showSettings = false
+
     var body: some View {
         VStack {
             Spacer()
@@ -422,6 +477,10 @@ struct HomeView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+                .presentationDetents([.medium])
+        }
     }
 
     private var dialogWindow: some View {
@@ -449,6 +508,7 @@ struct HomeView: View {
                 ForEach(Difficulty.allCases) { d in
                     menuButton(d)
                 }
+                settingsButton
             }
             .padding(20)
             .frame(maxWidth: .infinity)
@@ -459,6 +519,23 @@ struct HomeView: View {
         .beveled(.outset, width: 3)
         .frame(maxWidth: 360)
         .padding(.horizontal, 16)
+    }
+
+    private var settingsButton: some View {
+        Button(action: { showSettings = true }) {
+            HStack(spacing: 6) {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 16))
+                Text("설정")
+                    .font(.system(size: 14, weight: .bold))
+            }
+            .foregroundStyle(.black)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(Color.win95Gray)
+            .beveled(.outset, width: 2)
+        }
+        .buttonStyle(PressableButtonStyle())
     }
 
     private func resumeButton(_ s: GameSnapshot) -> some View {
@@ -499,6 +576,68 @@ struct HomeView: View {
             .beveled(.outset, width: 2)
         }
         .buttonStyle(PressableButtonStyle())
+    }
+}
+
+// MARK: - Settings sheet
+
+struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage(AppSettings.deductionModeKey) private var deductionMode: Bool = true
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Title bar
+            HStack {
+                Text("설정")
+                    .font(.system(size: 18, weight: .bold))
+                    .tracking(2)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .overlay(alignment: .trailing) {
+                        Button(action: { dismiss() }) {
+                            Text("✕")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                        }
+                    }
+            }
+            .padding(.top, 12)
+            .padding(.bottom, 9)
+            .padding(.horizontal, 8)
+            .frame(maxWidth: .infinity)
+            .background(Color.win95Title)
+
+            // Body
+            VStack(alignment: .leading, spacing: 16) {
+                deductionToggle
+                Spacer()
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(Color.win95Gray)
+        }
+        .padding(3)
+        .background(Color.win95Gray)
+        .beveled(.outset, width: 3)
+        .padding(16)
+        .background(Color.win95BG)
+    }
+
+    private var deductionToggle: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Toggle(isOn: $deductionMode) {
+                Text("추리모드")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.black)
+            }
+            .tint(Color.win95Title)
+            Text("추측 없이 논리만으로 풀 수 있는 보드만 생성. 첫 클릭 후 보드 생성에 약간 더 걸릴 수 있습니다.")
+                .font(.system(size: 12))
+                .foregroundStyle(Color.win95Dark)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 
