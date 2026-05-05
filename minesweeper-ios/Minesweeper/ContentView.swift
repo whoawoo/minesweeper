@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 // MARK: - Model
 
@@ -163,6 +164,8 @@ final class GameModel {
         guard status == .idle || status == .playing else { return }
         guard board[r][c].state == .hidden, board[r][c].state != .flagged else { return }
 
+        GameSounds.shared.click()  // PWA: onCellClick 첫줄에 playClick
+
         if !minesPlaced {
             placeMines(safe: (r, c))  // 내부에서 placeMinesRandom이 neighbors까지 계산
             minesPlaced = true
@@ -203,6 +206,7 @@ final class GameModel {
         revealAllMines()
         status = .lost
         stopTimer()
+        GameSounds.shared.boom()
         GamePersistence.clear()
     }
 
@@ -211,6 +215,7 @@ final class GameModel {
         flagAllMines()
         status = .won
         stopTimer()
+        GameSounds.shared.clear()
         GamePersistence.clear()
     }
 
@@ -225,6 +230,7 @@ final class GameModel {
 
     func toggleFlag(_ r: Int, _ c: Int) {
         guard status == .idle || status == .playing else { return }
+        guard board[r][c].state != .revealed else { return }
         switch board[r][c].state {
         case .hidden:
             board[r][c].state = .flagged
@@ -234,6 +240,7 @@ final class GameModel {
             flagCount -= 1
         case .revealed: break
         }
+        GameSounds.shared.flag()
         saveIfPlaying()
     }
 
@@ -548,6 +555,200 @@ extension View {
     }
 }
 
+// MARK: - Sound (PWA Web Audio 4종 포팅)
+
+final class GameSounds {
+    static let shared = GameSounds()
+
+    private let engine = AVAudioEngine()
+    private let format = AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 1)!
+    private var players: [AVAudioPlayerNode] = []
+    private var nextPlayerIdx = 0
+
+    private var clickBuf: AVAudioPCMBuffer!
+    private var flagBuf: AVAudioPCMBuffer!
+    private var boomBuf: AVAudioPCMBuffer!
+
+    private init() {
+        try? AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: [.mixWithOthers])
+        try? AVAudioSession.sharedInstance().setActive(true)
+
+        // 8개 player 풀 — 동시 재생용 (예: 클리어 시 여러 톤이 겹침)
+        for _ in 0..<8 {
+            let p = AVAudioPlayerNode()
+            engine.attach(p)
+            engine.connect(p, to: engine.mainMixerNode, format: format)
+            players.append(p)
+        }
+
+        // PWA playClick: sine 900Hz, 0.15→0.001 exp 0.05s
+        clickBuf = makeSineEnvelope(freq: 900, durationSec: 0.06, startGain: 0.15, endGain: 0.001, decaySec: 0.05)
+        // PWA playFlag: square 600→1100Hz linear 0.06s, 0.1→0.001 exp 0.08s
+        flagBuf = makeSquareSweep(freqStart: 600, freqEnd: 1100, sweepSec: 0.06, durationSec: 0.09, startGain: 0.1, endGain: 0.001, decaySec: 0.08)
+        // PWA playBoom: 0.5s lowpass(800) noise (0.45→) + sine 140→40Hz exp (0.4→) over 0.4s
+        boomBuf = makeBoom()
+
+        try? engine.start()
+        for p in players { p.play() }
+    }
+
+    private func nextPlayer() -> AVAudioPlayerNode {
+        let p = players[nextPlayerIdx]
+        nextPlayerIdx = (nextPlayerIdx + 1) % players.count
+        return p
+    }
+
+    func click() { nextPlayer().scheduleBuffer(clickBuf, completionHandler: nil) }
+    func flag()  { nextPlayer().scheduleBuffer(flagBuf,  completionHandler: nil) }
+    func boom()  { nextPlayer().scheduleBuffer(boomBuf,  completionHandler: nil) }
+
+    // PWA playConfettiClear: 10 tones (C7 scale, sine 0.3s 0.1vol 0~0.7s start) + 20 crackle bursts over 1s
+    func clear() {
+        nextPlayer().scheduleBuffer(makeClearComposite(), completionHandler: nil)
+    }
+
+    // MARK: - Buffer generators
+
+    private func makeSineEnvelope(freq: Double, durationSec: Double, startGain: Double, endGain: Double, decaySec: Double) -> AVAudioPCMBuffer {
+        let sr = format.sampleRate
+        let frames = AVAudioFrameCount(sr * durationSec)
+        let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames)!
+        buf.frameLength = frames
+        let ch = buf.floatChannelData![0]
+        // exp ramp: g(t) = startGain * (endGain/startGain)^(t/decaySec)
+        let lnRatio = log(endGain / startGain)
+        for i in 0..<Int(frames) {
+            let t = Double(i) / sr
+            let env = startGain * exp(lnRatio * min(t, decaySec) / decaySec)
+            ch[i] = Float(sin(2 * .pi * freq * t) * env)
+        }
+        return buf
+    }
+
+    private func makeSquareSweep(freqStart: Double, freqEnd: Double, sweepSec: Double, durationSec: Double, startGain: Double, endGain: Double, decaySec: Double) -> AVAudioPCMBuffer {
+        let sr = format.sampleRate
+        let frames = AVAudioFrameCount(sr * durationSec)
+        let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames)!
+        buf.frameLength = frames
+        let ch = buf.floatChannelData![0]
+        let lnRatio = log(endGain / startGain)
+        // square via phase tracking (linear freq sweep)
+        var phase: Double = 0
+        var prevFreq = freqStart
+        for i in 0..<Int(frames) {
+            let t = Double(i) / sr
+            let freq: Double
+            if t < sweepSec {
+                freq = freqStart + (freqEnd - freqStart) * (t / sweepSec)
+            } else {
+                freq = freqEnd
+            }
+            phase += 2 * .pi * (prevFreq + freq) / 2 / sr
+            prevFreq = freq
+            let s = sin(phase) >= 0 ? 1.0 : -1.0  // square
+            let env = startGain * exp(lnRatio * min(t, decaySec) / decaySec)
+            ch[i] = Float(s * env)
+        }
+        return buf
+    }
+
+    private func makeBoom() -> AVAudioPCMBuffer {
+        let sr = format.sampleRate
+        let durationSec = 0.5
+        let frames = AVAudioFrameCount(sr * durationSec)
+        let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames)!
+        buf.frameLength = frames
+        let ch = buf.floatChannelData![0]
+
+        // 노이즈: linear decay envelope (1 - i/N), gain 0.45 exp→0.001 over 0.5s, lowpass 800Hz IIR
+        let alpha = 1.0 - exp(-2 * .pi * 800.0 / sr)  // one-pole lowpass coeff
+        var lpState: Double = 0
+        let noiseG0 = 0.45, noiseG1 = 0.001
+        let noiseLn = log(noiseG1 / noiseG0)
+        // Sine: 140→40Hz exp, gain 0.4→0.001 over 0.4s
+        let sineG0 = 0.4, sineG1 = 0.001
+        let sineLn = log(sineG1 / sineG0)
+        let sineFreqLn = log(40.0 / 140.0)
+        let sineDur = 0.4
+        var sinePhase: Double = 0
+
+        for i in 0..<Int(frames) {
+            let t = Double(i) / sr
+            // Noise sample (raw -1..1, decayed by linear envelope from 1→0)
+            let raw = (Double.random(in: -1.0...1.0)) * (1.0 - Double(i) / Double(frames))
+            // One-pole lowpass
+            lpState = lpState + alpha * (raw - lpState)
+            let noiseEnv = noiseG0 * exp(noiseLn * min(t, durationSec) / durationSec)
+            let noiseS = lpState * noiseEnv
+
+            // Sine boom (only first 0.4s)
+            var sineS = 0.0
+            if t < sineDur {
+                let f = 140.0 * exp(sineFreqLn * t / sineDur)
+                sinePhase += 2 * .pi * f / sr
+                let env = sineG0 * exp(sineLn * t / sineDur)
+                sineS = sin(sinePhase) * env
+            }
+            ch[i] = Float(noiseS + sineS)
+        }
+        return buf
+    }
+
+    private func makeClearComposite() -> AVAudioPCMBuffer {
+        let sr = format.sampleRate
+        let durationSec = 1.3
+        let frames = AVAudioFrameCount(sr * durationSec)
+        let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames)!
+        buf.frameLength = frames
+        let ch = buf.floatChannelData![0]
+        for i in 0..<Int(frames) { ch[i] = 0 }
+
+        // PWA: 10 random tones from C7 scale, sine 0.3s, vol 0.1, exp decay, start 0.05~0.75s
+        let scale = [2093.0, 2349.0, 2637.0, 2960.0, 3322.0]
+        for _ in 0..<10 {
+            let freq = scale.randomElement()!
+            let startSec = 0.05 + Double.random(in: 0..<0.7)
+            let toneDur = 0.3
+            let g0 = 0.1, g1 = 0.001
+            let lnRatio = log(g1 / g0)
+            let startFrame = Int(startSec * sr)
+            let toneFrames = Int(toneDur * sr)
+            for j in 0..<toneFrames {
+                let i = startFrame + j
+                if i >= Int(frames) { break }
+                let t = Double(j) / sr
+                let env = g0 * exp(lnRatio * t / toneDur)
+                ch[i] += Float(sin(2 * .pi * freq * t) * env)
+            }
+        }
+
+        // PWA celebCrackle: 20 noise bursts over 1s, vol 0.08~0.18, dur 0.025, freq 4000~8000 highpass
+        for _ in 0..<20 {
+            let startSec = Double.random(in: 0..<1.0)
+            let burstDur = 0.025
+            let vol = 0.08 + Double.random(in: 0..<0.1)
+            let g0 = vol, g1 = 0.001
+            let lnRatio = log(g1 / g0)
+            // highpass 5kHz approx via 1 - lowpass
+            let hpAlpha = 1.0 - exp(-2 * .pi * 5000.0 / sr)
+            var lpState: Double = 0
+            let startFrame = Int(startSec * sr)
+            let burstFrames = Int(burstDur * sr)
+            for j in 0..<burstFrames {
+                let i = startFrame + j
+                if i >= Int(frames) { break }
+                let t = Double(j) / sr
+                let raw = Double.random(in: -1.0...1.0) * (1.0 - Double(j) / Double(burstFrames))
+                lpState = lpState + hpAlpha * (raw - lpState)
+                let hp = raw - lpState
+                let env = g0 * exp(lnRatio * t / burstDur)
+                ch[i] += Float(hp * env)
+            }
+        }
+        return buf
+    }
+}
+
 // MARK: - App root (home ↔ game routing)
 
 struct ContentView: View {
@@ -561,25 +762,19 @@ struct ContentView: View {
             if let model = gameModel {
                 GameView(model: model, onBack: {
                     savedSnapshot = GamePersistence.load()
-                    withAnimation(.easeOut(duration: 0.2)) { gameModel = nil }
+                    gameModel = nil
                 })
-                .transition(.move(edge: .trailing))
             } else {
                 HomeView(
                     snapshot: savedSnapshot,
                     onResume: {
                         guard let s = savedSnapshot else { return }
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            gameModel = GameModel(snapshot: s)
-                        }
+                        gameModel = GameModel(snapshot: s)
                     },
                     onSelect: { d in
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            gameModel = GameModel(difficulty: d)
-                        }
+                        gameModel = GameModel(difficulty: d)
                     }
                 )
-                .transition(.move(edge: .leading))
             }
         }
         .onAppear { savedSnapshot = GamePersistence.load() }
@@ -648,8 +843,7 @@ struct HomeView: View {
         .padding(3)  // dialog inner padding (matches PWA .dialog-window padding: 3px)
         .background(Color.win95Gray)
         .beveled(.outset, width: 3)
-        .frame(maxWidth: 360)
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 24)
     }
 
     private var settingsButton: some View {
