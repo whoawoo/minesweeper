@@ -7,26 +7,21 @@ import SwiftUI
 
 // MARK: - Model
 
-enum CellState {
-    case hidden
-    case revealed
-    case flagged
+enum CellState: String, Codable {
+    case hidden, revealed, flagged
 }
 
-struct Cell {
+struct Cell: Codable {
     var isMine: Bool = false
     var state: CellState = .hidden
     var neighbors: Int = 0
 }
 
-enum GameStatus {
-    case idle
-    case playing
-    case won
-    case lost
+enum GameStatus: String, Codable {
+    case idle, playing, won, lost
 }
 
-enum Difficulty: String, CaseIterable, Identifiable, Hashable {
+enum Difficulty: String, CaseIterable, Identifiable, Hashable, Codable {
     case beginner, intermediate, expert
     var id: String { rawValue }
     var label: String {
@@ -49,6 +44,39 @@ enum Difficulty: String, CaseIterable, Identifiable, Hashable {
     var mines: Int { switch self { case .beginner: 17; case .intermediate: 54; case .expert: 103 } }
 }
 
+// MARK: - Persistence
+
+struct GameSnapshot: Codable {
+    var difficulty: Difficulty
+    var board: [[Cell]]
+    var status: GameStatus
+    var elapsed: Int
+    var flagCount: Int
+    var minesPlaced: Bool
+    var savedAt: Date
+}
+
+enum GamePersistence {
+    private static var fileURL: URL {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return docs.appendingPathComponent("savegame.json")
+    }
+
+    static func save(_ snapshot: GameSnapshot) {
+        guard let data = try? JSONEncoder().encode(snapshot) else { return }
+        try? data.write(to: fileURL, options: .atomic)
+    }
+
+    static func load() -> GameSnapshot? {
+        guard let data = try? Data(contentsOf: fileURL) else { return nil }
+        return try? JSONDecoder().decode(GameSnapshot.self, from: data)
+    }
+
+    static func clear() {
+        try? FileManager.default.removeItem(at: fileURL)
+    }
+}
+
 @Observable
 final class GameModel {
     let difficulty: Difficulty
@@ -58,7 +86,7 @@ final class GameModel {
     var flagCount: Int = 0  // 매 render마다 board 전체 순회 안 하도록 캐시
     var isPressing: Bool = false  // 셀 누름 중 — 스마일 😯 표시용
 
-    private var minesPlaced = false
+    private(set) var minesPlaced = false
     private var timer: Timer?
 
     var rows: Int { difficulty.rows }
@@ -71,7 +99,39 @@ final class GameModel {
         self.board = Self.emptyBoard(rows: difficulty.rows, cols: difficulty.cols)
     }
 
+    init(snapshot: GameSnapshot) {
+        self.difficulty = snapshot.difficulty
+        self.board = snapshot.board
+        self.status = snapshot.status
+        self.elapsed = snapshot.elapsed
+        self.flagCount = snapshot.flagCount
+        self.minesPlaced = snapshot.minesPlaced
+        if status == .playing {
+            startTimer()
+        }
+    }
+
     deinit { timer?.invalidate() }
+
+    private func snapshot() -> GameSnapshot {
+        GameSnapshot(
+            difficulty: difficulty,
+            board: board,
+            status: status,
+            elapsed: elapsed,
+            flagCount: flagCount,
+            minesPlaced: minesPlaced,
+            savedAt: Date()
+        )
+    }
+
+    func saveIfPlaying() {
+        if minesPlaced && status == .playing {
+            GamePersistence.save(snapshot())
+        } else {
+            GamePersistence.clear()
+        }
+    }
 
     static func emptyBoard(rows: Int, cols: Int) -> [[Cell]] {
         Array(repeating: Array(repeating: Cell(), count: cols), count: rows)
@@ -84,6 +144,7 @@ final class GameModel {
         flagCount = 0
         minesPlaced = false
         stopTimer()
+        GamePersistence.clear()
     }
 
     func reveal(_ r: Int, _ c: Int) {
@@ -102,6 +163,7 @@ final class GameModel {
             revealAllMines()
             status = .lost
             stopTimer()
+            GamePersistence.clear()
             return
         }
 
@@ -110,6 +172,9 @@ final class GameModel {
         if checkWin() {
             status = .won
             stopTimer()
+            GamePersistence.clear()
+        } else {
+            saveIfPlaying()
         }
     }
 
@@ -124,6 +189,7 @@ final class GameModel {
             flagCount -= 1
         case .revealed: break
         }
+        saveIfPlaying()
     }
 
     // MARK: private
@@ -290,21 +356,42 @@ extension View {
 // MARK: - App root (home ↔ game routing)
 
 struct ContentView: View {
-    @State private var selected: Difficulty? = nil
+    @State private var gameModel: GameModel? = nil
+    @State private var savedSnapshot: GameSnapshot? = nil
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         ZStack {
             Color.win95BG.ignoresSafeArea()
-            if let d = selected {
-                GameView(difficulty: d, onBack: {
-                    withAnimation(.easeOut(duration: 0.2)) { selected = nil }
+            if let model = gameModel {
+                GameView(model: model, onBack: {
+                    savedSnapshot = GamePersistence.load()
+                    withAnimation(.easeOut(duration: 0.2)) { gameModel = nil }
                 })
                 .transition(.move(edge: .trailing))
             } else {
-                HomeView(onSelect: { d in
-                    withAnimation(.easeOut(duration: 0.2)) { selected = d }
-                })
+                HomeView(
+                    snapshot: savedSnapshot,
+                    onResume: {
+                        guard let s = savedSnapshot else { return }
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            gameModel = GameModel(snapshot: s)
+                        }
+                    },
+                    onSelect: { d in
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            gameModel = GameModel(difficulty: d)
+                        }
+                    }
+                )
                 .transition(.move(edge: .leading))
+            }
+        }
+        .onAppear { savedSnapshot = GamePersistence.load() }
+        .onChange(of: scenePhase) { _, phase in
+            // 백그라운드 진입 시 진행 중인 게임 한 번 더 안전 저장
+            if phase == .background, let m = gameModel {
+                m.saveIfPlaying()
             }
         }
     }
@@ -313,6 +400,8 @@ struct ContentView: View {
 // MARK: - Home
 
 struct HomeView: View {
+    let snapshot: GameSnapshot?
+    let onResume: () -> Void
     let onSelect: (Difficulty) -> Void
 
     var body: some View {
@@ -343,6 +432,9 @@ struct HomeView: View {
 
             // Body
             VStack(spacing: 12) {
+                if let s = snapshot {
+                    resumeButton(s)
+                }
                 ForEach(Difficulty.allCases) { d in
                     menuButton(d)
                 }
@@ -356,6 +448,28 @@ struct HomeView: View {
         .beveled(.outset, width: 3)
         .frame(maxWidth: 360)
         .padding(.horizontal, 16)
+    }
+
+    private func resumeButton(_ s: GameSnapshot) -> some View {
+        Button(action: onResume) {
+            VStack(spacing: 4) {
+                Text("▶ 이어하기")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(.black)
+                Text("\(s.difficulty.label) · \(formatElapsed(s.elapsed))")
+                    .font(.system(size: 12, weight: .regular, design: .monospaced))
+                    .foregroundStyle(Color.win95Dark)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(Color(red: 0xD8/255, green: 0xE8/255, blue: 0xFF/255))  // resume tone (PWA --resume-bg)
+            .beveled(.outset, width: 2)
+        }
+        .buttonStyle(PressableButtonStyle())
+    }
+
+    private func formatElapsed(_ s: Int) -> String {
+        String(format: "%02d:%02d", s / 60, s % 60)
     }
 
     private func menuButton(_ d: Difficulty) -> some View {
@@ -392,16 +506,10 @@ struct PressableButtonStyle: ButtonStyle {
 // MARK: - Game
 
 struct GameView: View {
-    let difficulty: Difficulty
+    let model: GameModel
     let onBack: () -> Void
 
-    @State private var model: GameModel
-
-    init(difficulty: Difficulty, onBack: @escaping () -> Void) {
-        self.difficulty = difficulty
-        self.onBack = onBack
-        _model = State(initialValue: GameModel(difficulty: difficulty))
-    }
+    var difficulty: Difficulty { model.difficulty }
 
     var body: some View {
         GeometryReader { geo in
@@ -614,11 +722,11 @@ struct CellView: View {
 }
 
 #Preview("Game (Beginner)") {
-    GameView(difficulty: .beginner, onBack: {})
+    GameView(model: GameModel(difficulty: .beginner), onBack: {})
         .background(Color.win95BG)
 }
 
 #Preview("Game (Expert)") {
-    GameView(difficulty: .expert, onBack: {})
+    GameView(model: GameModel(difficulty: .expert), onBack: {})
         .background(Color.win95BG)
 }
