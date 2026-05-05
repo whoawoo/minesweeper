@@ -545,9 +545,9 @@ struct CellView: View {
         .frame(width: size, height: size)
         .overlay(borderOverlay)
         .contentShape(Rectangle())
-        // 0.35s — PWA의 0.4s보다 살짝 빠르게 (체감 snappier)
+        // 0.4s — PWA의 LONG_PRESS_MS=400과 동일
         .onLongPressGesture(
-            minimumDuration: 0.35,
+            minimumDuration: 0.4,
             perform: onLongPress,
             onPressingChanged: { onPressingChanged($0) }
         )
