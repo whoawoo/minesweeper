@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>숫자 폰트 후보</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen:wght@400;700&family=Pixelify+Sans:wght@600;700&family=DotGothic16&family=JetBrains+Mono:wght@800&display=swap">
+<style>
+  body {
+    background: #c0c0c0;
+    font-family: -apple-system, sans-serif;
+    padding: 24px;
+    margin: 0;
+    color: #000;
+  }
+  h1 { font-size: 18px; margin: 0 0 8px; }
+  .intro { font-size: 13px; margin-bottom: 24px; color: #444; }
+
+  .group {
+    margin-bottom: 36px;
+  }
+  .gtitle {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 0 0 4px;
+  }
+  .gdesc {
+    font-size: 12px;
+    color: #555;
+    margin: 0 0 10px;
+  }
+
+  .row {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  /* 게임 셀 동일 */
+  .cell {
+    width: 56px;
+    height: 56px;
+    background: #c0c0c0;
+    border: 1px solid #808080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    font-weight: bold;
+    font-size: 28px; /* cell 56 * 0.5 = 28 */
+    line-height: 1;
+  }
+
+  /* 클래식 9색 */
+  .n1 { color: #2a3eb1; }
+  .n2 { color: #008000; }
+  .n3 { color: #c52828; }
+  .n4 { color: #000080; }
+  .n5 { color: #800000; }
+  .n6 { color: #008080; }
+  .n7 { color: #000000; }
+  .n8 { color: #808080; }
+
+  /* 모든 셀에 외곽선 0.7px 동일 적용 (현재 게임 설정) */
+  .cell { -webkit-text-stroke: 0.7px currentColor; }
+
+  /* 폰트 그룹 */
+  .ff-press     { font-family: "Press Start 2P", monospace; font-size: 22px; }
+  .ff-vt323     { font-family: "VT323", monospace; font-size: 36px; }
+  .ff-silk      { font-family: "Silkscreen", monospace; font-size: 30px; font-weight: 700; }
+  .ff-pixelify  { font-family: "Pixelify Sans", sans-serif; font-size: 34px; font-weight: 700; }
+  .ff-dotg      { font-family: "DotGothic16", sans-serif; font-size: 32px; }
+  .ff-jbm       { font-family: "JetBrains Mono", monospace; font-size: 28px; font-weight: 800; }
+
+  .legend {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #555;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<h1>숫자 폰트 후보 (각진 정도 비교)</h1>
+<div class="intro">
+  현재 v63 게임 설정 그대로: 셀 56px, font-size = cell × 0.5, text-stroke 0.7px<br>
+  위에서 아래로 갈수록 각진 정도가 약해짐
+</div>
+
+<div class="group">
+  <div class="gtitle">현재 (Press Start 2P) — 가장 각짐</div>
+  <div class="gdesc">8bit 픽셀 그리드. 모든 글리프가 정사각형 도트로 구성</div>
+  <div class="row">
+    <div class="cell ff-press n1">1</div>
+    <div class="cell ff-press n2">2</div>
+    <div class="cell ff-press n3">3</div>
+    <div class="cell ff-press n4">4</div>
+    <div class="cell ff-press n5">5</div>
+    <div class="cell ff-press n6">6</div>
+    <div class="cell ff-press n7">7</div>
+    <div class="cell ff-press n8">8</div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="gtitle">A. Silkscreen Bold</div>
+  <div class="gdesc">픽셀 기반이지만 도트가 조금 정돈됨. 약간 부드러움</div>
+  <div class="row">
+    <div class="cell ff-silk n1">1</div>
+    <div class="cell ff-silk n2">2</div>
+    <div class="cell ff-silk n3">3</div>
+    <div class="cell ff-silk n4">4</div>
+    <div class="cell ff-silk n5">5</div>
+    <div class="cell ff-silk n6">6</div>
+    <div class="cell ff-silk n7">7</div>
+    <div class="cell ff-silk n8">8</div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="gtitle">B. VT323</div>
+  <div class="gdesc">CRT 모니터 픽셀 폰트. 픽셀이지만 가독성 좋음, 둥근 부분 있음</div>
+  <div class="row">
+    <div class="cell ff-vt323 n1">1</div>
+    <div class="cell ff-vt323 n2">2</div>
+    <div class="cell ff-vt323 n3">3</div>
+    <div class="cell ff-vt323 n4">4</div>
+    <div class="cell ff-vt323 n5">5</div>
+    <div class="cell ff-vt323 n6">6</div>
+    <div class="cell ff-vt323 n7">7</div>
+    <div class="cell ff-vt323 n8">8</div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="gtitle">C. DotGothic16</div>
+  <div class="gdesc">일본 게임 스타일 도트 폰트. 픽셀이지만 모서리 살짝 둥글</div>
+  <div class="row">
+    <div class="cell ff-dotg n1">1</div>
+    <div class="cell ff-dotg n2">2</div>
+    <div class="cell ff-dotg n3">3</div>
+    <div class="cell ff-dotg n4">4</div>
+    <div class="cell ff-dotg n5">5</div>
+    <div class="cell ff-dotg n6">6</div>
+    <div class="cell ff-dotg n7">7</div>
+    <div class="cell ff-dotg n8">8</div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="gtitle">D. Pixelify Sans Bold</div>
+  <div class="gdesc">픽셀 + sans-serif. 도트인데 친근하고 둥글둥글</div>
+  <div class="row">
+    <div class="cell ff-pixelify n1">1</div>
+    <div class="cell ff-pixelify n2">2</div>
+    <div class="cell ff-pixelify n3">3</div>
+    <div class="cell ff-pixelify n4">4</div>
+    <div class="cell ff-pixelify n5">5</div>
+    <div class="cell ff-pixelify n6">6</div>
+    <div class="cell ff-pixelify n7">7</div>
+    <div class="cell ff-pixelify n8">8</div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="gtitle">E. JetBrains Mono ExtraBold — 가장 안 각짐 (현대적 모노)</div>
+  <div class="gdesc">픽셀 안 쓰는 현대적 모노스페이스. 굵직하지만 매끄러움</div>
+  <div class="row">
+    <div class="cell ff-jbm n1">1</div>
+    <div class="cell ff-jbm n2">2</div>
+    <div class="cell ff-jbm n3">3</div>
+    <div class="cell ff-jbm n4">4</div>
+    <div class="cell ff-jbm n5">5</div>
+    <div class="cell ff-jbm n6">6</div>
+    <div class="cell ff-jbm n7">7</div>
+    <div class="cell ff-jbm n8">8</div>
+  </div>
+</div>
+
+<div class="group">
+  <div class="gtitle">참고: 픽셀 지뢰 + 각 폰트 (실제 보드 미리보기)</div>
+  <div class="gdesc">A/B/C/D 중에 하나 골라서 픽셀 지뢰랑 어울리는 정도 보기</div>
+  <div style="display: grid; grid-template-columns: repeat(2, auto); gap: 16px; max-width: 700px; margin-top: 12px;">
+    <div>
+      <div style="font-size:11px;margin-bottom:4px;">A. Silkscreen</div>
+      <div style="display:grid;grid-template-columns:repeat(5,40px);gap:0;border:2px solid #7b7b7b;">
+        <div class="cell ff-silk n1" style="width:40px;height:40px;font-size:22px;">1</div>
+        <div class="cell ff-silk n2" style="width:40px;height:40px;font-size:22px;">2</div>
+        <div class="cell ff-silk n3" style="width:40px;height:40px;font-size:22px;">3</div>
+        <div class="cell" style="width:40px;height:40px;background:#c0c0c0;"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" style="width:70%;height:70%;"><g fill="#000"><rect x="7" y="1" width="2" height="2"/><rect x="7" y="13" width="2" height="2"/><rect x="1" y="7" width="2" height="2"/><rect x="13" y="7" width="2" height="2"/><rect x="3" y="3" width="2" height="2"/><rect x="11" y="3" width="2" height="2"/><rect x="3" y="11" width="2" height="2"/><rect x="11" y="11" width="2" height="2"/><rect x="5" y="3" width="6" height="10"/><rect x="3" y="5" width="10" height="6"/></g><rect x="5" y="5" width="2" height="2" fill="#fff"/></svg></div>
+        <div class="cell ff-silk n2" style="width:40px;height:40px;font-size:22px;">2</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;margin-bottom:4px;">B. VT323</div>
+      <div style="display:grid;grid-template-columns:repeat(5,40px);gap:0;border:2px solid #7b7b7b;">
+        <div class="cell ff-vt323 n1" style="width:40px;height:40px;font-size:26px;">1</div>
+        <div class="cell ff-vt323 n2" style="width:40px;height:40px;font-size:26px;">2</div>
+        <div class="cell ff-vt323 n3" style="width:40px;height:40px;font-size:26px;">3</div>
+        <div class="cell" style="width:40px;height:40px;background:#c0c0c0;"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" style="width:70%;height:70%;"><g fill="#000"><rect x="7" y="1" width="2" height="2"/><rect x="7" y="13" width="2" height="2"/><rect x="1" y="7" width="2" height="2"/><rect x="13" y="7" width="2" height="2"/><rect x="3" y="3" width="2" height="2"/><rect x="11" y="3" width="2" height="2"/><rect x="3" y="11" width="2" height="2"/><rect x="11" y="11" width="2" height="2"/><rect x="5" y="3" width="6" height="10"/><rect x="3" y="5" width="10" height="6"/></g><rect x="5" y="5" width="2" height="2" fill="#fff"/></svg></div>
+        <div class="cell ff-vt323 n2" style="width:40px;height:40px;font-size:26px;">2</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;margin-bottom:4px;">C. DotGothic16</div>
+      <div style="display:grid;grid-template-columns:repeat(5,40px);gap:0;border:2px solid #7b7b7b;">
+        <div class="cell ff-dotg n1" style="width:40px;height:40px;font-size:24px;">1</div>
+        <div class="cell ff-dotg n2" style="width:40px;height:40px;font-size:24px;">2</div>
+        <div class="cell ff-dotg n3" style="width:40px;height:40px;font-size:24px;">3</div>
+        <div class="cell" style="width:40px;height:40px;background:#c0c0c0;"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" style="width:70%;height:70%;"><g fill="#000"><rect x="7" y="1" width="2" height="2"/><rect x="7" y="13" width="2" height="2"/><rect x="1" y="7" width="2" height="2"/><rect x="13" y="7" width="2" height="2"/><rect x="3" y="3" width="2" height="2"/><rect x="11" y="3" width="2" height="2"/><rect x="3" y="11" width="2" height="2"/><rect x="11" y="11" width="2" height="2"/><rect x="5" y="3" width="6" height="10"/><rect x="3" y="5" width="10" height="6"/></g><rect x="5" y="5" width="2" height="2" fill="#fff"/></svg></div>
+        <div class="cell ff-dotg n2" style="width:40px;height:40px;font-size:24px;">2</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;margin-bottom:4px;">D. Pixelify Sans</div>
+      <div style="display:grid;grid-template-columns:repeat(5,40px);gap:0;border:2px solid #7b7b7b;">
+        <div class="cell ff-pixelify n1" style="width:40px;height:40px;font-size:26px;">1</div>
+        <div class="cell ff-pixelify n2" style="width:40px;height:40px;font-size:26px;">2</div>
+        <div class="cell ff-pixelify n3" style="width:40px;height:40px;font-size:26px;">3</div>
+        <div class="cell" style="width:40px;height:40px;background:#c0c0c0;"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" style="width:70%;height:70%;"><g fill="#000"><rect x="7" y="1" width="2" height="2"/><rect x="7" y="13" width="2" height="2"/><rect x="1" y="7" width="2" height="2"/><rect x="13" y="7" width="2" height="2"/><rect x="3" y="3" width="2" height="2"/><rect x="11" y="3" width="2" height="2"/><rect x="3" y="11" width="2" height="2"/><rect x="11" y="11" width="2" height="2"/><rect x="5" y="3" width="6" height="10"/><rect x="3" y="5" width="10" height="6"/></g><rect x="5" y="5" width="2" height="2" fill="#fff"/></svg></div>
+        <div class="cell ff-pixelify n2" style="width:40px;height:40px;font-size:26px;">2</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

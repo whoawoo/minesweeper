@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마크 클리어 — 단축 데모 (중수 16×16, 40지뢰)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "MS Sans Serif", Tahoma, Verdana, sans-serif;
+    background: #5d5d5d;
+    color: #fff;
+    min-height: 100vh;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  h1 { font-size: 1rem; letter-spacing: 0.04em; text-align: center; }
+  p.hint { font-size: 0.75rem; color: #ccc; text-align: center; line-height: 1.45; max-width: 360px; }
+
+  .btn-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .play-btn {
+    background: #c0c0c0; color: #000;
+    border-top: 2px solid #fff; border-left: 2px solid #fff;
+    border-right: 2px solid #808080; border-bottom: 2px solid #808080;
+    padding: 10px 14px;
+    font-family: inherit; font-size: 0.85rem; font-weight: bold;
+    cursor: pointer;
+    min-width: 100px;
+  }
+  .play-btn:active {
+    border-top: 2px solid #808080; border-left: 2px solid #808080;
+    border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+  }
+  .play-btn .label-sub { display: block; font-size: 0.65rem; font-weight: normal; color: #555; margin-top: 2px; }
+
+  .arena { position: relative; }
+  .game-frame {
+    background: #c0c0c0; padding: 5px;
+    border-top: 3px solid #fff; border-left: 3px solid #fff;
+    border-right: 3px solid #808080; border-bottom: 3px solid #808080;
+  }
+  .status {
+    background: #c0c0c0; padding: 4px 6px; margin-bottom: 5px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 2px solid #808080; border-left: 2px solid #808080;
+    border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+  }
+  .led {
+    background: #000; color: #ff2020;
+    font-family: "Courier New", monospace; font-weight: bold;
+    font-size: 1.3rem; padding: 3px 6px;
+    min-width: 3.5ch; text-align: center; letter-spacing: 0.08em;
+  }
+  .smiley {
+    width: 36px; height: 36px; background: #c0c0c0;
+    border-top: 2px solid #fff; border-left: 2px solid #fff;
+    border-right: 2px solid #808080; border-bottom: 2px solid #808080;
+    font-size: 1.2rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    position: relative;
+    transition: filter 0.1s;
+  }
+  .smiley.glow { filter: drop-shadow(0 0 12px #c0ff00) brightness(1.2); }
+  .smiley.bounce { animation: smiley-bounce 0.6s ease-out; }
+  @keyframes smiley-bounce {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.35); }
+    60%  { transform: scale(0.92); }
+    100% { transform: scale(1); }
+  }
+
+  .board-frame {
+    background: #c0c0c0;
+    border-top: 3px solid #808080; border-left: 3px solid #808080;
+    border-right: 3px solid #fff; border-bottom: 3px solid #fff;
+  }
+  #board {
+    display: grid;
+    grid-template-columns: repeat(16, 18px);
+    grid-template-rows: repeat(16, 18px);
+  }
+  .cell {
+    width: 18px; height: 18px; background: #c0c0c0;
+    border: 1px solid #808080;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-family: "Courier New", monospace;
+    font-size: 11px; color: #000;
+  }
+  .cell.flagged {
+    border-top: 2px solid #fff; border-left: 2px solid #fff;
+    border-right: 2px solid #808080; border-bottom: 2px solid #808080;
+  }
+  .cell.flagged::after { content: "🚩"; font-size: 9px; }
+  .cell.n1 { color: #0000ff; }
+  .cell.n2 { color: #008000; }
+  .cell.n3 { color: #ff0000; }
+  .cell.n4 { color: #000080; }
+  .cell.n5 { color: #800000; }
+
+  .xp-orb {
+    position: fixed;
+    width: 14px; height: 14px;
+    background: radial-gradient(circle at 35% 35%, #f0ff80 0%, #aaff00 40%, #4a7800 80%, transparent 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 10px #c0ff00, 0 0 20px rgba(192, 255, 0, 0.5);
+    pointer-events: none;
+    z-index: 50;
+    --tx: 0px; --ty: 0px;
+    animation: xp-fly 0.7s cubic-bezier(0.4, 0, 0.7, 1) forwards;
+  }
+  @keyframes xp-fly {
+    0%   { transform: translate(0, -10px) scale(0.5); opacity: 0; }
+    15%  { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0.4); opacity: 0.7; }
+  }
+
+  .level-up {
+    position: absolute;
+    top: 30%; left: 50%;
+    transform: translate(-50%, 0) scale(0.5);
+    font-family: "Courier New", monospace;
+    font-weight: bold;
+    font-size: 1.4rem;
+    color: #c0ff00;
+    text-shadow: 2px 2px 0 #000, 0 0 12px rgba(192, 255, 0, 0.8);
+    letter-spacing: 0.1em;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 60;
+    white-space: nowrap;
+  }
+  .level-up.go { animation: level-up-anim 1.5s ease-out forwards; }
+  @keyframes level-up-anim {
+    0%   { transform: translate(-50%, 30px) scale(0.5); opacity: 0; }
+    25%  { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
+    40%  { transform: translate(-50%, -10px) scale(1); }
+    100% { transform: translate(-50%, -50px) scale(1); opacity: 0; }
+  }
+
+  .timer-readout {
+    font-family: "Courier New", monospace;
+    font-size: 0.8rem;
+    color: #c0ff00;
+    background: #000;
+    padding: 4px 10px;
+    min-width: 200px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <h1>⛏️ 마크 클리어 — 단축 비교</h1>
+  <p class="hint">중수 사이즈 (16×16, 40지뢰).<br>현재 코드는 ~5.5초. 두 단축안 비교.</p>
+
+  <div class="btn-row">
+    <button class="play-btn" onclick="play('current')">
+      ▶ 현재
+      <span class="label-sub">셀당 2개·0.06s 간격</span>
+    </button>
+    <button class="play-btn" onclick="play('windowed')">
+      ▶ A안: 윈도우 고정
+      <span class="label-sub">1.2s 안에 분산 + 핑 throttle</span>
+    </button>
+    <button class="play-btn" onclick="play('one')">
+      ▶ B안: 셀당 1개
+      <span class="label-sub">0.06s 간격 그대로</span>
+    </button>
+  </div>
+
+  <div class="timer-readout" id="timerReadout">대기 중…</div>
+
+  <div class="arena" id="arena">
+    <div class="game-frame">
+      <div class="status">
+        <div class="led">000</div>
+        <button class="smiley" id="smiley">😎</button>
+        <div class="led">040</div>
+      </div>
+      <div class="board-frame">
+        <div id="board"></div>
+      </div>
+    </div>
+    <div class="level-up" id="levelUp">+EXP</div>
+  </div>
+
+<script>
+  // === BOARD MOCK: 16x16, 40 random mines ===
+  const board = document.getElementById('board');
+  const TOTAL_CELLS = 256;
+  const MINE_COUNT = 40;
+  const mines = new Set();
+  while (mines.size < MINE_COUNT) {
+    mines.add(Math.floor(Math.random() * TOTAL_CELLS));
+  }
+  const cellEls = [];
+  for (let i = 0; i < TOTAL_CELLS; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (mines.has(i)) {
+      cell.classList.add('flagged');
+    } else {
+      // 주변 지뢰 수 계산
+      const r = Math.floor(i / 16), c = i % 16;
+      let n = 0;
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = r + dr, nc = c + dc;
+          if (nr < 0 || nr >= 16 || nc < 0 || nc >= 16) continue;
+          if (mines.has(nr * 16 + nc)) n++;
+        }
+      }
+      if (n > 0) {
+        cell.classList.add('n' + Math.min(n, 5));
+        cell.textContent = n;
+      }
+    }
+    board.appendChild(cell);
+    cellEls.push(cell);
+  }
+
+  // === AUDIO ===
+  let audioCtx;
+  function ac() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+  function playPling() {
+    const baseFreqs = [1960, 2200, 2470, 2616, 2936, 3296];
+    const freq = baseFreqs[Math.floor(Math.random() * baseFreqs.length)];
+    const detune = 1 + (Math.random() - 0.5) * 0.06;
+    const a = ac();
+    const t0 = a.currentTime;
+    const osc1 = a.createOscillator();
+    const g1 = a.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.value = freq * detune;
+    g1.gain.setValueAtTime(0, t0);
+    g1.gain.linearRampToValueAtTime(0.18, t0 + 0.005);
+    g1.gain.exponentialRampToValueAtTime(0.001, t0 + 0.25);
+    osc1.connect(g1); g1.connect(a.destination);
+    osc1.start(t0); osc1.stop(t0 + 0.3);
+    const osc2 = a.createOscillator();
+    const g2 = a.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.value = freq * detune * 2;
+    g2.gain.setValueAtTime(0, t0);
+    g2.gain.linearRampToValueAtTime(0.06, t0 + 0.005);
+    g2.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
+    osc2.connect(g2); g2.connect(a.destination);
+    osc2.start(t0); osc2.stop(t0 + 0.2);
+  }
+  function playLevelUp() {
+    const a = ac();
+    const t0 = a.currentTime;
+    const osc = a.createOscillator();
+    const g = a.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 2936;
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.22, t0 + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.7);
+    osc.connect(g); g.connect(a.destination);
+    osc.start(t0); osc.stop(t0 + 0.75);
+  }
+
+  // === MAIN ===
+  function play(mode) {
+    document.querySelectorAll('.xp-orb').forEach(o => o.remove());
+    const smiley = document.getElementById('smiley');
+    const sr = smiley.getBoundingClientRect();
+    const targetX = sr.left + sr.width / 2;
+    const targetY = sr.top + sr.height / 2;
+    const flagCells = document.querySelectorAll('.cell.flagged');
+
+    // 시작 위치 모으기
+    const starts = [];
+    const orbsPerCell = (mode === 'one') ? 1 : 2;
+    flagCells.forEach(cell => {
+      const cr = cell.getBoundingClientRect();
+      const cx = cr.left + cr.width / 2;
+      const cy = cr.top + cr.height / 2;
+      for (let k = 0; k < orbsPerCell; k++) {
+        starts.push({
+          x: cx + (Math.random() - 0.5) * 8,
+          y: cy + (Math.random() - 0.5) * 8,
+        });
+      }
+    });
+
+    // 모드별 delay 계산
+    let delays;
+    if (mode === 'windowed') {
+      // 1.2초 윈도우 안에 균등 분산 + 약한 jitter
+      const window = 1.2;
+      delays = starts.map((_, i) => {
+        const base = (i / Math.max(1, starts.length - 1)) * window;
+        return base + (Math.random() - 0.5) * 0.08;
+      });
+    } else {
+      // current / one: 0.06초 간격 + jitter
+      delays = starts.map((_, i) => i * 0.06 + Math.random() * 0.05);
+    }
+
+    // 핑 throttle: windowed 모드에선 마지막 10개만 핑
+    const pingThreshold = (mode === 'windowed')
+      ? Math.max(0, starts.length - 10)
+      : 0;
+
+    let lastArrival = 0;
+    const startTime = performance.now();
+
+    starts.forEach((s, i) => {
+      const orb = document.createElement('div');
+      orb.className = 'xp-orb';
+      orb.style.left = (s.x - 7) + 'px';
+      orb.style.top = (s.y - 7) + 'px';
+      orb.style.setProperty('--tx', (targetX - s.x) + 'px');
+      orb.style.setProperty('--ty', (targetY - s.y) + 'px');
+      const delay = delays[i];
+      orb.style.animationDelay = delay + 's';
+      document.body.appendChild(orb);
+
+      const arrivalMs = (delay + 0.7) * 1000;
+      lastArrival = Math.max(lastArrival, arrivalMs);
+      setTimeout(() => {
+        if (i >= pingThreshold) {
+          playPling();
+          smiley.classList.add('glow');
+          setTimeout(() => smiley.classList.remove('glow'), 90);
+        }
+      }, arrivalMs);
+      setTimeout(() => orb.remove(), arrivalMs + 200);
+    });
+
+    setTimeout(() => {
+      smiley.classList.remove('bounce');
+      void smiley.offsetWidth;
+      smiley.classList.add('bounce');
+      const lu = document.getElementById('levelUp');
+      lu.classList.remove('go');
+      void lu.offsetWidth;
+      lu.classList.add('go');
+      playLevelUp();
+
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+      const label = { current: '현재', windowed: 'A: 윈도우', one: 'B: 1개' }[mode];
+      document.getElementById('timerReadout').textContent =
+        label + ' — 총 ' + elapsed + '초 · 오브 ' + starts.length + '개';
+    }, lastArrival + 50);
+
+    document.getElementById('timerReadout').textContent = '재생 중…';
+  }
+</script>
+</body>
+</html>

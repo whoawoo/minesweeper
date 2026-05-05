@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마크 경험치 클리어 연출</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "MS Sans Serif", Tahoma, Verdana, sans-serif;
+    background: #5d5d5d;
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  h1 { font-size: 1.2rem; letter-spacing: 0.05em; }
+  p.hint { font-size: 0.8rem; color: #ccc; text-align: center; line-height: 1.5; }
+
+  .play-btn {
+    background: #c0c0c0; color: #000;
+    border-top: 2px solid #fff; border-left: 2px solid #fff;
+    border-right: 2px solid #808080; border-bottom: 2px solid #808080;
+    padding: 14px 28px;
+    font-family: inherit; font-size: 1rem; font-weight: bold;
+    cursor: pointer;
+  }
+  .play-btn:active {
+    border-top: 2px solid #808080; border-left: 2px solid #808080;
+    border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+  }
+
+  .arena { position: relative; }
+  .game-frame {
+    background: #c0c0c0; padding: 6px;
+    border-top: 3px solid #fff; border-left: 3px solid #fff;
+    border-right: 3px solid #808080; border-bottom: 3px solid #808080;
+  }
+  .status {
+    background: #c0c0c0; padding: 4px 6px; margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 2px solid #808080; border-left: 2px solid #808080;
+    border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+  }
+  .led {
+    background: #000; color: #ff2020;
+    font-family: "Courier New", monospace; font-weight: bold;
+    font-size: 1.6rem; padding: 3px 6px;
+    min-width: 3.5ch; text-align: center; letter-spacing: 0.08em;
+  }
+  .smiley {
+    width: 40px; height: 40px; background: #c0c0c0;
+    border-top: 2px solid #fff; border-left: 2px solid #fff;
+    border-right: 2px solid #808080; border-bottom: 2px solid #808080;
+    font-size: 1.4rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    position: relative;
+    transition: filter 0.1s;
+  }
+  .smiley.glow { filter: drop-shadow(0 0 12px #c0ff00) brightness(1.2); }
+  .smiley.bounce { animation: smiley-bounce 0.6s ease-out; }
+  @keyframes smiley-bounce {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.35); }
+    60%  { transform: scale(0.92); }
+    100% { transform: scale(1); }
+  }
+
+  .board-frame {
+    background: #c0c0c0;
+    border-top: 3px solid #808080; border-left: 3px solid #808080;
+    border-right: 3px solid #fff; border-bottom: 3px solid #fff;
+  }
+  #board {
+    display: grid;
+    grid-template-columns: repeat(8, 32px);
+    grid-template-rows: repeat(8, 32px);
+  }
+  .cell {
+    width: 32px; height: 32px; background: #c0c0c0;
+    border: 1px solid #808080;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-family: "Courier New", monospace;
+    font-size: 18px; color: #000;
+  }
+  .cell.flag {
+    border-top: 2px solid #fff; border-left: 2px solid #fff;
+    border-right: 2px solid #808080; border-bottom: 2px solid #808080;
+  }
+  .cell.flag::after { content: "🚩"; font-size: 14px; }
+  .cell.n1 { color: #0000ff; }
+  .cell.n2 { color: #008000; }
+  .cell.n3 { color: #ff0000; }
+  .cell.n4 { color: #000080; }
+
+  /* === XP ORB === */
+  .xp-orb {
+    position: fixed;
+    width: 14px; height: 14px;
+    background: radial-gradient(circle at 35% 35%, #f0ff80 0%, #aaff00 40%, #4a7800 80%, transparent 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 10px #c0ff00, 0 0 20px rgba(192, 255, 0, 0.5);
+    pointer-events: none;
+    z-index: 50;
+    --tx: 0px;
+    --ty: 0px;
+    animation: xp-fly 0.7s cubic-bezier(0.4, 0, 0.7, 1) forwards;
+  }
+  @keyframes xp-fly {
+    0% {
+      transform: translate(0, -10px) scale(0.5);
+      opacity: 0;
+    }
+    15% {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--tx), var(--ty)) scale(0.4);
+      opacity: 0.7;
+    }
+  }
+
+  /* === LEVEL UP TEXT === */
+  .level-up {
+    position: absolute;
+    top: 30%; left: 50%;
+    transform: translate(-50%, 0) scale(0.5);
+    font-family: "Courier New", monospace;
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #c0ff00;
+    text-shadow:
+      2px 2px 0 #000,
+      0 0 12px rgba(192, 255, 0, 0.8);
+    letter-spacing: 0.1em;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 60;
+    white-space: nowrap;
+  }
+  .level-up.go { animation: level-up-anim 1.5s ease-out forwards; }
+  @keyframes level-up-anim {
+    0%   { transform: translate(-50%, 30px) scale(0.5); opacity: 0; }
+    25%  { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
+    40%  { transform: translate(-50%, -10px) scale(1); }
+    100% { transform: translate(-50%, -50px) scale(1); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+  <h1>⛏️ 마크 경험치 — 폭탄 위치 + 피치 ↑</h1>
+  <p class="hint">XP 오브가 깃발(폭탄) 위치에서 솟아나 스마일리로 빨려들어감.<br>피치를 1.25배 올려 더 청량한 핑 소리.</p>
+
+  <button class="play-btn" onclick="play(2)">▶ 재생</button>
+
+  <div class="arena" id="arena">
+    <div class="game-frame">
+      <div class="status">
+        <div class="led">000</div>
+        <button class="smiley" id="smiley">😎</button>
+        <div class="led">042</div>
+      </div>
+      <div class="board-frame">
+        <div id="board"></div>
+      </div>
+    </div>
+    <div class="level-up" id="levelUp">+EXP</div>
+  </div>
+
+<script>
+  // === BOARD MOCK ===
+  const board = document.getElementById('board');
+  const mines = new Set([0, 5, 14, 19, 26, 33, 47, 54, 60, 63]);
+  const numbers = [
+    '', 1, '', '', 1, '', 1, 1,
+    1, 1, '', 1, 1, 2, '', 1,
+    '', '', 1, 2, '', 1, 1, 1,
+    1, 1, 2, '', '', 1, '', '',
+    '', '', 1, '', 1, 2, 1, 1,
+    1, 1, 2, 1, 1, '', '', '',
+    1, '', '', 1, 2, 2, 1, 1,
+    1, 1, 1, '', 1, '', 1, ''
+  ];
+  for (let i = 0; i < 64; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (mines.has(i)) cell.classList.add('flag');
+    else if (numbers[i]) {
+      cell.classList.add('n' + numbers[i]);
+      cell.textContent = numbers[i];
+    }
+    board.appendChild(cell);
+  }
+
+  // === AUDIO ===
+  let audioCtx;
+  function ac() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  // 마크 XP 픽업 핑 소리: 짧고 높은 사인파 + 살짝 디튠
+  // 피치 1.25배 상향 (B6 ~ G7 근처) — 더 청량한 느낌
+  function playPling() {
+    const baseFreqs = [1960, 2200, 2470, 2616, 2936, 3296]; // B6 ~ G7
+    const freq = baseFreqs[Math.floor(Math.random() * baseFreqs.length)];
+    const detune = 1 + (Math.random() - 0.5) * 0.06; // ±3% 디튠
+
+    const a = ac();
+    const t0 = a.currentTime;
+
+    // 메인 사인파 (XP 픽업 특유의 맑은 톤)
+    const osc1 = a.createOscillator();
+    const g1 = a.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.value = freq * detune;
+    g1.gain.setValueAtTime(0, t0);
+    g1.gain.linearRampToValueAtTime(0.18, t0 + 0.005); // 빠른 어택
+    g1.gain.exponentialRampToValueAtTime(0.001, t0 + 0.25); // 빠른 감쇠
+    osc1.connect(g1); g1.connect(a.destination);
+    osc1.start(t0); osc1.stop(t0 + 0.3);
+
+    // 옥타브 위 배음 (반짝이는 느낌)
+    const osc2 = a.createOscillator();
+    const g2 = a.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.value = freq * detune * 2;
+    g2.gain.setValueAtTime(0, t0);
+    g2.gain.linearRampToValueAtTime(0.06, t0 + 0.005);
+    g2.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
+    osc2.connect(g2); g2.connect(a.destination);
+    osc2.start(t0); osc2.stop(t0 + 0.2);
+  }
+
+  // === XP ORBS ===
+  function play(variant) {
+    const smiley = document.getElementById('smiley');
+    const sr = smiley.getBoundingClientRect();
+    const targetX = sr.left + sr.width / 2;
+    const targetY = sr.top + sr.height / 2;
+
+    // 시작 위치 후보 결정
+    let starts = [];
+    if (variant === 1) {
+      // 랜덤 위치 (보드 안 어디든)
+      const boardEl = document.getElementById('board');
+      const br = boardEl.getBoundingClientRect();
+      for (let i = 0; i < 14; i++) {
+        starts.push({
+          x: br.left + 10 + Math.random() * (br.width - 20),
+          y: br.top + 10 + Math.random() * (br.height - 20),
+        });
+      }
+    } else {
+      // 폭탄(깃발) 위치에서만 — 각 깃발 셀 중심에서 1~2개씩
+      const flagCells = document.querySelectorAll('.cell.flag');
+      flagCells.forEach(cell => {
+        const cr = cell.getBoundingClientRect();
+        const cx = cr.left + cr.width / 2;
+        const cy = cr.top + cr.height / 2;
+        // 셀당 2개씩 살짝 흩뿌려서 풍성하게
+        for (let k = 0; k < 2; k++) {
+          starts.push({
+            x: cx + (Math.random() - 0.5) * 8,
+            y: cy + (Math.random() - 0.5) * 8,
+          });
+        }
+      });
+    }
+
+    let lastArrival = 0;
+
+    starts.forEach((s, i) => {
+      const orb = document.createElement('div');
+      orb.className = 'xp-orb';
+      orb.style.left = (s.x - 7) + 'px';
+      orb.style.top = (s.y - 7) + 'px';
+
+      const dx = targetX - s.x;
+      const dy = targetY - s.y;
+      orb.style.setProperty('--tx', dx + 'px');
+      orb.style.setProperty('--ty', dy + 'px');
+
+      const delay = i * 0.06 + Math.random() * 0.05;
+      orb.style.animationDelay = delay + 's';
+
+      document.body.appendChild(orb);
+
+      const arrivalMs = (delay + 0.7) * 1000;
+      lastArrival = Math.max(lastArrival, arrivalMs);
+      setTimeout(() => {
+        playPling();
+        smiley.classList.add('glow');
+        setTimeout(() => smiley.classList.remove('glow'), 90);
+      }, arrivalMs);
+
+      setTimeout(() => orb.remove(), arrivalMs + 200);
+    });
+
+    // 모든 오브 흡수 후 스마일리 점프 + LEVEL UP 텍스트
+    setTimeout(() => {
+      smiley.classList.remove('bounce');
+      void smiley.offsetWidth;
+      smiley.classList.add('bounce');
+
+      const lu = document.getElementById('levelUp');
+      lu.classList.remove('go');
+      void lu.offsetWidth;
+      lu.classList.add('go');
+
+      // 마지막 강한 "딩" — 레벨업 사운드 (피치 ↑: 2349 → 2936 Hz)
+      const a = ac();
+      const t0 = a.currentTime;
+      const osc = a.createOscillator();
+      const g = a.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 2936;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(0.22, t0 + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.7);
+      osc.connect(g); g.connect(a.destination);
+      osc.start(t0); osc.stop(t0 + 0.75);
+    }, lastArrival + 50);
+  }
+</script>
+</body>
+</html>

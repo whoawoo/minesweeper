@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>컨페티 사운드 후보 20 (폭죽 테마)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "MS Sans Serif", Tahoma, Verdana, sans-serif;
+    background: #5d5d5d;
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  h1 { font-size: 1.2rem; margin-bottom: 4px; letter-spacing: 0.05em; }
+  p.hint { font-size: 0.8rem; color: #ccc; margin-bottom: 4px; text-align: center; line-height: 1.5; }
+  .demo-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 6px; width: 100%; max-width: 760px;
+  }
+  .demo-btn {
+    background: #c0c0c0; color: #000;
+    border-top: 2px solid #fff; border-left: 2px solid #fff;
+    border-right: 2px solid #808080; border-bottom: 2px solid #808080;
+    padding: 10px 6px;
+    font-family: inherit; font-size: 0.78rem; font-weight: bold;
+    cursor: pointer; text-align: center; line-height: 1.3;
+  }
+  .demo-btn:active {
+    border-top: 2px solid #808080; border-left: 2px solid #808080;
+    border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+  }
+  .demo-btn .num { display: block; font-size: 0.95rem; color: #c00; margin-bottom: 2px; }
+  .arena { position: relative; }
+  .game-frame {
+    background: #c0c0c0; padding: 6px;
+    border-top: 3px solid #fff; border-left: 3px solid #fff;
+    border-right: 3px solid #808080; border-bottom: 3px solid #808080;
+  }
+  .status {
+    background: #c0c0c0; padding: 4px 6px; margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 2px solid #808080; border-left: 2px solid #808080;
+    border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+  }
+  .led {
+    background: #000; color: #ff2020;
+    font-family: "Courier New", monospace; font-weight: bold;
+    font-size: 1.6rem; padding: 3px 6px;
+    min-width: 3.5ch; text-align: center; letter-spacing: 0.08em;
+  }
+  .smiley {
+    width: 40px; height: 40px; background: #c0c0c0;
+    border-top: 2px solid #fff; border-left: 2px solid #fff;
+    border-right: 2px solid #808080; border-bottom: 2px solid #808080;
+    font-size: 1.4rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .board-frame {
+    background: #c0c0c0;
+    border-top: 3px solid #808080; border-left: 3px solid #808080;
+    border-right: 3px solid #fff; border-bottom: 3px solid #fff;
+  }
+  #board {
+    display: grid;
+    grid-template-columns: repeat(8, 32px);
+    grid-template-rows: repeat(8, 32px);
+  }
+  .cell {
+    width: 32px; height: 32px; background: #c0c0c0;
+    border: 1px solid #808080;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-family: "Courier New", monospace;
+    font-size: 18px; color: #000;
+  }
+  .cell.flag {
+    border-top: 2px solid #fff; border-left: 2px solid #fff;
+    border-right: 2px solid #808080; border-bottom: 2px solid #808080;
+  }
+  .cell.flag::after { content: "🚩"; font-size: 14px; }
+  .cell.n1 { color: #0000ff; }
+  .cell.n2 { color: #008000; }
+  .cell.n3 { color: #ff0000; }
+  .cell.n4 { color: #000080; }
+
+  #confettiCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 100; }
+  .halo {
+    position: absolute; width: 50px; height: 50px;
+    border: 3px solid #ffd700; border-radius: 50%;
+    pointer-events: none; opacity: 0;
+    transform: translate(-50%, -50%);
+  }
+  .halo.go { animation: halo-pulse 1.2s ease-out forwards; }
+  @keyframes halo-pulse {
+    0%   { width: 50px; height: 50px; opacity: 1; border-color: #ffd700; }
+    50%  { border-color: #ff8800; }
+    100% { width: 350px; height: 350px; opacity: 0; border-color: #ff2020; }
+  }
+  .smiley.pop { animation: smiley-pop 0.7s ease-out; }
+  @keyframes smiley-pop {
+    0%   { transform: scale(1) rotate(0); }
+    25%  { transform: scale(1.45) rotate(-12deg); }
+    50%  { transform: scale(0.9) rotate(8deg); }
+    75%  { transform: scale(1.18) rotate(-4deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+</style>
+</head>
+<body>
+  <h1>🎆 컨페티 사운드 — 폭죽 테마 20</h1>
+  <p class="hint">시각: 컨페티 + 헤일로 + 스마일리 점프 (고정).<br>사운드는 모두 폭죽/팡/축제 테마로 새로 작성.</p>
+
+  <div class="demo-buttons">
+    <button class="demo-btn" onclick="play(1)"><span class="num">1</span>큰 폭죽<br>한 발</button>
+    <button class="demo-btn" onclick="play(2)"><span class="num">2</span>3연발 폭죽</button>
+    <button class="demo-btn" onclick="play(3)"><span class="num">3</span>빠른 5연발</button>
+    <button class="demo-btn" onclick="play(4)"><span class="num">4</span>휘슬→폭죽<br>(진짜 불꽃놀이)</button>
+    <button class="demo-btn" onclick="play(5)"><span class="num">5</span>2단계 폭죽<br>(작은→큰)</button>
+    <button class="demo-btn" onclick="play(6)"><span class="num">6</span>잔향 폭죽<br>(메아리)</button>
+    <button class="demo-btn" onclick="play(7)"><span class="num">7</span>고음 크랙<br>(스파클러)</button>
+    <button class="demo-btn" onclick="play(8)"><span class="num">8</span>저음 크랙<br>(둔탁)</button>
+    <button class="demo-btn" onclick="play(9)"><span class="num">9</span>별빛 크랙<br>+ 종소리</button>
+    <button class="demo-btn" onclick="play(10)"><span class="num">10</span>풍선 터짐<br>(짧고 강한)</button>
+    <button class="demo-btn" onclick="play(11)"><span class="num">11</span>풍선 부풀이<br>+ 팡</button>
+    <button class="demo-btn" onclick="play(12)"><span class="num">12</span>카주 하강<br>(블루~)</button>
+    <button class="demo-btn" onclick="play(13)"><span class="num">13</span>휘슬 분수<br>(3연발)</button>
+    <button class="demo-btn" onclick="play(14)"><span class="num">14</span>폭죽<br>+ 글리산도</button>
+    <button class="demo-btn" onclick="play(15)"><span class="num">15</span>폭죽<br>+ 8비트 팡파레</button>
+    <button class="demo-btn" onclick="play(16)"><span class="num">16</span>글리터 우수수<br>(별 18개)</button>
+    <button class="demo-btn" onclick="play(17)"><span class="num">17</span>불꽃놀이 풀세트<br>(휘슬+폭죽 3연발)</button>
+    <button class="demo-btn" onclick="play(18)"><span class="num">18</span>카니발 사이렌<br>+ 폭죽</button>
+    <button class="demo-btn" onclick="play(19)"><span class="num">19</span>벨 + 폭죽<br>콤보</button>
+    <button class="demo-btn" onclick="play(20)"><span class="num">20</span>메가 콤보<br>(전부 다)</button>
+  </div>
+
+  <div class="arena" id="arena">
+    <div class="game-frame">
+      <div class="status">
+        <div class="led">000</div>
+        <button class="smiley" id="smiley">😎</button>
+        <div class="led">042</div>
+      </div>
+      <div class="board-frame">
+        <div id="board"></div>
+      </div>
+    </div>
+    <div class="halo" id="halo"></div>
+  </div>
+
+  <canvas id="confettiCanvas"></canvas>
+
+<script>
+  const board = document.getElementById('board');
+  const mines = new Set([0, 5, 14, 19, 26, 33, 47, 54, 60, 63]);
+  const numbers = [
+    '', 1, '', '', 1, '', 1, 1,
+    1, 1, '', 1, 1, 2, '', 1,
+    '', '', 1, 2, '', 1, 1, 1,
+    1, 1, 2, '', '', 1, '', '',
+    '', '', 1, '', 1, 2, 1, 1,
+    1, 1, 2, 1, 1, '', '', '',
+    1, '', '', 1, 2, 2, 1, 1,
+    1, 1, 1, '', 1, '', 1, ''
+  ];
+  for (let i = 0; i < 64; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (mines.has(i)) cell.classList.add('flag');
+    else if (numbers[i]) {
+      cell.classList.add('n' + numbers[i]);
+      cell.textContent = numbers[i];
+    }
+    board.appendChild(cell);
+  }
+
+  // === AUDIO HELPERS ===
+  let audioCtx;
+  function ac() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+  function tone({ freq, duration = 0.2, type = 'sine', volume = 0.18, start = 0 }) {
+    const a = ac();
+    const osc = a.createOscillator();
+    const g = a.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    const t0 = a.currentTime + start;
+    g.gain.setValueAtTime(volume, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+    osc.connect(g); g.connect(a.destination);
+    osc.start(t0); osc.stop(t0 + duration);
+  }
+  function freqSweep(startFreq, endFreq, duration, type = 'sine', volume = 0.15, start = 0) {
+    const a = ac();
+    const osc = a.createOscillator();
+    const g = a.createGain();
+    osc.type = type;
+    const t0 = a.currentTime + start;
+    osc.frequency.setValueAtTime(startFreq, t0);
+    osc.frequency.exponentialRampToValueAtTime(endFreq, t0 + duration);
+    g.gain.setValueAtTime(volume, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+    osc.connect(g); g.connect(a.destination);
+    osc.start(t0); osc.stop(t0 + duration);
+  }
+  // 필터 통과 노이즈
+  function noise({ volume = 0.4, duration = 0.1, start = 0, freq, q = 1, type = 'lowpass' } = {}) {
+    const a = ac();
+    const buf = a.createBuffer(1, Math.max(1, Math.floor(a.sampleRate * duration)), a.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const src = a.createBufferSource();
+    src.buffer = buf;
+    const t0 = a.currentTime + start;
+    let last = src;
+    if (freq) {
+      const filter = a.createBiquadFilter();
+      filter.type = type;
+      filter.frequency.value = freq;
+      filter.Q.value = q;
+      src.connect(filter);
+      last = filter;
+    }
+    const g = a.createGain();
+    g.gain.setValueAtTime(volume, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+    last.connect(g); g.connect(a.destination);
+    src.start(t0);
+  }
+  // 큰 폭죽 (저주파 노이즈 부스트 + 서브베이스)
+  function boom(volume = 0.5, duration = 0.5, start = 0) {
+    noise({ volume, duration, start, freq: 600, type: 'lowpass' });
+    tone({ freq: 60, duration: duration * 0.7, type: 'sine', volume: volume * 0.5, start });
+  }
+  // 스파클러/크랙: 빠른 고음 노이즈 펑펑
+  function crackle(duration = 0.6, count = 12, start = 0) {
+    for (let i = 0; i < count; i++) {
+      const offset = Math.random() * duration;
+      noise({
+        volume: 0.08 + Math.random() * 0.1,
+        duration: 0.025,
+        start: start + offset,
+        freq: 4000 + Math.random() * 4000,
+        type: 'highpass'
+      });
+    }
+  }
+
+  // === 20 SOUND CANDIDATES (폭죽/축제 테마) ===
+  const sounds = {
+    1: () => { // 큰 폭죽 한 발
+      boom(0.55, 0.7);
+      crackle(0.5, 10, 0.05);
+    },
+    2: () => { // 3연발 폭죽
+      [0, 0.5, 1.0].forEach(s => {
+        boom(0.5, 0.5, s);
+        crackle(0.4, 7, s + 0.05);
+      });
+    },
+    3: () => { // 빠른 5연발
+      for (let i = 0; i < 5; i++) {
+        const t = i * 0.18 + Math.random() * 0.04;
+        boom(0.42, 0.4, t);
+        crackle(0.3, 5, t + 0.03);
+      }
+    },
+    4: () => { // 휘슬→폭죽 (진짜 불꽃놀이)
+      freqSweep(250, 1700, 0.7, 'sine', 0.13);
+      boom(0.6, 0.6, 0.7);
+      crackle(0.7, 12, 0.75);
+    },
+    5: () => { // 2단계 폭죽 (작은→큰)
+      boom(0.3, 0.3);
+      crackle(0.2, 5, 0.05);
+      boom(0.55, 0.6, 0.35);
+      crackle(0.6, 10, 0.4);
+    },
+    6: () => { // 잔향 폭죽
+      boom(0.55, 0.5);
+      crackle(0.4, 8, 0.05);
+      boom(0.32, 0.4, 0.2);
+      boom(0.18, 0.35, 0.4);
+    },
+    7: () => { // 고음 크랙 (스파클러)
+      crackle(1.2, 30, 0);
+    },
+    8: () => { // 저음 크랙 (둔탁)
+      for (let i = 0; i < 18; i++) {
+        const t = i * 0.06 + Math.random() * 0.04;
+        noise({ volume: 0.16, duration: 0.08, start: t, freq: 250 + Math.random() * 350, type: 'lowpass' });
+      }
+    },
+    9: () => { // 별빛 크랙 + 종소리
+      crackle(1.0, 20, 0);
+      const scale = [2093, 2349, 2637, 2960, 3322];
+      for (let i = 0; i < 10; i++) {
+        const f = scale[Math.floor(Math.random() * scale.length)];
+        tone({ freq: f, duration: 0.3, type: 'sine', volume: 0.1, start: 0.05 + Math.random() * 0.7 });
+      }
+    },
+    10: () => { // 풍선 터짐 (짧고 강한)
+      noise({ volume: 0.6, duration: 0.05, start: 0, freq: 2000, type: 'lowpass' });
+      tone({ freq: 220, duration: 0.1, type: 'sawtooth', volume: 0.22, start: 0 });
+    },
+    11: () => { // 풍선 부풀이 + 팡
+      freqSweep(800, 200, 0.5, 'square', 0.1);
+      noise({ volume: 0.5, duration: 0.06, start: 0.5, freq: 1500, type: 'lowpass' });
+    },
+    12: () => { // 카주 하강 (블루~ 같은 코미컬)
+      freqSweep(1400, 280, 0.6, 'sawtooth', 0.18);
+      noise({ volume: 0.3, duration: 0.06, start: 0.6 });
+    },
+    13: () => { // 휘슬 분수 (3연발)
+      freqSweep(280, 1500, 0.5, 'sine', 0.13, 0);
+      freqSweep(320, 1700, 0.5, 'sine', 0.13, 0.2);
+      freqSweep(260, 1400, 0.5, 'sine', 0.13, 0.4);
+    },
+    14: () => { // 폭죽 + 글리산도
+      boom(0.5, 0.5);
+      crackle(0.4, 8, 0.05);
+      [659, 784, 988, 1175, 1397, 1568].forEach((f, i) =>
+        tone({ freq: f, duration: 0.22, type: 'triangle', volume: 0.13, start: 0.3 + i * 0.05 })
+      );
+    },
+    15: () => { // 폭죽 + 8비트 팡파레
+      boom(0.5, 0.5);
+      crackle(0.4, 8, 0.05);
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) =>
+        tone({ freq: f, duration: 0.28, type: 'square', volume: 0.16, start: 0.35 + i * 0.1 })
+      );
+    },
+    16: () => { // 글리터 우수수 (별 18개)
+      const scale = [1976, 2349, 2637, 2960, 3322, 3729];
+      for (let i = 0; i < 18; i++) {
+        const f = scale[Math.floor(Math.random() * scale.length)];
+        tone({ freq: f, duration: 0.13, type: 'sine', volume: 0.1, start: i * 0.04 });
+      }
+    },
+    17: () => { // 불꽃놀이 풀세트 (휘슬+폭죽 3연발)
+      // 휘슬 3발 (시간 차)
+      freqSweep(260, 1500, 0.5, 'sine', 0.12, 0);
+      freqSweep(280, 1600, 0.5, 'sine', 0.12, 0.4);
+      freqSweep(240, 1400, 0.5, 'sine', 0.12, 0.8);
+      // 폭죽 3발 (휘슬 끝나는 시점)
+      boom(0.55, 0.5, 0.5);
+      crackle(0.5, 10, 0.55);
+      boom(0.5, 0.5, 0.9);
+      crackle(0.5, 9, 0.95);
+      boom(0.55, 0.6, 1.3);
+      crackle(0.6, 12, 1.35);
+    },
+    18: () => { // 카니발 사이렌 + 폭죽
+      freqSweep(800, 1400, 0.3, 'square', 0.14, 0);
+      freqSweep(800, 1400, 0.3, 'square', 0.14, 0.35);
+      boom(0.5, 0.4, 0.7);
+      crackle(0.4, 8, 0.75);
+    },
+    19: () => { // 벨 + 폭죽 콤보
+      tone({ freq: 880, duration: 1.0, type: 'sine', volume: 0.2 });
+      tone({ freq: 1318, duration: 1.0, type: 'sine', volume: 0.1, start: 0.02 });
+      boom(0.4, 0.4, 0.3);
+      crackle(0.4, 8, 0.35);
+    },
+    20: () => { // 메가 콤보 (휘슬+폭죽+글리산도+크랙 다)
+      freqSweep(220, 1600, 0.5, 'sine', 0.1, 0);
+      boom(0.55, 0.6, 0.5);
+      crackle(0.7, 14, 0.55);
+      [659, 784, 988, 1175, 1397, 1568].forEach((f, i) =>
+        tone({ freq: f, duration: 0.2, type: 'triangle', volume: 0.12, start: 0.6 + i * 0.05 })
+      );
+      boom(0.4, 0.4, 1.1);
+      crackle(0.5, 10, 1.15);
+    }
+  };
+
+  // === VISUAL: confetti + halo + smiley pop ===
+  const canvas = document.getElementById('confettiCanvas');
+  const ctx = canvas.getContext('2d');
+  let confettiAnim = null;
+  function resizeCanvas() { canvas.width = innerWidth; canvas.height = innerHeight; }
+  resizeCanvas();
+  addEventListener('resize', resizeCanvas);
+
+  function fxConfetti() {
+    if (confettiAnim) cancelAnimationFrame(confettiAnim);
+    const sm = document.getElementById('smiley').getBoundingClientRect();
+    const cx = sm.left + sm.width / 2;
+    const cy = sm.top + sm.height / 2;
+    const colors = ['#ff2020', '#ff8800', '#ffd700', '#00c000', '#00aaff', '#aa00ff', '#ff60a0'];
+    const ps = [];
+    for (let i = 0; i < 100; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 4 + Math.random() * 7;
+      ps.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 5,
+        rot: Math.random() * Math.PI * 2,
+        vrot: (Math.random() - 0.5) * 0.4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: 6 + Math.random() * 7,
+        life: 1,
+      });
+    }
+    function frame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      for (const p of ps) {
+        p.vy += 0.28; p.x += p.vx; p.y += p.vy; p.rot += p.vrot; p.life -= 0.011;
+        if (p.life > 0) {
+          alive = true;
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+          ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.life);
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.45);
+          ctx.restore();
+        }
+      }
+      if (alive) confettiAnim = requestAnimationFrame(frame);
+      else { ctx.clearRect(0, 0, canvas.width, canvas.height); confettiAnim = null; }
+    }
+    frame();
+  }
+
+  function fxHalo() {
+    const halo = document.getElementById('halo');
+    const smiley = document.getElementById('smiley');
+    const sr = smiley.getBoundingClientRect();
+    const ar = document.getElementById('arena').getBoundingClientRect();
+    halo.style.left = (sr.left + sr.width / 2 - ar.left) + 'px';
+    halo.style.top = (sr.top + sr.height / 2 - ar.top) + 'px';
+    halo.classList.remove('go');
+    smiley.classList.remove('pop');
+    void halo.offsetWidth; void smiley.offsetWidth;
+    halo.classList.add('go');
+    smiley.classList.add('pop');
+  }
+
+  function play(n) {
+    fxConfetti();
+    fxHalo();
+    sounds[n]();
+  }
+</script>
+</body>
+</html>
