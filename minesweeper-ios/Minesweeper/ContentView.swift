@@ -298,9 +298,140 @@ final class GameModel {
         }
     }
 
-    // TODO: 다음 커밋에서 PWA의 isSolvableNoGuess 솔버(기본 추론 + subset 추론) 포팅
+    // PWA isSolvableNoGuess 1:1 포팅 — 기본 추론 + subset 추론(1-2-1 같은 패턴)
+    // 추측 없이 논리만으로 풀리는 보드면 true
     private func isSolvableNoGuess(firstR: Int, firstC: Int) -> Bool {
-        return true  // 임시: 항상 true → 첫 보드 그대로 사용 (deductionMode 효과 없음)
+        struct Constraint {
+            let minesLeft: Int
+            let unknowns: Set<Int>
+        }
+
+        var revealedFlat = Array(repeating: false, count: rows * cols)
+        var flaggedFlat = Array(repeating: false, count: rows * cols)
+        let nCols = cols
+        let nRows = rows
+
+        @inline(__always) func idx(_ r: Int, _ c: Int) -> Int { r * nCols + c }
+
+        func neighbors(_ r: Int, _ c: Int) -> [(Int, Int)] {
+            var out: [(Int, Int)] = []
+            out.reserveCapacity(8)
+            for dr in -1...1 {
+                for dc in -1...1 where !(dr == 0 && dc == 0) {
+                    let nr = r + dr, nc = c + dc
+                    if nr >= 0, nr < nRows, nc >= 0, nc < nCols {
+                        out.append((nr, nc))
+                    }
+                }
+            }
+            return out
+        }
+
+        func flood(_ startR: Int, _ startC: Int) {
+            var queue: [(Int, Int)] = [(startR, startC)]
+            var head = 0
+            while head < queue.count {
+                let (r, c) = queue[head]
+                head += 1
+                let i = idx(r, c)
+                if revealedFlat[i] { continue }
+                revealedFlat[i] = true
+                if board[r][c].neighbors == 0 {
+                    for (nr, nc) in neighbors(r, c) {
+                        if !board[nr][nc].isMine && !revealedFlat[idx(nr, nc)] {
+                            queue.append((nr, nc))
+                        }
+                    }
+                }
+            }
+        }
+
+        flood(firstR, firstC)
+
+        var changed = true
+        while changed {
+            changed = false
+
+            // 1) 기본 추론: n - flaggedCount == unknowns → 모두 지뢰 / minesLeft == 0 → 모두 안전
+            for r in 0..<nRows {
+                for c in 0..<nCols {
+                    let i = idx(r, c)
+                    if !revealedFlat[i] || board[r][c].isMine { continue }
+                    let n = board[r][c].neighbors
+                    if n == 0 { continue }
+                    var unknowns: [(Int, Int)] = []
+                    var flaggedCount = 0
+                    for (nr, nc) in neighbors(r, c) {
+                        let ni = idx(nr, nc)
+                        if !revealedFlat[ni] {
+                            if flaggedFlat[ni] { flaggedCount += 1 }
+                            else { unknowns.append((nr, nc)) }
+                        }
+                    }
+                    if unknowns.isEmpty { continue }
+                    let minesLeft = n - flaggedCount
+                    if minesLeft == 0 {
+                        for (nr, nc) in unknowns { flood(nr, nc) }
+                        changed = true
+                    } else if minesLeft == unknowns.count {
+                        for (nr, nc) in unknowns { flaggedFlat[idx(nr, nc)] = true }
+                        changed = true
+                    }
+                }
+            }
+            if changed { continue }
+
+            // 2) Subset 추론: A.unknowns ⊂ B.unknowns 일 때, 차이 셀들의 지뢰 개수 결정 가능하면 사용
+            var constraints: [Constraint] = []
+            for r in 0..<nRows {
+                for c in 0..<nCols {
+                    let i = idx(r, c)
+                    if !revealedFlat[i] || board[r][c].isMine { continue }
+                    let n = board[r][c].neighbors
+                    if n == 0 { continue }
+                    var unknowns = Set<Int>()
+                    var flaggedCount = 0
+                    for (nr, nc) in neighbors(r, c) {
+                        let ni = idx(nr, nc)
+                        if !revealedFlat[ni] {
+                            if flaggedFlat[ni] { flaggedCount += 1 }
+                            else { unknowns.insert(ni) }
+                        }
+                    }
+                    if unknowns.isEmpty { continue }
+                    constraints.append(Constraint(minesLeft: n - flaggedCount, unknowns: unknowns))
+                }
+            }
+            outer: for ai in 0..<constraints.count {
+                let A = constraints[ai]
+                for bi in 0..<constraints.count {
+                    if ai == bi { continue }
+                    let B = constraints[bi]
+                    if A.unknowns.count >= B.unknowns.count { continue }
+                    if !A.unknowns.isSubset(of: B.unknowns) { continue }
+                    let diff = B.unknowns.subtracting(A.unknowns)
+                    if diff.isEmpty { continue }
+                    let diffMines = B.minesLeft - A.minesLeft
+                    if diffMines == 0 {
+                        for d in diff { flood(d / nCols, d % nCols) }
+                        changed = true
+                        break outer
+                    } else if diffMines == diff.count {
+                        for d in diff { flaggedFlat[d] = true }
+                        changed = true
+                        break outer
+                    }
+                }
+            }
+        }
+
+        // 모든 비-지뢰 칸이 공개됐는가?
+        for r in 0..<nRows {
+            for c in 0..<nCols {
+                if !board[r][c].isMine && !revealedFlat[idx(r, c)] { return false }
+            }
+        }
+        return true
     }
 
     private func revealAllMines() {
