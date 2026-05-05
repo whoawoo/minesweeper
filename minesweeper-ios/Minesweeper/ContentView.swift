@@ -1221,25 +1221,142 @@ struct GameView: View {
     }
 
     private func boardView(cellSize: CGFloat) -> some View {
-        VStack(spacing: 0) {
-            ForEach(0..<model.rows, id: \.self) { r in
-                HStack(spacing: 0) {
-                    ForEach(0..<model.cols, id: \.self) { c in
-                        CellView(
-                            cell: model.board[r][c],
-                            size: cellSize,
-                            onTap: { model.reveal(r, c) },
-                            onLongPress: { model.toggleFlag(r, c) },
-                            onPressingChanged: { pressing in model.isPressing = pressing }
-                        )
-                        .equatable()  // 변하지 않은 cell은 re-render skip
-                    }
-                }
-            }
-        }
+        BoardCanvasView(
+            board: model.board,
+            cellSize: cellSize,
+            onTap: { r, c in model.reveal(r, c) },
+            onLongPress: { r, c in model.toggleFlag(r, c) },
+            onPressingChanged: { pressing in model.isPressing = pressing }
+        )
         .padding(3)
         .background(Color.win95Gray)
         .beveled(.inset, width: 3)
+    }
+}
+
+// MARK: - Board Canvas (단일 Canvas로 전체 보드 렌더 — 480개 View 폭주 회피)
+
+struct BoardCanvasView: View {
+    let board: [[Cell]]
+    let cellSize: CGFloat
+    let onTap: (Int, Int) -> Void
+    let onLongPress: (Int, Int) -> Void
+    let onPressingChanged: (Bool) -> Void
+
+    @State private var pressingCell: (Int, Int)? = nil
+    @State private var longPressTimer: Timer? = nil
+    @State private var didLongPress = false
+
+    var rows: Int { board.count }
+    var cols: Int { board.first?.count ?? 0 }
+
+    var body: some View {
+        Canvas { ctx, _ in
+            for r in 0..<rows {
+                for c in 0..<cols {
+                    drawCell(ctx: ctx, cell: board[r][c], r: r, c: c)
+                }
+            }
+        }
+        .frame(width: CGFloat(cols) * cellSize, height: CGFloat(rows) * cellSize)
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { value in handleDragChanged(value) }
+                .onEnded { value in handleDragEnded(value) }
+        )
+    }
+
+    private func cellAt(_ point: CGPoint) -> (Int, Int)? {
+        let r = Int(floor(point.y / cellSize))
+        let c = Int(floor(point.x / cellSize))
+        if r < 0 || r >= rows || c < 0 || c >= cols { return nil }
+        return (r, c)
+    }
+
+    private func handleDragChanged(_ value: DragGesture.Value) {
+        guard pressingCell == nil else { return }  // 첫 터치만 처리
+        guard let cell = cellAt(value.startLocation) else { return }
+        pressingCell = cell
+        didLongPress = false
+        onPressingChanged(true)
+        let r = cell.0, c = cell.1
+        longPressTimer?.invalidate()
+        longPressTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: false) { _ in
+            self.didLongPress = true
+            self.onLongPress(r, c)
+        }
+    }
+
+    private func handleDragEnded(_ value: DragGesture.Value) {
+        longPressTimer?.invalidate()
+        longPressTimer = nil
+        onPressingChanged(false)
+        guard let pressed = pressingCell else { return }
+        pressingCell = nil
+        if didLongPress { return }  // 롱프레스 발화 시 탭 무시
+        guard let released = cellAt(value.location) else { return }
+        if released.0 == pressed.0 && released.1 == pressed.1 {
+            onTap(pressed.0, pressed.1)
+        }
+    }
+
+    private func drawCell(ctx: GraphicsContext, cell: Cell, r: Int, c: Int) {
+        let x = CGFloat(c) * cellSize
+        let y = CGFloat(r) * cellSize
+        let rect = CGRect(x: x, y: y, width: cellSize, height: cellSize)
+
+        ctx.fill(Path(rect), with: .color(.win95Gray))
+
+        if cell.state == .revealed {
+            // 1pt shadow border
+            ctx.stroke(Path(rect.insetBy(dx: 0.25, dy: 0.25)),
+                       with: .color(.win95Shadow.opacity(0.5)), lineWidth: 0.5)
+        } else {
+            // Outset bevel: 2pt
+            let bw: CGFloat = 2
+            ctx.fill(Path(CGRect(x: x, y: y, width: cellSize, height: bw)),
+                     with: .color(.win95Light))
+            ctx.fill(Path(CGRect(x: x, y: y, width: bw, height: cellSize)),
+                     with: .color(.win95Light))
+            ctx.fill(Path(CGRect(x: x, y: y + cellSize - bw, width: cellSize, height: bw)),
+                     with: .color(.win95Shadow))
+            ctx.fill(Path(CGRect(x: x + cellSize - bw, y: y, width: bw, height: cellSize)),
+                     with: .color(.win95Shadow))
+        }
+
+        // Content
+        switch cell.state {
+        case .hidden:
+            break
+        case .flagged:
+            let t = Text("🚩").font(.system(size: cellSize * 0.55))
+            ctx.draw(t, in: rect)
+        case .revealed:
+            if cell.isMine {
+                let t = Text("💣").font(.system(size: cellSize * 0.6))
+                ctx.draw(t, in: rect)
+            } else if cell.neighbors > 0 {
+                let t = Text("\(cell.neighbors)")
+                    .font(.system(size: cellSize * 0.65, weight: .black, design: .monospaced))
+                    .foregroundColor(BoardCanvasView.numberColor(cell.neighbors))
+                ctx.draw(t, in: rect)
+            }
+        }
+    }
+
+    private static func numberColor(_ n: Int) -> Color {
+        switch n {
+        case 1: .mineN1
+        case 2: .mineN2
+        case 3: .mineN3
+        case 4: .mineN4
+        case 5: .mineN5
+        case 6: .mineN6
+        case 7: .mineN7
+        case 8: .mineN8
+        default: .black
+        }
     }
 }
 
