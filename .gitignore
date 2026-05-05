@@ -1,1 +1,12 @@
 .DS_Store
+
+# Claude Code
+.claude/
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+DerivedData/
+build/
+.swiftpm/
