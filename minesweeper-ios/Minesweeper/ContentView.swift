@@ -8,11 +8,11 @@ import AVFoundation
 
 // MARK: - Model
 
-enum CellState: String, Codable {
+enum CellState: String, Codable, Equatable {
     case hidden, revealed, flagged
 }
 
-struct Cell: Codable {
+struct Cell: Codable, Equatable {
     var isMine: Bool = false
     var state: CellState = .hidden
     var neighbors: Int = 0
@@ -246,16 +246,16 @@ final class GameModel {
 
     // MARK: private
 
-    // PWA의 placeMines와 동일 구조: 추리모드 on이면 풀 수 있는 보드를 최대 300번 시도
+    // 추리모드 on이면 풀 수 있는 보드를 최대 100번 시도 (PWA 300 → 모바일 응답성 위해 단축)
     private func placeMines(safe: (Int, Int)) {
         if AppSettings.deductionMode {
-            for _ in 0..<300 {
+            for _ in 0..<100 {
                 placeMinesRandom(safe: safe)
                 if isSolvableNoGuess(firstR: safe.0, firstC: safe.1) {
                     return
                 }
             }
-            // 300번 안에 해결되는 보드 못 만들면 폴백
+            // 못 만들면 폴백
         }
         placeMinesRandom(safe: safe)
     }
@@ -1206,6 +1206,7 @@ struct GameView: View {
                             onLongPress: { model.toggleFlag(r, c) },
                             onPressingChanged: { pressing in model.isPressing = pressing }
                         )
+                        .equatable()  // 변하지 않은 cell은 re-render skip
                     }
                 }
             }
@@ -1218,7 +1219,7 @@ struct GameView: View {
 
 // MARK: - Cell
 
-struct CellView: View {
+struct CellView: View, Equatable {
     let cell: Cell
     let size: CGFloat
     let onTap: () -> Void
@@ -1226,6 +1227,11 @@ struct CellView: View {
     let onPressingChanged: (Bool) -> Void
 
     @State private var pressed = false
+
+    // 클로저 비교 불가 → 데이터만 비교. cell + size 동일하면 re-render skip
+    static func == (lhs: CellView, rhs: CellView) -> Bool {
+        lhs.cell == rhs.cell && lhs.size == rhs.size
+    }
 
     var body: some View {
         ZStack {
