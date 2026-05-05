@@ -254,7 +254,7 @@ struct ContentView: View {
         GeometryReader { geo in
             let cellSize = computeCellSize(in: geo.size)
 
-            ZStack {
+            ZStack(alignment: .top) {
                 Color.win95BG.ignoresSafeArea()
 
                 VStack(spacing: 12) {
@@ -264,19 +264,21 @@ struct ContentView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.top, 12)
+                .frame(maxWidth: .infinity)
             }
         }
     }
 
     private func computeCellSize(in size: CGSize) -> CGFloat {
-        // 가로/세로 각각의 가용 픽셀에서 chrome(베벨/패딩/상태바/난이도 피커) 빼고 cell 한 변 산출
-        let horizontalChrome: CGFloat = 24 + 6 + 12 + 6   // 페이지패딩 + outset bevel*2 + frame padding*2 + inset bevel*2
-        let verticalChrome: CGFloat = 12 + 50 + 50 + 6 + 12 + 6  // top + difficulty picker + status bar + inset bevel*2 + frame padding*2 + outset bevel*2
+        // 페이지 패딩 + gameFrame 외곽 베벨/패딩 + 보드 inset 베벨 패딩
+        let horizontalChrome: CGFloat = 24 + 6 + 12 + 6
+        // 페이지 top + 난이도 피커 + spacing + 상태바 + spacing + 보드 외곽 chrome + 여유
+        let verticalChrome: CGFloat = 12 + 32 + 12 + 50 + 6 + 18 + 50
         let availW = max(40, size.width - horizontalChrome)
         let availH = max(40, size.height - verticalChrome)
         let byW = availW / CGFloat(model.cols)
         let byH = availH / CGFloat(model.rows)
-        return floor(max(12, min(byW, byH, 40)))
+        return floor(max(12, min(byW, byH, 56)))
     }
 
     private var difficultyPicker: some View {
@@ -292,14 +294,15 @@ struct ContentView: View {
     }
 
     private func gameFrame(cellSize: CGFloat) -> some View {
-        VStack(spacing: 6) {
-            statusBar
+        let contentWidth = CGFloat(model.cols) * cellSize + 6  // cells + 3pt inset bevel padding × 2
+        return VStack(spacing: 6) {
+            statusBar.frame(width: contentWidth)
             boardView(cellSize: cellSize)
         }
         .padding(6)
         .background(Color.win95Gray)
         .beveled(.outset, width: 3)
-        .frame(maxWidth: .infinity)
+        .fixedSize()
     }
 
     private var statusBar: some View {
@@ -362,8 +365,9 @@ struct ContentView: View {
                 }
             }
         }
+        .padding(3)
+        .background(Color.win95Gray)
         .beveled(.inset, width: 3)
-        .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 
