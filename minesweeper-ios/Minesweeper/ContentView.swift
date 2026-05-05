@@ -787,8 +787,8 @@ struct PressableButtonStyle: ButtonStyle {
 // MARK: - Confetti (PWA playConfettiClear 포팅)
 
 struct ConfettiParticle {
-    let baseAngle: Double
-    let speed: Double
+    let vx: Double
+    let vy: Double  // initial vy (이미 -5 적용된 값)
     let initialRot: Double
     let vrot: Double
     let color: Color
@@ -802,6 +802,7 @@ struct ConfettiView: View {
     @State private var particles: [ConfettiParticle] = []
     @State private var startDate: Date = .distantPast
 
+    // PWA fxConfetti 색상 그대로
     private static let palette: [Color] = [
         Color(red: 1.00, green: 0.13, blue: 0.13),  // ff2020
         Color(red: 1.00, green: 0.53, blue: 0.00),  // ff8800
@@ -812,23 +813,26 @@ struct ConfettiView: View {
         Color(red: 1.00, green: 0.38, blue: 0.63),  // ff60a0
     ]
 
+    // PWA: life -= 0.011/frame @ 60fps → 약 1.515초
+    private static let totalDuration: Double = 1.0 / 0.011 / 60.0
+
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0/60.0, paused: false)) { context in
             Canvas { ctx, _ in
                 let elapsed = context.date.timeIntervalSince(startDate)
-                if elapsed > 3.0 || particles.isEmpty { return }
+                if elapsed > Self.totalDuration || particles.isEmpty { return }
 
                 let frames = elapsed * 60.0
-                let life = max(0.0, 1.0 - elapsed / 3.0)
+                let life = max(0.0, 1.0 - 0.011 * frames)
 
                 for p in particles {
-                    let vx0 = cos(p.baseAngle) * p.speed
-                    let vy0 = sin(p.baseAngle) * p.speed - 5.0  // 살짝 위로 솟구침
-                    let x = origin.x + vx0 * frames
-                    let y = origin.y + vy0 * frames + 0.5 * 0.28 * frames * frames
+                    // PWA frame 적분: x(N) = x0 + N*vx, y(N) = y0 + N*vy0 + 0.28*N*(N+1)/2
+                    let x = origin.x + p.vx * frames
+                    let y = origin.y + p.vy * frames + 0.28 * frames * (frames + 1) / 2
                     let rot = p.initialRot + p.vrot * frames
 
-                    let rect = CGRect(x: -p.size / 2, y: -p.size * 0.225, width: p.size, height: p.size * 0.45)
+                    // PWA fillRect(-size/2, -size/2, size, size*0.45) — 위쪽으로 치우친 직사각형
+                    let rect = CGRect(x: -p.size / 2, y: -p.size / 2, width: p.size, height: p.size * 0.45)
                     let transform = CGAffineTransform.identity
                         .translatedBy(x: x, y: y)
                         .rotated(by: rot)
@@ -848,17 +852,28 @@ struct ConfettiView: View {
         var ps: [ConfettiParticle] = []
         ps.reserveCapacity(100)
         for _ in 0..<100 {
+            // PWA: angle = random*2π, speed = 4 + random*7, vy = sin(angle)*speed - 5
+            let angle = Double.random(in: 0..<(2 * .pi))
+            let speed = 4.0 + Double.random(in: 0..<7.0)
             ps.append(ConfettiParticle(
-                baseAngle: .random(in: 0..<(2 * .pi)),
-                speed: 4 + .random(in: 0..<7),
+                vx: cos(angle) * speed,
+                vy: sin(angle) * speed - 5.0,
                 initialRot: .random(in: 0..<(2 * .pi)),
-                vrot: .random(in: -0.2..<0.2),
+                vrot: (Double.random(in: 0..<1) - 0.5) * 0.4,  // PWA: (random - 0.5) * 0.4
                 color: Self.palette.randomElement()!,
                 size: 6 + .random(in: 0..<7)
             ))
         }
         particles = ps
         startDate = Date()
+    }
+}
+
+// 스마일 위치를 ConfettiView에 정확히 전달 — anchorPreference로 frame 받음
+struct SmileyAnchorKey: PreferenceKey {
+    static let defaultValue: Anchor<CGRect>? = nil
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+        value = nextValue() ?? value
     }
 }
 
@@ -874,22 +889,24 @@ struct GameView: View {
         GeometryReader { geo in
             let cellSize = computeCellSize(in: geo.size)
 
-            ZStack(alignment: .top) {
-                VStack(spacing: 12) {
-                    topBar
-                    gameFrame(cellSize: cellSize)
-                    Spacer(minLength: 0)
+            VStack(spacing: 12) {
+                topBar
+                gameFrame(cellSize: cellSize)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+            .frame(maxWidth: .infinity)
+            .overlayPreferenceValue(SmileyAnchorKey.self) { anchor in
+                GeometryReader { proxy in
+                    if let a = anchor {
+                        let r = proxy[a]
+                        ConfettiView(
+                            trigger: model.status,
+                            origin: CGPoint(x: r.midX, y: r.midY)
+                        )
+                    }
                 }
-                .padding(.horizontal, 12)
-                .padding(.top, 12)
-                .frame(maxWidth: .infinity)
-
-                // smiley는 topBar 아래 status bar 안에 있음 — 대략적인 화면 좌표
-                // (정확한 위치는 anchorPreference로 받아올 수 있지만 ±몇 pt는 컨페티 효과상 무관)
-                ConfettiView(
-                    trigger: model.status,
-                    origin: CGPoint(x: geo.size.width / 2, y: 12 + 36 + 12 + 9 + 25)
-                )
             }
         }
     }
@@ -972,6 +989,7 @@ struct GameView: View {
                 .beveled(.outset, width: 2)
         }
         .buttonStyle(.plain)
+        .anchorPreference(key: SmileyAnchorKey.self, value: .bounds) { $0 }
     }
 
     private var smiley: String {
