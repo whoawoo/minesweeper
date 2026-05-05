@@ -38,15 +38,15 @@ enum Difficulty: String, CaseIterable, Identifiable, Hashable {
     }
     var subtitle: String {
         switch self {
-        case .beginner: "9 × 9 · 지뢰 10"
-        case .intermediate: "16 × 16 · 지뢰 40"
-        case .expert: "30 × 16 · 지뢰 99"
+        case .beginner: "8 × 8 · 지뢰 17"
+        case .intermediate: "16 × 16 · 지뢰 54"
+        case .expert: "30 × 16 · 지뢰 103"
         }
     }
-    // 세로형 폰 화면 기준 — 행이 더 많고 열은 적게
-    var rows: Int { switch self { case .beginner: 9; case .intermediate: 16; case .expert: 30 } }
-    var cols: Int { switch self { case .beginner: 9; case .intermediate: 16; case .expert: 16 } }
-    var mines: Int { switch self { case .beginner: 10; case .intermediate: 40; case .expert: 99 } }
+    // 세로형 폰 화면 기준 — 행이 더 많고 열은 적게. 지뢰 개수는 PWA 그대로.
+    var rows: Int { switch self { case .beginner: 8; case .intermediate: 16; case .expert: 30 } }
+    var cols: Int { switch self { case .beginner: 8; case .intermediate: 16; case .expert: 16 } }
+    var mines: Int { switch self { case .beginner: 17; case .intermediate: 54; case .expert: 103 } }
 }
 
 @Observable
@@ -223,6 +223,40 @@ extension Color {
     static let mineN8 = Color(red: 0x80/255, green: 0x80/255, blue: 0x80/255)
 }
 
+// MARK: - Bomb icon (PWA 메인 타이틀바용 흰 폭탄)
+
+struct BombIcon: View {
+    var size: CGFloat = 22
+
+    var body: some View {
+        Canvas { ctx, drawSize in
+            // PWA SVG: viewBox 0 0 512 512, circle r=100, 8 spike lines stroke-width=22
+            let scale = drawSize.width / 512.0
+            let cx = drawSize.width / 2
+            let cy = drawSize.height / 2
+            let r = 100 * scale
+
+            ctx.fill(Path(ellipseIn: CGRect(x: cx - r, y: cy - r, width: 2*r, height: 2*r)),
+                     with: .color(.white))
+
+            let spikes: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
+                (256, 176, 256, 100), (256, 336, 256, 412),  // top, bottom
+                (176, 256, 100, 256), (336, 256, 412, 256),  // left, right
+                (199, 199, 146, 146), (313, 313, 366, 366),  // tl, br
+                (199, 313, 146, 366), (313, 199, 366, 146),  // bl, tr
+            ]
+            var path = Path()
+            for (x1, y1, x2, y2) in spikes {
+                path.move(to: CGPoint(x: x1 * scale, y: y1 * scale))
+                path.addLine(to: CGPoint(x: x2 * scale, y: y2 * scale))
+            }
+            ctx.stroke(path, with: .color(.white),
+                       style: StrokeStyle(lineWidth: 22 * scale, lineCap: .round))
+        }
+        .frame(width: size, height: size)
+    }
+}
+
 // MARK: - Bevel (Win95 3D border)
 
 enum BevelStyle { case outset, inset }
@@ -291,16 +325,20 @@ struct HomeView: View {
 
     private var dialogWindow: some View {
         VStack(spacing: 0) {
-            // Title bar
-            Text("지뢰찾기")
-                .font(.system(size: 22, weight: .bold))
-                .tracking(2.5)
-                .foregroundStyle(Color.white)
-                .padding(.top, 16)
-                .padding(.bottom, 11)
-                .padding(.horizontal, 8)
-                .frame(maxWidth: .infinity)
-                .background(Color.win95Title)
+            // Title bar — PWA: 폭탄 + "지뢰찾기" + 폭탄
+            HStack(spacing: 10) {
+                BombIcon(size: 22)
+                Text("지뢰찾기")
+                    .font(.system(size: 22, weight: .bold))
+                    .tracking(2.5)
+                    .foregroundStyle(Color.white)
+                BombIcon(size: 22)
+            }
+            .padding(.top, 16)
+            .padding(.bottom, 11)
+            .padding(.horizontal, 8)
+            .frame(maxWidth: .infinity)
+            .background(Color.win95Title)
 
             // Body
             VStack(spacing: 12) {
