@@ -1260,12 +1260,10 @@ struct BoardCanvasView: View, Equatable {
     var body: some View {
         Canvas { ctx, _ in
             // 1패스: 베벨 가장자리를 색별 단일 Path에 모아서 fill 4번으로 압축
-            // (cell당 fill 5번 → 전체 fill 4번 + revealed 1번)
             let bw: CGFloat = 2
             var lightPath = Path()
             var shadowPath = Path()
             var revealedRectPath = Path()
-            // 배경 한 번
             ctx.fill(
                 Path(CGRect(x: 0, y: 0, width: CGFloat(cols) * cellSize, height: CGFloat(rows) * cellSize)),
                 with: .color(.win95Gray)
@@ -1289,7 +1287,19 @@ struct BoardCanvasView: View, Equatable {
             ctx.fill(shadowPath, with: .color(.win95Shadow))
             ctx.stroke(revealedRectPath, with: .color(.win95Shadow.opacity(0.5)), lineWidth: 0.5)
 
-            // 2패스: 텍스트 — at: center, anchor: .center 로 명시 가운데 정렬
+            // 텍스트 pre-resolve — 10번만 resolve해서 N번 재사용 (Text struct 매번 생성/resolve 비용 제거)
+            let flagResolved = ctx.resolve(Text("🚩").font(.system(size: cellSize * 0.55)))
+            let mineResolved = ctx.resolve(Text("💣").font(.system(size: cellSize * 0.6)))
+            var digitResolved: [GraphicsContext.ResolvedText?] = Array(repeating: nil, count: 9)
+            for n in 1...8 {
+                digitResolved[n] = ctx.resolve(
+                    Text("\(n)")
+                        .font(.system(size: cellSize * 0.65, weight: .black, design: .monospaced))
+                        .foregroundColor(BoardCanvasView.numberColor(n))
+                )
+            }
+
+            // 2패스: 텍스트 그리기 — pre-resolved 사용 + at:anchor:.center로 가운데 정렬
             for r in 0..<rows {
                 for c in 0..<cols {
                     let cell = board[r][c]
@@ -1301,19 +1311,12 @@ struct BoardCanvasView: View, Equatable {
                     switch cell.state {
                     case .hidden: break
                     case .flagged:
-                        ctx.draw(Text("🚩").font(.system(size: cellSize * 0.55)),
-                                 at: center, anchor: .center)
+                        ctx.draw(flagResolved, at: center, anchor: .center)
                     case .revealed:
                         if cell.isMine {
-                            ctx.draw(Text("💣").font(.system(size: cellSize * 0.6)),
-                                     at: center, anchor: .center)
-                        } else if cell.neighbors > 0 {
-                            ctx.draw(
-                                Text("\(cell.neighbors)")
-                                    .font(.system(size: cellSize * 0.65, weight: .black, design: .monospaced))
-                                    .foregroundColor(BoardCanvasView.numberColor(cell.neighbors)),
-                                at: center, anchor: .center
-                            )
+                            ctx.draw(mineResolved, at: center, anchor: .center)
+                        } else if cell.neighbors > 0, let t = digitResolved[cell.neighbors] {
+                            ctx.draw(t, at: center, anchor: .center)
                         }
                     }
                 }
