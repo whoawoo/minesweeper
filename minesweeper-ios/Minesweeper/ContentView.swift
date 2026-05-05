@@ -784,6 +784,84 @@ struct PressableButtonStyle: ButtonStyle {
     }
 }
 
+// MARK: - Confetti (PWA playConfettiClear 포팅)
+
+struct ConfettiParticle {
+    let baseAngle: Double
+    let speed: Double
+    let initialRot: Double
+    let vrot: Double
+    let color: Color
+    let size: Double
+}
+
+struct ConfettiView: View {
+    let trigger: GameStatus  // .won 으로 바뀌면 spawn
+    let origin: CGPoint
+
+    @State private var particles: [ConfettiParticle] = []
+    @State private var startDate: Date = .distantPast
+
+    private static let palette: [Color] = [
+        Color(red: 1.00, green: 0.13, blue: 0.13),  // ff2020
+        Color(red: 1.00, green: 0.53, blue: 0.00),  // ff8800
+        Color(red: 1.00, green: 0.84, blue: 0.00),  // ffd700
+        Color(red: 0.00, green: 0.75, blue: 0.00),  // 00c000
+        Color(red: 0.00, green: 0.67, blue: 1.00),  // 00aaff
+        Color(red: 0.67, green: 0.00, blue: 1.00),  // aa00ff
+        Color(red: 1.00, green: 0.38, blue: 0.63),  // ff60a0
+    ]
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0/60.0, paused: false)) { context in
+            Canvas { ctx, _ in
+                let elapsed = context.date.timeIntervalSince(startDate)
+                if elapsed > 3.0 || particles.isEmpty { return }
+
+                let frames = elapsed * 60.0
+                let life = max(0.0, 1.0 - elapsed / 3.0)
+
+                for p in particles {
+                    let vx0 = cos(p.baseAngle) * p.speed
+                    let vy0 = sin(p.baseAngle) * p.speed - 5.0  // 살짝 위로 솟구침
+                    let x = origin.x + vx0 * frames
+                    let y = origin.y + vy0 * frames + 0.5 * 0.28 * frames * frames
+                    let rot = p.initialRot + p.vrot * frames
+
+                    let rect = CGRect(x: -p.size / 2, y: -p.size * 0.225, width: p.size, height: p.size * 0.45)
+                    let transform = CGAffineTransform.identity
+                        .translatedBy(x: x, y: y)
+                        .rotated(by: rot)
+                    let path = Path(rect).applying(transform)
+                    ctx.opacity = life
+                    ctx.fill(path, with: .color(p.color))
+                }
+            }
+        }
+        .allowsHitTesting(false)
+        .onChange(of: trigger) { _, newValue in
+            if newValue == .won { spawn() }
+        }
+    }
+
+    private func spawn() {
+        var ps: [ConfettiParticle] = []
+        ps.reserveCapacity(100)
+        for _ in 0..<100 {
+            ps.append(ConfettiParticle(
+                baseAngle: .random(in: 0..<(2 * .pi)),
+                speed: 4 + .random(in: 0..<7),
+                initialRot: .random(in: 0..<(2 * .pi)),
+                vrot: .random(in: -0.2..<0.2),
+                color: Self.palette.randomElement()!,
+                size: 6 + .random(in: 0..<7)
+            ))
+        }
+        particles = ps
+        startDate = Date()
+    }
+}
+
 // MARK: - Game
 
 struct GameView: View {
@@ -796,14 +874,23 @@ struct GameView: View {
         GeometryReader { geo in
             let cellSize = computeCellSize(in: geo.size)
 
-            VStack(spacing: 12) {
-                topBar
-                gameFrame(cellSize: cellSize)
-                Spacer(minLength: 0)
+            ZStack(alignment: .top) {
+                VStack(spacing: 12) {
+                    topBar
+                    gameFrame(cellSize: cellSize)
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 12)
+                .frame(maxWidth: .infinity)
+
+                // smiley는 topBar 아래 status bar 안에 있음 — 대략적인 화면 좌표
+                // (정확한 위치는 anchorPreference로 받아올 수 있지만 ±몇 pt는 컨페티 효과상 무관)
+                ConfettiView(
+                    trigger: model.status,
+                    origin: CGPoint(x: geo.size.width / 2, y: 12 + 36 + 12 + 9 + 25)
+                )
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
-            .frame(maxWidth: .infinity)
         }
     }
 
