@@ -174,25 +174,34 @@ final class GameModel {
         }
 
         // PWA와 동일: stack 기반 flood fill — 0인 칸 이웃을 계속 펼침
+        // 로컬 배열에서 작업하고 끝에 한 번만 board에 대입 (여러 셀 mutation 폭주 방지)
+        var local = board
+        var hitMine = false
         var stack: [(Int, Int)] = [(r, c)]
         while let (cr, cc) = stack.popLast() {
-            let cell = board[cr][cc]
+            let cell = local[cr][cc]
             if cell.state == .revealed || cell.state == .flagged { continue }
-            board[cr][cc].state = .revealed
+            local[cr][cc].state = .revealed
             if cell.isMine {
-                handleLose()
-                return
+                hitMine = true
+                break
             }
             if cell.neighbors == 0 {
                 for dr in -1...1 {
                     for dc in -1...1 where !(dr == 0 && dc == 0) {
                         let nr = cr + dr, nc = cc + dc
-                        if nr >= 0, nr < rows, nc >= 0, nc < cols, board[nr][nc].state != .revealed {
+                        if nr >= 0, nr < rows, nc >= 0, nc < cols, local[nr][nc].state != .revealed {
                             stack.append((nr, nc))
                         }
                     }
                 }
             }
+        }
+        board = local
+
+        if hitMine {
+            handleLose()
+            return
         }
 
         if checkWin() {
@@ -220,12 +229,16 @@ final class GameModel {
     }
 
     private func flagAllMines() {
+        var local = board
+        var added = 0
         for r in 0..<rows {
-            for c in 0..<cols where board[r][c].isMine && board[r][c].state != .flagged {
-                board[r][c].state = .flagged
-                flagCount += 1
+            for c in 0..<cols where local[r][c].isMine && local[r][c].state != .flagged {
+                local[r][c].state = .flagged
+                added += 1
             }
         }
+        board = local
+        flagCount += added
     }
 
     func toggleFlag(_ r: Int, _ c: Int) {
@@ -447,11 +460,13 @@ final class GameModel {
     }
 
     private func revealAllMines() {
+        var local = board
         for r in 0..<rows {
-            for c in 0..<cols where board[r][c].isMine {
-                board[r][c].state = .revealed
+            for c in 0..<cols where local[r][c].isMine {
+                local[r][c].state = .revealed
             }
         }
+        board = local
     }
 
     private func checkWin() -> Bool {
