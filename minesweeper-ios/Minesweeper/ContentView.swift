@@ -195,9 +195,20 @@ final class GameModel {
     // MARK: private
 
     private func placeMines(safe: (Int, Int)) {
+        // PWA와 동일: 클릭한 칸 + 이웃 8칸(3×3 안전구역)은 지뢰 제외
+        // → 첫 클릭이 항상 0-이웃 칸이 되어 floodfill로 영역이 펼쳐짐
+        var safeSet = Set<Int>()
+        for dr in -1...1 {
+            for dc in -1...1 {
+                let nr = safe.0 + dr, nc = safe.1 + dc
+                if nr >= 0, nr < rows, nc >= 0, nc < cols {
+                    safeSet.insert(nr * cols + nc)
+                }
+            }
+        }
         var positions: [(Int, Int)] = []
         for r in 0..<rows {
-            for c in 0..<cols where (r, c) != safe {
+            for c in 0..<cols where !safeSet.contains(r * cols + c) {
                 positions.append((r, c))
             }
         }
