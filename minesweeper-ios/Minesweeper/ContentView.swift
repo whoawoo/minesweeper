@@ -265,12 +265,11 @@ final class GameModel {
 
     // MARK: private
 
-    // 추리모드 시도 횟수 — PWA는 desktop 기준 300, 모바일에선 30 정도가 응답성/품질 절충점
+    // 추리모드 시도 횟수 — PWA 300은 desktop 기준. 모바일은 10회로 단축 (첫 탭 응답성)
     private func placeMines(safe: (Int, Int)) {
-        // 로컬 배열에서만 mutate → @Observable 관찰자에 N번 통보되는 폭주 방지
         var local = board
         if AppSettings.deductionMode {
-            for _ in 0..<30 {
+            for _ in 0..<10 {
                 placeMinesRandom(safe: safe, on: &local)
                 if isSolvableNoGuess(firstR: safe.0, firstC: safe.1, on: local) {
                     board = local
@@ -1290,27 +1289,30 @@ struct BoardCanvasView: View, Equatable {
             ctx.fill(shadowPath, with: .color(.win95Shadow))
             ctx.stroke(revealedRectPath, with: .color(.win95Shadow.opacity(0.5)), lineWidth: 0.5)
 
-            // 2패스: 텍스트는 셀 단위로 (combine 불가)
+            // 2패스: 텍스트 — at: center, anchor: .center 로 명시 가운데 정렬
             for r in 0..<rows {
                 for c in 0..<cols {
                     let cell = board[r][c]
                     if cell.state == .hidden { continue }
-                    let x = CGFloat(c) * cellSize
-                    let y = CGFloat(r) * cellSize
-                    let rect = CGRect(x: x, y: y, width: cellSize, height: cellSize)
+                    let center = CGPoint(
+                        x: CGFloat(c) * cellSize + cellSize / 2,
+                        y: CGFloat(r) * cellSize + cellSize / 2
+                    )
                     switch cell.state {
                     case .hidden: break
                     case .flagged:
-                        ctx.draw(Text("🚩").font(.system(size: cellSize * 0.55)), in: rect)
+                        ctx.draw(Text("🚩").font(.system(size: cellSize * 0.55)),
+                                 at: center, anchor: .center)
                     case .revealed:
                         if cell.isMine {
-                            ctx.draw(Text("💣").font(.system(size: cellSize * 0.6)), in: rect)
+                            ctx.draw(Text("💣").font(.system(size: cellSize * 0.6)),
+                                     at: center, anchor: .center)
                         } else if cell.neighbors > 0 {
                             ctx.draw(
                                 Text("\(cell.neighbors)")
                                     .font(.system(size: cellSize * 0.65, weight: .black, design: .monospaced))
                                     .foregroundColor(BoardCanvasView.numberColor(cell.neighbors)),
-                                in: rect
+                                at: center, anchor: .center
                             )
                         }
                     }
