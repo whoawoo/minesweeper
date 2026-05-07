@@ -134,19 +134,32 @@ const TROPHY_SVG_C1 = `<svg class="trophy-svg" viewBox="0 0 110 110">
 
 const TROPHY_SVGS = [TROPHY_SVG_A1, TROPHY_SVG_B1, TROPHY_SVG_C1];
 
-const trophyAudioCache = {};
+// Web Audio API로 디코드 후 재생 — Android Chrome에서 SW가 캐시한 mp3를
+// HTMLAudioElement로 재생할 때 Range 헤더 처리 문제로 묵음/즉시 reject 되는 함정 회피.
+const trophyBufferCache = {};
+function loadTrophyBuffer(path) {
+  if (trophyBufferCache[path]) return trophyBufferCache[path];
+  const ctx = getAudio();
+  if (!ctx) return Promise.reject(new Error("no audio ctx"));
+  const p = fetch(path)
+    .then((r) => r.arrayBuffer())
+    .then((buf) => new Promise((resolve, reject) => {
+      ctx.decodeAudioData(buf, resolve, reject);
+    }))
+    .catch((err) => { delete trophyBufferCache[path]; throw err; });
+  trophyBufferCache[path] = p;
+  return p;
+}
 function playTrophyFile(path, onEnd) {
-  let a = trophyAudioCache[path];
-  if (!a) {
-    a = new Audio(path);
-    a.preload = "auto";
-    trophyAudioCache[path] = a;
-  }
-  try {
-    a.currentTime = 0;
-    a.onended = onEnd || null;
-    a.play().catch(() => { onEnd && onEnd(); });
-  } catch (e) { onEnd && onEnd(); }
+  const ctx = getAudio();
+  if (!ctx) { onEnd && onEnd(); return; }
+  loadTrophyBuffer(path).then((buffer) => {
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(ctx.destination);
+    src.onended = () => { onEnd && onEnd(); };
+    src.start();
+  }).catch(() => { onEnd && onEnd(); });
 }
 function playTrophySound(month, onEnd) {
   // 5번 중 한 번꼴(20%)로 랜덤 웃음, 단 직전이 웃음이었으면 무조건 동물
